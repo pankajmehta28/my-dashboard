@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sagar Dashboard Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-900">
+
+  <!-- Header -->
+  <div class="w-full bg-white shadow-md p-4 flex items-center justify-between fixed top-0 left-0 z-50">
+    <img src="https://www.thesagar.in/images/others/Sagar-Group-Logo.png" class="h-16 ml-4" />
+    <h1 class="text-2xl font-bold text-blue-900 text-center flex-grow">
+      Sagar Manufacturers Pvt. Ltd.
+    </h1>
+    <img src="https://www.sagarmanufacturers.com/assets/web/images/smpl-new-logo.png" class="h-16 mr-4" />
+  </div>
+
+  <!-- Login Form -->
+  <div class="flex items-center justify-center min-h-screen pt-24">
+    <div class="bg-white shadow-md rounded-md p-8 w-full max-w-sm">
+      <h2 class="text-2xl font-bold text-center text-blue-900 mb-6">Login</h2>
+      <input type="text" id="username" placeholder="Enter Username" class="w-full p-2 mb-4 border rounded" />
+      <input type="password" id="password" placeholder="Enter Password" class="w-full p-2 mb-6 border rounded" onkeypress="handleKeyPress(event)" />
+      <button onclick="login()" class="w-full bg-red-600 text-white font-semibold py-2 rounded hover:bg-red-700">
+        Login
+      </button>
+    </div>
+  </div>
+
+  <!-- Firebase and Script -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCuCKmVMgJG1r8Gm85Vh-CQpXhaE1Zj30k",
+      authDomain: "mywebsite-d860e.firebaseapp.com",
+      projectId: "mywebsite-d860e",
+      storageBucket: "mywebsite-d860e.appspot.com",
+      messagingSenderId: "91571295709",
+      appId: "1:91571295709:web:c22066105a47605655d234"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    function login() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const email = username + "@myapp.com";
+
+      firebase.auth().signInWithEmailAndPassword(email, password)
+        .then(() => {
+          window.location.href = "protected.html"; // auto-redirect, no alert
+        })
+        .catch(error => {
+          alert("Login failed: " + error.message);
+        });
+    }
+
+    function handleKeyPress(event) {
+      if (event.key === "Enter") {
+        login();
+      }
+    }
+  </script>
+</body>
+</html>

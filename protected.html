@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sagar Dashboard</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+<style>
+    body.bg-image {
+      background-image: url('https://i.ibb.co/Jjq36RnM/Sagar.jpg');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+    .header-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      background-color: white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional shadow */
+    }
+    .left-header {
+      display: flex;
+      align-items: center;
+    }
+    .left-header img {
+      height: 80px;
+      width: auto;
+      margin-right: 12px;
+    }
+    .left-header h1 {
+      font-size: 2rem; /* Adjusted font size */
+      font-weight: bold;
+      color: #1e3a8a;
+      white-space: nowrap; /* Prevent text wrapping */
+    }
+    .right-header img {
+      height: 80px;
+      width: auto;
+    }
+    .tab-button {
+      font-weight: bold;
+      color: #d71921;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+    }
+    .tab-button-active {
+      background-color: #d71921;
+      color: white !important;
+    }
+    .report-button {
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: fit-content;
+      transition: all 0.2s;
+    }
+    .button-container {
+      background-color: #ffffff;
+      padding: 1rem;
+      border-radius: 0.5rem;
+    }
+    .loading-spinner {
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid white;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+  </style>
+</head>
+<body class="h-full bg-white-100 text-white-800 bg-image">
+  <div class="min-h-screen flex flex-col">
+    <div class="header-container">
+      <div class="left-header">
+        <img
+          src="https://www.thesagar.in/images/others/Sagar-Group-Logo.png"
+          alt="Company Logo"
+        />
+       </div>
+  <div style="flex-grow: 1; display: flex; justify-content: center;">
+    <h1 class="header-title text-4xl font-bold" style="color: #1e3a8a;">Sagar Manufacturers Pvt. Ltd.</h1>
+  </div>
+      <div class="right-header">
+        <img
+          src="https://www.sagarmanufacturers.com/assets/web/images/smpl-new-logo.png"
+          alt="The Sagar Logo"
+        />
+<div class="mt-2">
+  <button onclick="logout()" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+    Logout
+  </button>
+</div>
+</div>
+</div>
+
+    <div class="py-4 bg-white text-center">
+      <h2 class="text-3xl font-bold text-[#d71921]">Manthan Quality Dashboard</h2>
+    </div>
+
+    <div class="flex flex-1">
+      <div
+        id="sidebar"
+        class="flex flex-col space-y-2 pl-6 pt-6 w-56 bg-white shadow-md"
+      >
+        <div
+          class="tab-button tab-button-active"
+          data-tab="cotton"
+          title="Cotton Section"
+        >
+          <i data-lucide="feather"></i>Cotton
+        </div>
+        <div class="tab-button" data-tab="quality" title="Quality Tests">
+          <i data-lucide="check-circle"></i>Quality
+        </div>
+        <div class="tab-button" data-tab="complaint" title="Complaint Report">
+          <i data-lucide="lightbulb"></i>Complaint
+        </div>
+        <div class="tab-button" data-tab="dispatch" title="Dispatch Reports">
+          <i data-lucide="truck"></i>Dispatch
+        </div>
+        <div class="tab-button" data-tab="upload" title="Upload Forms">
+          <i data-lucide="upload"></i>Upload
+        </div>
+      </div>
+
+      <div class="flex-1 p-6 bg-[#ffffff] border-l-4 border-[#d71921]">
+        <div id="cotton" class="tab-panel space-y-4">
+          <div class="button-container space-y-3">
+            <button
+              class="report-button bg-blue-600 text-white hover:bg-blue-700"
+              onclick="window.location.href='https://pankajmehta28.github.io/my-dashboard/Cotton Dashboard Final - input type'"
+              title="Submit Cotton Mixing File"
+            >
+              <i data-lucide="file-text"></i>Cotton Mixing Results (Input File)
+            </button>
+            <button
+              class="report-button bg-green-600 text-white hover:bg-green-700"
+              onclick="window.location.href='https://pankajmehta28.github.io/my-dashboard/Cotton Dashboard Final'"
+              title="View Cotton Dashboard"
+            >
+              <i data-lucide="layout"></i>Cotton Mixing Results Dashboard
+            </button>
+          </div>
+        </div>
+
+        <div id="quality" class="tab-panel hidden space-y-4">
+          <div class="button-container space-y-3">
+            <button
+              class="report-button bg-yellow-600 text-white hover:bg-yellow-700"
+              onclick="window.location.href='https://pankajmehta28.github.io/my-dashboard/UQE DASHBOARD'"
+              title="View Quantum Report"
+            >
+              <i data-lucide="bar-chart"></i>Uster Quantum Dashboard
+            </button>
+            <button
+              class="report-button bg-blue-600 text-white hover:bg-blue-700"
+              onclick="window.location.href='https://pankajmehta28.github.io/my-dashboard/Final Code of YR input type'"
+              title="Yarn Realization Dashboard"
+            >
+              <i data-lucide="activity"></i>Yarn Realization (Input File)
+            </button>
+            <button
+              class="report-button bg-green-600 text-white hover:bg-green-700"
+              onclick="window.location.href='https://pankajmehta28.github.io/my-dashboard/Final Code of YR Dashboard'"
+              title="Yarn Realization Dashboard"
+            >
+              <i data-lucide="activity"></i>Yarn Realization Dashboard
+            </button>
+          </div>
+        </div>
+
+        <div id="complaint" class="tab-panel hidden space-y-4">
+          <div class="button-container space-y-3">
+            <button
+              class="report-button bg-blue-600 text-white hover:bg-blue-700"
+              onclick="window.location.href='https://pankajmehta28.github.io/my-dashboard/Complaint Dashboard-Chart View input file'"
+              title="View Complaint Report"
+            >
+              <i data-lucide="bar-chart"></i>Complaint Summary-Chart View
+              (Input File)
+            </button>
+            <button
+              class="report-button bg-blue-600 text-white hover:bg-blue-700"
+              onclick="window.location.href='https://pankajmehta28.github.io/my-dashboard/Complaint Dashboard-Table View input file'"
+              title="View Complaint Report"
+            >
+              <i data-lucide="activity"></i>Complaint Summary-Table View
+              (Input File)
+            </button>
+            <button
+              class="report-button bg-green-600 text-white hover:bg-green-700"
+              onclick="window.location.href='https://pankajmehta28.github.io/my-dashboard/Complaint Dashboard-Chart View Dashboard'"
+              title="View Complaint Report"
+            >
+              <i data-lucide="bar-chart"></i>Complaint Summary-Chart View
+              (Dashboard)
+            </button>
+            <button
+              class="report-button bg-yellow-600 text-white hover:bg-yellow-700"
+              onclick="window.location.href='https://pankajmehta28.github.io/my-dashboard/Complaint Dashboard-Table View Dashboard'"
+              title="View Complaint Report"
+            >
+              <i data-lucide="activity"></i>Complaint Summary-Table View
+              (Dashboard)
+            </button>
+          </div>
+        </div>
+
+        <div id="dispatch" class="tab-panel hidden space-y-4">
+          <div class="button-container space-y-3">
+            <button
+              class="report-button bg-blue-600 text-white hover:bg-blue-700"
+              onclick="window.location.href='https://pankajmehta28.github.io/my-dashboard/UQE DASHBOARD'"
+              title="View Complaint Report"
+            >
+              <i data-lucide="Truck"></i>Dispatch Details Dashboard
+            </button>
+            <button
+              class="report-button bg-green-600 text-white hover:bg-green-700"
+              onclick="window.location.href='https://pankajmehta28.github.io/my-dashboard/UQE DASHBOARD'"
+              title="View Complaint Report"
+            >
+              <i data-lucide="file-text"></i>Dispatch Test Results Dashboard
+            </button>
+          </div>
+        </div>
+
+        <div id="upload" class="tab-panel hidden space-y-4">
+          <div class="button-container space-y-3">
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSc2TgwkDslxHwnG_5_1_nBKfgr-LOrNsJA74busTems6ujt8w/viewform?usp=sharing"
+              target="_blank"
+              class="report-button bg-purple-600 text-white hover:bg-purple-700"
+              title="Submit Cotton Mixing Results"
+              ><i data-lucide="edit-3"></i>1. Cotton Mixing Results</a
+            >
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSfCFKdXeJ3B1ORnZ-nGhfcP2x_cedGelc7ejmzGlorJhrYEhQ/viewform?usp=sharing"
+              target="_blank"
+              class="report-button bg-purple-600 text-white hover:bg-purple-700"
+              title="Upload Uster File"
+              ><i data-lucide="upload-cloud"></i>2. Uster Quantum File</a
+            >
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSfF9_NAOAILwxaj0TRS88ivVuCu2gBlIQBCUuQnTMj1MmO_tQ/viewform?usp=sharing"
+              target="_blank"
+              class="report-button bg-green-600 text-white hover:bg-green-700"
+              title="Submit Yarn Recovery"
+              ><i data-lucide="activity"></i>3. Yarn Recovery</a
+            >
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSfCFKdXeJ3B1ORnZ-nGhfcP2x_cedGelc7ejmzGlorJhrYEhQ/viewform?usp=sharing"
+              target="_blank"
+              class="report-button bg-green-600 text-white hover:bg-green-700"
+              title="Submit Complaint File"
+              ><i data-lucide="alert-octagon"></i>4. Complaint File</a
+            >
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSfCFKdXeJ3B1ORnZ-nGhfcP2x_cedGelc7ejmzGlorJhrYEhQ/viewform?usp=sharing"
+              target="_blank"
+              class="report-button bg-yellow-600 text-white hover:bg-yellow-700"
+              title="Submit Yarn Dispatch"
+              ><i data-lucide="send"></i>5. Yarn Dispatch</a
+            >
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSfCFKdXeJ3B1ORnZ-nGhfcP2x_cedGelc7ejmzGlorJhrYEhQ/viewform?usp=sharing"
+              target="_blank"
+              class="report-button bg-yellow-600 text-white hover:bg-yellow-700"
+              title="Upload Dispatch Test Results"
+              ><i data-lucide="clipboard-list"></i>6. Dispatch Test Results</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Paste your firebaseConfig here
+    const firebaseConfig = {
+      apiKey: "AIzaSyCuCKmVMgJG1r8Gm85Vh-CQpXhaE1Zj30k",
+      authDomain: "mywebsite-d860e.firebaseapp.com",
+      projectId: "mywebsite-d860e",
+      storageBucket: "mywebsite-d860e.firebasestorage.app",
+      messagingSenderId: "91571295709",
+      appId: "1:91571295709:web:c22066105a47605655d234"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // Redirect if not logged in
+    firebase.auth().onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = "index.html"; // redirect to login if user is not logged in
+      }
+    });
+
+    // Logout function
+   function logout() {
+    firebase.auth().signOut().then(() => {
+      alert("Logged out successfully!");
+      // Redirect to login page or reload
+      window.location.href = "index.html"; // <-- Change this to your login page
+    }).catch((error) => {
+      console.error("Logout Error:", error);
+      alert("Error logging out.");
+    });
+  }
+
+   lucide.createIcons();
+
+    const tabs = document.querySelectorAll('.tab-button');
+    const panels = document.querySelectorAll('.tab-panel');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const target = tab.getAttribute('data-tab');
+        tabs.forEach(t => t.classList.remove('tab-button-active'));
+        tab.classList.add('tab-button-active');
+        panels.forEach(p => p.classList.add('hidden'));
+        document.getElementById(target).classList.remove('hidden');
+      });
+    });
+
+    function openLink(button, url) {
+      const original = button.innerHTML;
+      button.innerHTML = '<span class="loading-spinner"></span> Loading...';
+      setTimeout(() => {
+        window.open(url, '_blank');
+        button.innerHTML = original;
+      }, 800);
+    }
+  </script>
+</body>
+</html>
