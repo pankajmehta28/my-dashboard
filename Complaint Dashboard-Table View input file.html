@@ -368,6 +368,12 @@
            <button id="showReorderPanelButton">Reorder Columns</button>
        </div>
 
+<div class="flex justify-end p-4">
+ <button onclick="goBack()" class="bg-blue-600 font-bold text-white h-fit px-4 py-2 rounded hover:bg-blue-700 mt-6">
+    ← Home
+  </button>
+</div>
+
         <!-- Combined Layout, Width, and Alignment Controls -->
         <span style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; flex-grow: 1;" id="layoutAndWidthControls">
             <span style="display: flex; align-items: center; gap: 10px; border: 1px solid #ccc; padding: 8px; border-radius: 4px; background-color: #f9f9f9; display: none;" id="layoutControlsContent">
@@ -1014,7 +1020,9 @@
         populateColumnWidthSelect();
         populateColumnAlignmentSelect();
     }
-
+function goBack() {
+    window.location.href = "protected.html";
+  }
 
     function displayTable(data, columnsToDisplay) {
         const tableContainer = document.getElementById('tableContainer');
