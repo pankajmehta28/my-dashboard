@@ -86,10 +86,17 @@
 
         <h2 class="text-3xl font-bold mb-6 text-center text-black-800">Yarn Realization Dashboard</h2>
 
-        <div class="bg-white shadow-md rounded p-4 mb-6">
-            <button id="loadDataButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold rounded p-2 mb-4">
-                Load Data
-            </button>
+<div class="flex justify-between items-center gap-4 mb-4">
+  <button id="loadDataButton"
+    class="px-4 py-2 bg-blue-600 font-bold text-white rounded shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+    Load Data
+  </button>
+
+  <button onclick="goBack()"
+    class="px-4 py-2 bg-blue-500 font-bold text-white rounded shadow hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400">
+    ← Home
+  </button>
+</div>
 
             <div class="grid md:grid-cols-6 gap-4 items-end">
                 <div class="md:col-span-1">
@@ -486,7 +493,9 @@
             `;
             updateMonthButtonText(); // Update button text after populating
         }
-
+function goBack() {
+    window.location.href = "protected.html";
+  }
         function updateMonthButtonText() {
             const selectedMonths = getSelectedMonths();
             const allMonthsSelected = monthFilterList.querySelectorAll('input[type="checkbox"]:not([value="all"])').length === selectedMonths.length && selectedMonths.length > 0;
