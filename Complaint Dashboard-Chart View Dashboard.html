@@ -268,24 +268,30 @@
 
 
         <div class="controls">
+  <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 1rem;">
+    
+    <!-- Load buttons (left side) -->
+    <div style="display: inline-flex; gap: 1rem;">
+      <button onclick="loadFromSupabase('yarn complaint data.xlsx')" style="background-color: #007BFF; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+        Load Yarn Complaint Data
+      </button>
+      <button onclick="loadFromSupabase('fabric complaint data.xlsx')" style="background-color: #007BFF; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+        Load Fabric Complaint Data
+      </button>
+    </div>
 
-    <div style="width: 100%; text-align: left; margin-bottom: 1rem;">
-  <div style="display: inline-flex; gap: 1rem;">
-    <button onclick="loadFromSupabase('yarn complaint data.xlsx')" style="background-color: #007BFF; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">
-      Load Yarn Complaint Data
-    </button>
-    <button onclick="loadFromSupabase('fabric complaint data.xlsx')" style="background-color: #007BFF; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">
-      Load Fabric Complaint Data
-    </button>
+    <!-- Back button (right side) -->
+    <div>
+      <button onclick="goBack()" style="background-color: #007BFF; color: white; padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold;">
+        ← Home
+      </button>
+    </div>
+
   </div>
 </div>
 
-<div class="flex justify-end p-4">
-  <button onclick="goBack()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-    ← Back to Dashboard
-  </button>
-</div>
-            </div>
+
+           </div>
             <div class="control-row"> <!-- Removed margin-top as control-row has margin-bottom -->
                 <div>
                     <label for="productFilter" class="filter-label">Product:</label>
@@ -595,9 +601,7 @@ async function handleYarnFile(event) {
                 updateDashboard();
             }
         }
- function goBack() {
-    window.location.href = "protected.html";
-  }
+
         function parseExcelData(file, productType) {
             const reader = new FileReader();
             reader.onload = function (e) {
@@ -746,6 +750,10 @@ async function handleYarnFile(event) {
             console.log("Product changed to:", currentProduct); // Log product change
             resetDashboard(); // Reset filters when product changes - important!
         }
+
+function goBack() {
+    window.location.href = "protected.html";
+  }
 
         function updateDashboard() {
             if (currentProduct === 'yarn') {
