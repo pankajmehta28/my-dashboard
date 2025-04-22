@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
         body {
-            background-color: #d8f3dc;
+            background-color: #e2f7e4;
             font-family: 'Segoe UI', sans-serif;
         }
 
@@ -81,15 +81,21 @@
         <div class="flex items-center mb-6">
             <img src="https://www.sagarmanufacturers.com/assets/web/images/smpl-new-logo.png" alt="Company Logo"
                 class="h-20 mr-4" />
-            <h1 class="text-4xl font-bold text-blue-900">Sagar Manufacturers Pvt. Ltd.</h1>
+           <h1 class="text-3xl font-bold text-blue-800">Sagar Manufacturers Pvt. Ltd.</h1>
         </div>
+        <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Complaint Dashboard</h2>
 
-        <h2 class="text-3xl font-bold mb-6 text-center text-black-800">Yarn Realization Dashboard</h2>
+         <div class="flex items-center justify-between mb-4 gap-4">
+  <div class="flex flex-col">
+    <label class="block mb-2 font-medium font-bold text-blue-700">Upload Excel File:</label>
+    <input type="file" id="fileInput" accept=".xlsx"
+      class="p-2 border rounded w-full max-w-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+  </div>
 
-        <div class="bg-white shadow-md rounded p-4 mb-6">
-            <label class="block mb-2 font-medium text-gray-700">Upload Excel File:</label>
-            <input type="file" id="fileInput" accept=".xlsx"
-                class="block w-full border border-gray-300 rounded p-2 mb-4" />
+  <button onclick="goBack()" class="bg-blue-600 font-bold text-white h-fit px-4 py-2 rounded hover:bg-blue-700 mt-6">
+    ← Home
+  </button>
+</div>
 
             <div class="grid md:grid-cols-6 gap-4 items-end">
                 <div class="md:col-span-1">
@@ -485,7 +491,9 @@
             `;
             updateUnitButtonText();
         }
-
+function goBack() {
+    window.location.href = "protected.html";
+  }
          function updateUnitButtonText() {
              const selectedUnits = getSelectedUnits();
              const allUnitsSelected = unitFilterList.querySelectorAll('input[type="checkbox"]:not([value="all"])').length === selectedUnits.length && selectedUnits.length > 0;
