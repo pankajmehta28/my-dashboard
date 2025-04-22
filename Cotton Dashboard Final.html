@@ -38,12 +38,17 @@
         </div>
         <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Cotton Mixing Results Trend Dashboard</h2>
 
-        <div class="mb-4">
-            <button id="loadBtn"
-                class="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                Load Data
-            </button>
-        </div>
+       <div class="flex justify-between items-center gap-4 mb-4">
+  <button id="loadBtn"
+    class="px-4 py-2 bg-blue-600 font-bold text-white rounded shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+    Load Data
+  </button>
+
+  <button onclick="goBack()"
+    class="px-4 py-2 bg-blue-500 font-bold text-white rounded shadow hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400">
+    ← Home
+  </button>
+</div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div>
@@ -442,7 +447,9 @@
             }
             return averages;
         }
-
+ function goBack() {
+    window.location.href = "protected.html";
+  }
         function renderCharts(labels, averages) {
             const dataForChart1 = ['Avg_UHML', 'Avg_SFI', 'Avg_Trash', 'Avg_RD'].map(field => ({
                 label: field,
