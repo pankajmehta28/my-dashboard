@@ -171,7 +171,7 @@
      #reorderControls button:hover {
          background-color: #e0a800;
      }
-
+   
     #pdfRemarksInputContainer { /* Style for remarks input */
         display: flex;
         align-items: center;
@@ -384,6 +384,12 @@
         <div id="reorderControls" style="display: none;">
            <button id="showReorderPanelButton">Reorder Columns</button>
        </div>
+
+<div class="flex justify-end p-4">
+ <button onclick="goBack()" class="bg-blue-600 font-bold text-white h-fit px-4 py-2 rounded hover:bg-blue-700 mt-6">
+    ← Home
+  </button>
+</div>
 
         <!-- Combined Layout, Width, and Alignment Controls -->
         <span style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; flex-grow: 1;" id="layoutAndWidthControls">
@@ -875,6 +881,9 @@ async function loadFabricData() {
          // Add event listeners to the newly created filter elements
          addFilterEventListeners();
      }
+function goBack() {
+    window.location.href = "protected.html";
+  }	
 
     function addFilterEventListeners() {
         document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
