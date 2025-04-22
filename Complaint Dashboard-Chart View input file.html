@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Complaint Charts</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0fdf4;
+            padding: 20px;
+            width: 100%; /* Use full width */
+            margin: 0; /* Remove default body margin */
+            box-sizing: border-box; /* Include padding in width */
+        }
+        .container { /* Added a container for overall structure */
+             width: 100%; /* Use full width */
+             padding: 0 20px; /* Add some horizontal padding */
+             box-sizing: border-box;
+        }
+        .controls {
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%; /* Use full width */
+        }
+        .control-row { /* Use this class for your flex rows */
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px; /* Adjusted gap for spacing */
+            align-items: center;
+            justify-content: flex-start; /* Align items to the start of the row */
+            width: 100%; /* Use full width */
+             margin-bottom: 10px; /* Space between control rows */
+        }
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Flexible columns */
+            gap: 20px;
+            width: 100%; /* Use full width */
+            margin-bottom: 20px;
+        }
+        .chart-item {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+             box-sizing: border-box; /* Include padding in width */
+        }
+
+        /* Style for the last two charts in the grid to span 2 columns each */
+        /* Assuming 10 charts total (8 original + 2 new), placed in a 4+4+2 layout */
+        .chart-grid > .chart-item:nth-last-child(-n+2) {
+             grid-column: span 2;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 100%;
+        }
+        .chart-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+        .chart-controls span {
+            cursor: pointer;
+            font-size: 1.2em;
+            color: #555;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .chart-controls span:hover {
+            color: #333;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        .number-display {
+            text-align: center;
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: black; /* Set to black */
+            font-weight: bold; /* Make it bold */
+        }
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px; /* Increased space below header */
+            width: 100%; /* Use full width */
+             justify-content: flex-start; /* Align header content to the left */
+        }
+         .dashboard-header img {
+             flex-shrink: 0; /* Prevent logo from shrinking */
+         }
+        .company-name {
+            color: #0000A0;
+            margin-left: 12px;
+             flex-shrink: 0; /* Prevent name from shrinking */
+        }
+        .dashboard-title {
+            color: black;
+            text-align: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        h2 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+        .filter-section {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            /* margin-bottom: 10px; Removed as control-row has bottom margin */
+        }
+        .filter-label {
+            color: #0000A0;
+            font-weight: bold;
+            margin-right: 5px;
+             /* margin-bottom: 5px; Removed as it's in a flex row */
+        }
+        .filter-dropdown {
+            position: relative;
+            display: flex; /* Arrange label and dropdown toggle inline */
+            align-items: center; /* Vertically align items */
+            gap: 5px; /* Space between label and toggle */
+        }
+         .filter-dropdown > .filter-label { /* Style the label acting as the filter name */
+             margin-bottom: 0; /* Remove bottom margin when in flex row */
+             align-self: center; /* Vertically align with the dropdown toggle */
+         }
+        .filter-dropdown > .dropdown-toggle-label { /* Style the label that toggles the dropdown */
+            cursor: pointer;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            display: block;
+            width: 120px; /* Adjusted width */
+            text-align: center;
+             flex-shrink: 0; /* Prevent shrinking */
+        }
+         .filter-dropdown > .dropdown-toggle-label::after {
+            content: ' ▼'; /* Add a dropdown indicator */
+            font-size: 0.8em;
+        }
+        .filter-dropdown-content {
+            position: absolute;
+            z-index: 1;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-top: 5px;
+            display: none;
+            width: 100px;
+            left: 0;
+            padding: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add shadow */
+        }
+        .filter-dropdown-content.show {
+            display: block;
+        }
+        .filter-dropdown-content div {
+            margin-bottom: 5px;
+        }
+        .filter-dropdown-content button {
+            margin-top: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            background-color: #eee; /* Button background */
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+         .filter-dropdown-content button:hover {
+             background-color: #ddd;
+         }
+
+
+        /* Styles for fullscreen */
+        .chart-item:-webkit-full-screen {
+            background-color: white;
+            border-radius: 0;
+            box-shadow: none;
+            padding: 20px;
+        }
+
+        .chart-item:-moz-full-screen {
+            background-color: white;
+            border-radius: 0;
+            box-shadow: none;
+            padding: 20px;
+        }
+
+        .chart-item:-ms-fullscreen {
+            background-color: white;
+            border-radius: 0;
+            box-shadow: none;
+            padding: 20px;
+        }
+
+        .chart-item:fullscreen {
+            background-color: white;
+            border-radius: 0;
+            box-shadow: none;
+            padding: 20px;
+        }
+
+        .upload-item {
+            display: flex; /* Arrange label and input side-by-side */
+            align-items: center;
+            gap: 5px; /* Space between label and input */
+        }
+
+        .upload-label {
+            color: #0000A0; /* Match filter name color */
+            font-weight: bold;
+             white-space: nowrap; /* Prevent label wrapping */
+        }
+
+        #refreshButton {
+            background-color: #0000A0;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        #refreshButton:hover {
+            background-color: #000070; /* Darker shade on hover */
+        }
+
+    </style>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="container"> <!-- Main container -->
+        <div class="dashboard-header">
+            <img src="https://www.sagarmanufacturers.com/assets/web/images/smpl-new-logo.png" alt="Company Logo"
+                 style="height: 80px; width: auto; margin-right: 12px;">
+            <h1 class="company-name">Sagar Manufacturers Pvt. Ltd.</h1>
+             <!-- The dashboard title can be placed outside the flex header if needed to span full width -->
+        </div>
+         <h2 class="dashboard-title">Complaint Dashboard</h2>
+
+
+        <div class="controls">
+            <div class="control-row">
+                <div class="upload-item">
+                    <label for="yarnExcelFile" class="upload-label">Upload Yarn Complaints:</label>
+                    <input type="file" id="yarnExcelFile" accept=".xlsx, .xls">
+                </div>
+                <div class="upload-item">
+                    <label for="fabricExcelFile" class="upload-label">Upload Fabric Complaints:</label>
+                    <input type="file" id="fabricExcelFile" accept=".xlsx, .xls">
+                </div>
+            </div>
+            <div class="control-row"> <!-- Removed margin-top as control-row has margin-bottom -->
+                <div>
+                    <label for="productFilter" class="filter-label">Product:</label>
+                    <select id="productFilter">
+                        <option value="">-- Select Product --</option>
+                        <option value="yarn">Yarn</option>
+                        <option value="fabric">Fabric</option>
+                    </select>
+                </div>
+                <div class="filter-section filter-dropdown">
+                    <label class="filter-label">Receive Year:</label>
+                    <label class="dropdown-toggle-label" id="receiveYearToggleLabel">Select Year</label>
+                    <div class="filter-dropdown-content" id="receiveYearFilterContent">
+                         <button id="selectAllReceiveYears">Select All</button>
+                         <!-- Checkboxes will be populated here by JavaScript -->
+                    </div>
+                </div>
+                <div class="filter-section filter-dropdown">
+                    <label class="filter-label">MFG Year:</label>
+                    <label class="dropdown-toggle-label" id="mfgYearToggleLabel">Select Year</label>
+                    <div class="filter-dropdown-content" id="mfgYearFilterContent">
+                        <button id="selectAllMfgYears">Select All</button>
+                         <!-- Checkboxes will be populated here by JavaScript -->
+                    </div>
+                </div>
+                <button id="refreshButton" disabled>Refresh Charts</button>
+            </div>
+            <!-- Hidden date filters (kept for reference from previous code) -->
+            <div class="date-filter-group" style="display: none;">
+                <label for="dateFilterType">Filter by Date:</label>
+                <select id="dateFilterType">
+                    <option value="QUERY RECEIVED DATE">Query Received Date</option>
+                    <option value="MFG MONTH">MFG Month</option>
+                </select>
+            </div>
+            <div class="date-filters" style="display: none;">
+                <div class="filter-section">
+                    <label>Month:</label>
+                    <div id="monthFilter"></div>
+                    <button id="selectAllMonths">Select All</button>
+                </div>
+            </div>
+            <p id="fileInfo" style="display: none;"></p>
+        </div>
+
+        <div class="number-display">
+            Total Complaints: <span id="totalComplaints">0</span>
+        </div>
+
+        <div class="chart-grid">
+            <div class="chart-item">
+                <div class="chart-controls">
+                    <span class="download-icon" data-chart="unitChart" title="Download Chart">↓</span>
+                    <span class="expand-icon" data-chart="unitChart" title="Fullscreen Chart">↗</span>
+                </div>
+                <div class="chart-container"><canvas id="unitChart"></canvas></div>
+            </div>
+            <div class="chart-item">
+                <div class="chart-controls">
+                    <span class="download-icon" data-chart="marketChart" title="Download Chart">↓</span>
+                    <span class="expand-icon" data-chart="marketChart" title="Fullscreen Chart">↗</span>
+                </div>
+                <div class="chart-container"><canvas id="marketChart"></canvas></div>
+            </div>
+            <div class="chart-item">
+                <div class="chart-controls">
+                    <span class="download-icon" data-chart="statusChart" title="Download Chart">↓</span>
+                    <span class="expand-icon" data-chart="statusChart" title="Fullscreen Chart">↗</span>
+                </div>
+                <div class="chart-container"><canvas id="statusChart"></canvas></div>
+            </div>
+            <div class="chart-item">
+                <div class="chart-controls">
+                    <span class="download-icon" data-chart="complaintModeChart" title="Download Chart">↓</span>
+                    <span class="expand-icon" data-chart="complaintModeChart" title="Fullscreen Chart">↗</span>
+                </div>
+                <div class="chart-container"><canvas id="complaintModeChart"></canvas></div>
+            </div>
+            <div class="chart-item">
+                <div class="chart-controls">
+                    <span class="download-icon" data-chart="departmentChart" title="Download Chart">↓</span>
+                    <span class="expand-icon" data-chart="departmentChart" title="Fullscreen Chart">↗</span>
+                </div>
+                <div class="chart-container"><canvas id="departmentChart"></canvas></div>
+            </div>
+             <div class="chart-item">
+                <div class="chart-controls">
+                    <span class="download-icon" data-chart="complaintOrFeedbackChart" title="Download Chart">↓</span>
+                    <span class="expand-icon" data-chart="complaintOrFeedbackChart" title="Fullscreen Chart">↗</span>
+                </div>
+                <div class="chart-container"><canvas id="complaintOrFeedbackChart"></canvas></div>
+            </div>
+            <div class="chart-item">
+                <div class="chart-controls">
+                    <span class="download-icon" data-chart="customerTypeChart" title="Download Chart">↓</span>
+                    <span class="expand-icon" data-chart="customerTypeChart" title="Fullscreen Chart">↗</span>
+                </div>
+                <div class="chart-container"><canvas id="customerTypeChart"></canvas></div>
+            </div>
+            <div class="chart-item">
+                <div class="chart-controls">
+                    <span class="download-icon" data-chart="typeOfComplaintChart" title="Download Chart">↓</span>
+                    <span class="expand-icon" data-chart="typeOfComplaintChart" title="Fullscreen Chart">↗</span>
+                </div>
+                <div class="chart-container"><canvas id="typeOfComplaintChart"></canvas></div>
+            </div>
+             <div class="chart-item">
+                <div class="chart-controls">
+                    <span class="download-icon" data-chart="mfgQuarterChart" title="Download Chart">↓</span>
+                    <span class="expand-icon" data-chart="mfgQuarterChart" title="Fullscreen Chart">↗</span>
+                </div>
+                <div class="chart-container"><canvas id="mfgQuarterChart"></canvas></div>
+            </div>
+            <div class="chart-item">
+                <div class="chart-controls">
+                    <span class="download-icon" data-chart="customerNameChart" title="Download Chart">↓</span>
+                    <span class="expand-icon" data-chart="customerNameChart" title="Fullscreen Chart">↗</span>
+                </div>
+                <div class="chart-container"><canvas id="customerNameChart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- Modal for expanded chart -->
+        <div id="expandedChartModal" style="display: none;">
+            <div id="expandedChartContainer">
+                <button id="closeExpandedChart">&times;</button>
+                <canvas id="expandedChartCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+    <script>
+        Chart.register(ChartDataLabels);
+
+        const yarnFileInput = document.getElementById('yarnExcelFile');
+        const fabricFileInput = document.getElementById('fabricExcelFile');
+        const productFilter = document.getElementById('productFilter');
+        const fileInfo = document.getElementById('fileInfo');
+        const refreshButton = document.getElementById('refreshButton');
+        const totalComplaintsDisplay = document.getElementById('totalComplaints');
+        const marketCanvas = document.getElementById('marketChart');
+        const statusCanvas = document.getElementById('statusChart');
+        const unitCanvas = document.getElementById('unitChart');
+        const complaintModeCanvas = document.getElementById('complaintModeChart');
+        const departmentCanvas = document.getElementById('departmentChart');
+        const typeOfComplaintCanvas = document.getElementById('typeOfComplaintChart');
+
+        // Variable names for year filter dropdown toggles and content
+        const receiveYearToggleLabel = document.getElementById('receiveYearToggleLabel');
+        const receiveYearFilterContent = document.getElementById('receiveYearFilterContent');
+        const mfgYearToggleLabel = document.getElementById('mfgYearToggleLabel');
+        const mfgYearFilterContent = document.getElementById('mfgYearFilterContent');
+        const selectAllReceiveYearsButton = document.getElementById('selectAllReceiveYears');
+        const selectAllMfgYearsButton = document.getElementById('selectAllMfgYears');
+
+        const complaintOrFeedbackCanvas = document.getElementById('complaintOrFeedbackChart');
+        const customerTypeCanvas = document.getElementById('customerTypeChart');
+        const mfgQuarterCanvas = document.getElementById('mfgQuarterChart');
+        const customerNameCanvas = document.getElementById('customerNameChart');
+
+
+        const downloadIcons = document.querySelectorAll('.download-icon');
+        const expandIcons = document.querySelectorAll('.expand-icon');
+        const expandedChartModal = document.getElementById('expandedChartModal');
+        const expandedChartCanvas = document.getElementById('expandedChartCanvas');
+        const closeExpandedChartButton = document.getElementById('closeExpandedChart');
+        const expandedChartContext = expandedChartCanvas.getContext('2d');
+
+        // Initialize chart instances to null
+        let marketChartInstance = null;
+        let statusChartInstance = null;
+        let unitChartInstance = null;
+        let complaintModeChartInstance = null;
+        let departmentChartInstance = null;
+        let typeOfComplaintChartInstance = null;
+        let complaintOrFeedbackChartInstance = null;
+        let customerTypeChartInstance = null;
+        let mfgQuarterChartInstance = null;
+        let customerNameChartInstance = null;
+
+        let yarnComplaintData = [];
+        let fabricComplaintData = [];
+        let currentFilter = null;
+        let filteredData = [];
+        let currentProduct = '';
+        let activeComplaintData = []; // To store the currently used dataset
+
+        // Use Sets for multi-select checkboxes
+        let selectedReceiveYears = new Set();
+        let selectedMfgYears = new Set();
+
+
+        yarnFileInput.addEventListener('change', handleYarnFile);
+        fabricFileInput.addEventListener('change', handleFabricFile);
+        productFilter.addEventListener('change', handleProductChange);
+
+        // Event listeners for dropdown toggles
+        receiveYearToggleLabel.addEventListener('click', (event) => {
+             event.stopPropagation(); // Prevent document click from closing immediately
+             receiveYearFilterContent.classList.toggle('show');
+             mfgYearFilterContent.classList.remove('show'); // Close other dropdown
+        });
+         mfgYearToggleLabel.addEventListener('click', (event) => {
+             event.stopPropagation(); // Prevent document click from closing immediately
+             mfgYearFilterContent.classList.toggle('show');
+             receiveYearFilterContent.classList.remove('show'); // Close other dropdown
+         });
+
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.filter-dropdown-content') && !event.target.closest('.dropdown-toggle-label')) {
+                receiveYearFilterContent.classList.remove('show');
+                mfgYearFilterContent.classList.remove('show');
+            }
+        });
+
+
+        refreshButton.addEventListener('click', resetDashboard);
+
+        // Event listeners for download icons
+        downloadIcons.forEach(icon => {
+            icon.addEventListener('click', function() {
+                const chartId = this.dataset.chart;
+                downloadChart(chartId);
+            });
+        });
+
+        // Event listeners for expand/fullscreen icons
+        expandIcons.forEach(icon => {
+            icon.addEventListener('click', function() {
+                const chartId = this.dataset.chart;
+                requestFullscreenForChart(chartId);
+            });
+        });
+
+        // Event listener to close the expanded chart modal
+        closeExpandedChartButton.addEventListener('click', () => {
+            expandedChartModal.style.display = 'none';
+        });
+
+        function handleYarnFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                console.log("Yarn file selected:", file.name); // Log file selection
+                refreshButton.disabled = true;
+                parseExcelData(file, 'yarn');
+            } else {
+                yarnComplaintData = [];
+                console.log("Yarn file selection cleared."); // Log file cleared
+                updateDashboard();
+            }
+        }
+
+        function handleFabricFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                 console.log("Fabric file selected:", file.name); // Log file selection
+                refreshButton.disabled = true;
+                parseExcelData(file, 'fabric');
+            } else {
+                fabricComplaintData = [];
+                console.log("Fabric file selection cleared."); // Log file cleared
+                updateDashboard();
+            }
+        }
+
+        function parseExcelData(file, productType) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                try {
+                     // Use { raw: false } to get formatted values, might help with dates/numbers
+                     // Use { header: 1 } to get an array of arrays and manually handle header
+                     const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
+                    if (!rawData || rawData.length === 0) {
+                        console.error("No data found in the sheet.");
+                         if (productType === 'yarn') {
+                            yarnComplaintData = [];
+                        } else if (productType === 'fabric') {
+                            fabricComplaintData = [];
+                        }
+                        updateDashboard();
+                        return;
+                    }
+
+                    const header = rawData[0];
+                     if (!header || header.length === 0) {
+                        console.error("Header row not found in the sheet.");
+                         if (productType === 'yarn') {
+                            yarnComplaintData = [];
+                        } else if (productType === 'fabric') {
+                            fabricComplaintData = [];
+                        }
+                        updateDashboard();
+                        return;
+                     }
+                    console.log("Excel Header:", header); // Log header
+
+
+                    const parsedData = rawData.slice(1).map(row => {
+                        const item = {};
+                        header.forEach((key, index) => {
+                             // Handle potential undefined or null values in rows gracefully
+                             const cellValue = row[index];
+                             item[key] = (cellValue === undefined || cellValue === null) ? '' : cellValue;
+                        });
+
+                        // Explicitly handle known columns and data types
+                        if (item.hasOwnProperty('UNIT NO')) {
+                            item['UNIT NO'] = String(item['UNIT NO']).trim();
+                             if (item['UNIT NO'] === '') item['UNIT NO'] = 'N/A'; // Default value if empty after trim
+                        } else {
+                             item['UNIT NO'] = 'N/A'; // Default value if column is missing
+                        }
+
+                         // Handle RECEIVE YEAR
+                         if (item.hasOwnProperty('RECEIVE YEAR')) {
+                             const rawReceiveYear = item['RECEIVE YEAR'];
+                             if (rawReceiveYear !== null && rawReceiveYear !== undefined && String(rawReceiveYear).trim() !== '') {
+                                  const parsedYear = parseInt(rawReceiveYear);
+                                  item['RECEIVE YEAR'] = isNaN(parsedYear) ? undefined : parsedYear; // Set to undefined if parsing fails
+                             } else {
+                                  item['RECEIVE YEAR'] = undefined; // Explicitly set to undefined if empty/null/whitespace
+                             }
+                         } else {
+                             item['RECEIVE YEAR'] = undefined; // Explicitly set to undefined if column is missing
+                         }
+
+
+                         // Handle MFG YEAR
+                         if (item.hasOwnProperty('MFG YEAR')) {
+                             const rawMfgYear = item['MFG YEAR'];
+                             if (rawMfgYear !== null && rawMfgYear !== undefined && String(rawMfgYear).trim() !== '') {
+                                  const parsedYear = parseInt(rawMfgYear);
+                                   item['MFG YEAR'] = isNaN(parsedYear) ? undefined : parsedYear; // Set to undefined if parsing fails
+                             } else {
+                                  item['MFG YEAR'] = undefined; // Explicitly set to undefined if empty/null/whitespace
+                             }
+                         } else {
+                             item['MFG YEAR'] = undefined; // Explicitly set to undefined if column is missing
+                         }
+
+
+                         // Handle MFG QUARTER
+                         if (item.hasOwnProperty('MFG QUARTER')) {
+                             const rawMfgQuarter = item['MFG QUARTER'];
+                              if (rawMfgQuarter !== null && rawMfgQuarter !== undefined && String(rawMfgQuarter).trim() !== '') {
+                                  item['MFG QUARTER'] = String(rawMfgQuarter).trim(); // Treat as string
+                              } else {
+                                  item['MFG QUARTER'] = 'N/A'; // Default for missing or empty quarter
+                              }
+                         } else {
+                            item['MFG QUARTER'] = 'N/A'; // Default if column is missing
+                         }
+
+
+                         // Handle other columns, ensuring they are strings and defaulting to 'N/A'
+                         const stringColumns = ['MARKET', 'STATUS', 'COMPLAINT MODE', 'DEPARTMENT', 'TYPE OF COMPLAINT', 'COMPLAINT OR FEEDBACK', 'CUSTOMER TYPE', 'CUSTOMER NAME'];
+                         stringColumns.forEach(col => {
+                             if (item.hasOwnProperty(col)) {
+                                 if (item[col] !== undefined && item[col] !== null) {
+                                     item[col] = String(item[col]).trim();
+                                     if (item[col] === '') item[col] = 'N/A'; // Default for empty strings
+                                 } else {
+                                     item[col] = 'N/A'; // Default for null/undefined values
+                                 }
+                             } else {
+                                 item[col] = 'N/A'; // Default if column is missing
+                             }
+                         });
+
+
+                        return item;
+                    });
+
+                    console.log("Parsed Data Sample (first 5):", parsedData.slice(0, 5)); // Log parsed data sample
+                    console.log("Total Parsed Data Items:", parsedData.length); // Log total items
+
+
+                    if (productType === 'yarn') {
+                        yarnComplaintData = parsedData;
+                    } else if (productType === 'fabric') {
+                        fabricComplaintData = parsedData;
+                    }
+                    updateDashboard();
+
+                } catch (error) {
+                    console.error('Error parsing Excel data:', error);
+                    if (productType === 'yarn') {
+                        yarnComplaintData = [];
+                    } else if (productType === 'fabric') {
+                        fabricComplaintData = [];
+                    }
+                    updateDashboard();
+                } finally {
+                    // Enable refresh button if at least one file is loaded
+                    if (yarnComplaintData.length > 0 || fabricComplaintData.length > 0) {
+                        refreshButton.disabled = false;
+                    } else {
+                        refreshButton.disabled = true;
+                    }
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function handleProductChange(event) {
+            currentProduct = event.target.value;
+            console.log("Product changed to:", currentProduct); // Log product change
+            resetDashboard(); // Reset filters when product changes - important!
+        }
+
+        function updateDashboard() {
+            if (currentProduct === 'yarn') {
+                activeComplaintData = yarnComplaintData;
+            } else if (currentProduct === 'fabric') {
+                activeComplaintData = fabricComplaintData;
+            } else {
+                activeComplaintData = []; // Or handle default case
+            }
+            console.log("Active Complaint Data set:", activeComplaintData.length, "items"); // Log active data size
+
+
+            populateYearFilters(activeComplaintData);
+            filterAndUpdate(); // Apply initial filters if any
+        }
+
+        function populateYearFilters(data) {
+            const receiveYears = new Set();
+            const mfgYears = new Set();
+
+            data.forEach(item => {
+                const receiveYear = item['RECEIVE YEAR'];
+                const mfgYear = item['MFG YEAR'];
+
+                if (receiveYear !== undefined && receiveYear !== null && !isNaN(receiveYear)) {
+                    receiveYears.add(receiveYear);
+                }
+                if (mfgYear !== undefined && mfgYear !== null && !isNaN(mfgYear)) {
+                    mfgYears.add(mfgYear);
+                }
+            });
+
+             // Sort years numerically
+            const sortedReceiveYears = Array.from(receiveYears).sort((a, b) => a - b);
+            const sortedMfgYears = Array.from(mfgYears).sort((a, b) => a - b);
+
+             console.log("Populating Receive Years:", sortedReceiveYears);
+             console.log("Populating MFG Years:", sortedMfgYears);
+
+
+            renderYearFilter(sortedReceiveYears, receiveYearFilterContent, 'receiveYear', handleReceiveYearFilterChange, selectAllReceiveYearsButton, selectedReceiveYears, receiveYearToggleLabel);
+            renderYearFilter(sortedMfgYears, mfgYearFilterContent, 'mfgYear', handleMfgYearFilterChange, selectAllMfgYearsButton, selectedMfgYears, mfgYearToggleLabel);
+
+             // Update the toggle label text based on selected years on load
+             updateYearToggleLabel(receiveYearToggleLabel, selectedReceiveYears);
+             updateYearToggleLabel(mfgYearToggleLabel, selectedMfgYears);
+        }
+
+        function renderYearFilter(years, container, prefix, onChangeCallback, selectAllButton, selectedSet, toggleLabel) {
+             // Keep the select all button in its original place, clear other content
+             const selectAllDiv = selectAllButton.parentNode;
+             const currentContent = Array.from(container.children);
+             currentContent.forEach(child => {
+                 if (child !== selectAllDiv) {
+                     child.remove();
+                 }
+             });
+
+
+            const checkboxes = [];
+
+            years.forEach(year => {
+                const checkboxDiv = document.createElement('div');
+                const checkboxElem = document.createElement('input');
+                checkboxElem.type = 'checkbox';
+                checkboxElem.value = year;
+                checkboxElem.id = `${prefix}-${year}`;
+                checkboxElem.checked = selectedSet.has(year);
+                checkboxElem.addEventListener('change', onChangeCallback);
+                checkboxes.push(checkboxElem);
+
+                const label = document.createElement('label');
+                label.textContent = year;
+                label.htmlFor = `${prefix}-${year}`;
+
+                checkboxDiv.appendChild(checkboxElem);
+                checkboxDiv.appendChild(label);
+                 container.insertBefore(checkboxDiv, selectAllDiv); // Insert before the select all button div
+            });
+
+
+            selectAllButton.textContent = selectedSet.size === years.length && years.length > 0 ? 'Unselect All' : 'Select All';
+            if (years.length === 0) selectAllButton.disabled = true;
+            else selectAllButton.disabled = false;
+
+
+            selectAllButton.onclick = (event) => {
+                 event.stopPropagation(); // Prevent dropdown closing
+                const allChecked = selectAllButton.textContent === 'Select All';
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = allChecked;
+                    const year = parseInt(checkbox.value);
+                    if (allChecked) {
+                        selectedSet.add(year);
+                    } else {
+                        selectedSet.delete(year);
+                    }
+                });
+                selectAllButton.textContent = allChecked ? 'Unselect All' : 'Select All';
+                 updateYearToggleLabel(toggleLabel, selectedSet);
+                filterAndUpdate();
+            };
+
+             // Add change listeners to update select all button text and toggle label text
+             checkboxes.forEach(checkbox => {
+                 checkbox.addEventListener('change', () => {
+                      updateSelectAllButtonText(selectAllButton, container, selectedSet);
+                      updateYearToggleLabel(toggleLabel, selectedSet);
+                 });
+             });
+
+        }
+
+
+        function handleReceiveYearFilterChange(event) {
+            const year = parseInt(event.target.value);
+            if (event.target.checked) {
+                selectedReceiveYears.add(year);
+            } else {
+                selectedReceiveYears.delete(year);
+            }
+             updateSelectAllButtonText(selectAllReceiveYearsButton, receiveYearFilterContent, selectedReceiveYears);
+             updateYearToggleLabel(receiveYearToggleLabel, selectedReceiveYears);
+            filterAndUpdate(); // Filter based on the updated set
+        }
+
+        function handleMfgYearFilterChange(event) {
+            const year = parseInt(event.target.value);
+            if (event.target.checked) {
+                selectedMfgYears.add(year);
+            } else {
+                selectedMfgYears.delete(year);
+            }
+             updateSelectAllButtonText(selectAllMfgYearsButton, mfgYearFilterContent, selectedMfgYears);
+             updateYearToggleLabel(mfgYearToggleLabel, selectedMfgYears);
+            filterAndUpdate(); // Filter based on the updated set
+        }
+
+        function updateSelectAllButtonText(button, container, selectedSet) {
+             const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+             const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+             button.textContent = allChecked ? 'Unselect All' : 'Select All';
+        }
+
+         function updateYearToggleLabel(toggleLabel, selectedSet) {
+             const checkboxes = toggleLabel.nextElementSibling ? toggleLabel.nextElementSibling.querySelectorAll('input[type="checkbox"]') : [];
+             const totalYears = checkboxes.length;
+
+             if (selectedSet.size === 0) {
+                 toggleLabel.textContent = 'Select Year';
+             } else if (selectedSet.size === totalYears) {
+                  toggleLabel.textContent = 'All Years Selected';
+             }
+             else if (selectedSet.size === 1) {
+                 toggleLabel.textContent = Array.from(selectedSet)[0];
+             } else {
+                 toggleLabel.textContent = `${selectedSet.size} Years Selected`;
+             }
+              toggleLabel.classList.add('dropdown-toggle-label'); // Ensure the class is there
+         }
+
+
+        function updateCharts(data) {
+             console.log("Updating charts with data size:", data.length); // Log data size before updating charts
+
+             // Destroy existing chart instances
+             if (marketChartInstance) marketChartInstance.destroy();
+             if (statusChartInstance) statusChartInstance.destroy();
+             if (unitChartInstance) unitChartInstance.destroy();
+             if (complaintModeChartInstance) complaintModeChartInstance.destroy();
+             if (departmentChartInstance) departmentChartInstance.destroy();
+             if (typeOfComplaintChartInstance) typeOfComplaintChartInstance.destroy();
+             if (complaintOrFeedbackChartInstance) complaintOrFeedbackChartInstance.destroy();
+             if (customerTypeChartInstance) customerTypeChartInstance.destroy();
+             if (mfgQuarterChartInstance) mfgQuarterChartInstance.destroy();
+             if (customerNameChartInstance) customerNameChartInstance.destroy();
+
+
+            // Data is already filtered by year in filterAndUpdate
+
+
+            const totalComplaints = data.reduce((count, item) => {
+                return count + (item['UNIT NO'] && item['UNIT NO'] !== 'N/A' ? 1 : 0); // Count only if UNIT NO is present and not 'N/A'
+            }, 0);
+            totalComplaintsDisplay.textContent = totalComplaints;
+
+            const marketCounts = {};
+            const statusCounts = {};
+            const unitCounts = {};
+            const complaintModeCounts = {};
+            const departmentCounts = {};
+            const typeOfComplaintCounts = {};
+            const complaintOrFeedbackCounts = {};
+            const customerTypeCounts = {};
+            const mfgQuarterCounts = {};
+            const customerNameCounts = {};
+
+
+            data.forEach(item => {
+                if (item['MARKET'] && item['MARKET'] !== 'N/A') marketCounts[item['MARKET']] = (marketCounts[item['MARKET']] || 0) + 1;
+                if (item['STATUS'] && item['STATUS'] !== 'N/A') statusCounts[item['STATUS']] = (statusCounts[item['STATUS']] || 0) + 1;
+                if (item['UNIT NO'] && item['UNIT NO'] !== 'N/A') unitCounts[item['UNIT NO'] ? item['UNIT NO'] : 'N/A'] = (unitCounts[item['UNIT NO'] ? item['UNIT NO'] : 'N/A'] || 0) + 1;
+                if (item['COMPLAINT MODE'] && item['COMPLAINT MODE'] !== 'N/A') complaintModeCounts[item['COMPLAINT MODE']] = (complaintModeCounts[item['COMPLAINT MODE']] || 0) + 1;
+                if (item['DEPARTMENT'] && item['DEPARTMENT'] !== 'N/A') departmentCounts[item['DEPARTMENT']] = (departmentCounts[item['DEPARTMENT']] || 0) + 1;
+                if (item['TYPE OF COMPLAINT'] && item['TYPE OF COMPLAINT'] !== 'N/A') {
+                    typeOfComplaintCounts[item['TYPE OF COMPLAINT']] = (typeOfComplaintCounts[item['TYPE OF COMPLAINT']] || 0) + 1;
+                }
+                if (item['COMPLAINT OR FEEDBACK'] && item['COMPLAINT OR FEEDBACK'] !== 'N/A') complaintOrFeedbackCounts[item['COMPLAINT OR FEEDBACK']] = (complaintOrFeedbackCounts[item['COMPLAINT OR FEEDBACK']] || 0) + 1;
+                if (item['CUSTOMER TYPE'] && item['CUSTOMER TYPE'] !== 'N/A') customerTypeCounts[item['CUSTOMER TYPE']] = (customerTypeCounts[item['CUSTOMER TYPE']] || 0) + 1;
+                if (item['MFG QUARTER'] && item['MFG QUARTER'] !== 'N/A') mfgQuarterCounts[item['MFG QUARTER']] = (mfgQuarterCounts[item['MFG QUARTER']] || 0) + 1;
+                 if (item['CUSTOMER NAME'] && item['CUSTOMER NAME'] !== 'N/A') customerNameCounts[item['CUSTOMER NAME']] = (customerNameCounts[item['CUSTOMER NAME']] || 0) + 1;
+
+            });
+             console.log("Market Counts:", marketCounts); // Log counts
+
+
+            marketChartInstance = createOrUpdateBarChart(marketCanvas, marketChartInstance, 'Complaints by Market', Object.keys(marketCounts), Object.values(marketCounts), 'MARKET', (clickedValue) => {
+                currentFilter = { type: 'MARKET', value: clickedValue };
+                filterAndUpdate();
+            }, 'bar');
+
+            statusChartInstance = createOrUpdatePieChart(statusCanvas, statusChartInstance, 'Complaints by Status', Object.keys(statusCounts), Object.values(statusCounts), 'STATUS', (clickedValue) => {
+                currentFilter = { type: 'STATUS', value: clickedValue };
+                filterAndUpdate();
+            }, 'pie');
+
+            unitChartInstance = createOrUpdateBarChart(unitCanvas, unitChartInstance, 'Complaints by Unit', Object.keys(unitCounts), Object.values(unitCounts), 'UNIT NO', (clickedValue) => {
+                console.log("Unit Chart Clicked Value:", clickedValue); // Debugging
+                currentFilter = { type: 'UNIT NO', value: clickedValue };
+                filterAndUpdate();
+            }, 'bar');
+
+            complaintModeChartInstance = createOrUpdatePieChart(complaintModeCanvas, complaintModeChartInstance, 'Complaints by Complaint Mode', Object.keys(complaintModeCounts), Object.values(complaintModeCounts), 'COMPLAINT MODE', (clickedValue) => {
+                currentFilter = { type: 'COMPLAINT MODE', value: clickedValue };
+                filterAndUpdate();
+            }, 'pie');
+
+            departmentChartInstance = createOrUpdatePieChart(departmentCanvas, departmentChartInstance, 'Complaints by Department', Object.keys(departmentCounts), Object.values(departmentCounts), 'DEPARTMENT', (clickedValue) => {
+                currentFilter = { type: 'DEPARTMENT', value: clickedValue };
+                filterAndUpdate();
+            }, 'pie');
+
+             complaintOrFeedbackChartInstance = createOrUpdatePieChart(complaintOrFeedbackCanvas, complaintOrFeedbackChartInstance, 'Complaint or Feedback', Object.keys(complaintOrFeedbackCounts), Object.values(complaintOrFeedbackCounts), 'COMPLAINT OR FEEDBACK', (clickedValue) => {
+                currentFilter = { type: 'COMPLAINT OR FEEDBACK', value: clickedValue };
+                filterAndUpdate();
+            }, 'pie');
+
+            customerTypeChartInstance = createOrUpdatePieChart(customerTypeCanvas, customerTypeChartInstance, 'Customer Type', Object.keys(customerTypeCounts), Object.values(customerTypeCounts), 'CUSTOMER TYPE', (clickedValue) => {
+                currentFilter = { type: 'CUSTOMER TYPE', value: clickedValue };
+                filterAndUpdate();
+            }, 'pie');
+
+
+            const sortedTypeOfComplaintCounts = Object.entries(typeOfComplaintCounts)
+                 .filter(([, count]) => count > 1) // Exclude counts of 1
+                 .sort(([, countA], [, countB]) => countB - countA); // Sort by count descending
+            const typeOfComplaintLabels = sortedTypeOfComplaintCounts.map(([type]) => type);
+            const typeOfComplaintValues = sortedTypeOfComplaintCounts.map(([, count]) => count);
+
+
+            typeOfComplaintChartInstance = createOrUpdateBarChart(typeOfComplaintCanvas, typeOfComplaintChartInstance, 'Type of Complaints', typeOfComplaintLabels, typeOfComplaintValues, 'TYPE OF COMPLAINT', (clickedValue) => {
+                currentFilter = { type: 'TYPE OF COMPLAINT', value: clickedValue };
+                filterAndUpdate();
+            }, 'bar');
+
+             // Sort MFG Quarters if they are in a predictable order (e.g., Q1, Q2, Q3, Q4)
+             const sortedMfgQuarters = Object.keys(mfgQuarterCounts).sort((a, b) => {
+                 // Simple sort for Q1, Q2, Q3, Q4. Case-insensitive trim.
+                 const qa = String(a).trim().toUpperCase();
+                 const qb = String(b).trim().toUpperCase();
+                 if (qa < qb) return -1;
+                 if (qa > qb) return 1;
+                 return 0;
+             });
+
+             mfgQuarterChartInstance = createOrUpdateBarChart(mfgQuarterCanvas, mfgQuarterChartInstance, 'Complaints by MFG Quarter', sortedMfgQuarters, sortedMfgQuarters.map(q => mfgQuarterCounts[q]), 'MFG QUARTER', (clickedValue) => {
+                currentFilter = { type: 'MFG QUARTER', value: clickedValue };
+                filterAndUpdate();
+            }, 'bar');
+
+             // Logic for Customer Name chart (show top N or group others, exclude count 1)
+             const sortedCustomerNameCounts = Object.entries(customerNameCounts)
+                 .filter(([, count]) => count > 1) // Exclude counts of 1
+                 .sort(([, countA], [, countB]) => countB - countA); // Sort by count descending
+
+             const topNCustomers = 20; // Adjust N as needed
+
+              const customerNameLabels = [];
+              const customerNameValues = [];
+              let otherCustomerCount = 0;
+
+             sortedCustomerNameCounts.forEach(([name, count]) => {
+                 if (customerNameLabels.length < topNCustomers) {
+                      customerNameLabels.push(name);
+                      customerNameValues.push(count);
+                 } else {
+                      otherCustomerCount += count;
+                 }
+             });
+
+             if (otherCustomerCount > 0) {
+                 customerNameLabels.push('Other');
+                 customerNameValues.push(otherCustomerCount);
+             }
+
+
+             customerNameChartInstance = createOrUpdateBarChart(customerNameCanvas, customerNameChartInstance, 'Complaints by Customer Name', customerNameLabels, customerNameValues, 'CUSTOMER NAME', (clickedValue) => {
+                currentFilter = { type: 'CUSTOMER NAME', value: clickedValue };
+                filterAndUpdate();
+            }, 'bar');
+
+        }
+
+        function createOrUpdateBarChart(canvas, chartInstance, label, chartLabels, chartData, filterType, onClickCallback, type = 'bar') {
+            const chart = createOrUpdateChart(canvas, chartInstance, label, chartLabels, chartData, filterType, onClickCallback, type);
+            return chart;
+        }
+
+        function createOrUpdatePieChart(canvas, chartInstance, label, chartLabels, chartData, filterType, onClickCallback, type = 'pie') {
+             // Original color scheme
+             const backgroundColors = [
+                'rgba(125, 99, 190, 0.8)', 'rgba(255, 206, 86, 0.8)', 'rgba(75, 192, 192, 0.8)',
+                'rgba(190, 102, 160, 0.8)', 'rgba(255, 159, 64, 0.8)', 'rgba(101, 205, 254, 0.8)',
+                'rgba(165, 105, 189, 0.8)', 'rgba(255, 160, 122, 0.8)', 'rgba(173, 216, 230, 0.8)', 'rgba(255, 255, 0, 0.8)'
+            ];
+            const chart = createOrUpdateChart(canvas, chartInstance, label, chartLabels, chartData, filterType, onClickCallback, type, backgroundColors);
+            return chart;
+        }
+
+        function createOrUpdateChart(canvas, chartInstance, label, chartLabels, chartData, filterType, onClickCallback, type = 'bar', backgroundColors) {
+    // Destroy existing chart instance if it exists
+    if (chartInstance) {
+        console.log(`Destroying chart instance for ${canvas.id}`); // Log destruction attempt
+        chartInstance.destroy();
+    }
+
+    const data = {
+        labels: chartLabels,
+        datasets: [{
+            label: label, // This label is used by the legend and the title plugin
+            data: chartData,
+            backgroundColor: backgroundColors && type === 'pie' ? backgroundColors.slice(0, chartLabels.length) : (type === 'bar' ? 'rgba(54, 162, 235, 0.8)' : undefined),
+            borderWidth: 1
+        }]
+    };
+
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        onClick: (event, elements) => {
+            if (elements.length > 0 && onClickCallback) {
+                const clickedElementIndex = elements[0].index;
+                const clickedValue = chartLabels[clickedElementIndex];
+
+                // Handle "Other" category click for Customer Name chart
+                 if (filterType === 'CUSTOMER NAME' && clickedValue === 'Other') {
+                      // When 'Other' is clicked, filter data to include items whose CUSTOMER NAME
+                      // is NOT in the list of names shown on the chart (excluding 'Other' itself).
+                      // This requires re-calculating the list of names shown on the chart without 'Other'.
+                      // We need the *original* counts from the *currently filtered* data to determine which names are in 'Other'
+                       const customerNameCounts = {};
+                        activeComplaintData.forEach(item => { // Use activeComplaintData to get counts based on current product, THEN apply year filter
+                            const receiveYear = item['RECEIVE YEAR'];
+                            const mfgYear = item['MFG YEAR'];
+
+                             const isReceiveYearValid = receiveYear !== undefined && receiveYear !== null && !isNaN(receiveYear);
+                             const isMfgYearValid = mfgYear !== undefined && mfgYear !== null && !isNaN(mfgYear);
+
+                             const receiveYearMatch = selectedReceiveYears.size === 0 || (isReceiveYearValid && selectedReceiveYears.has(parseInt(receiveYear)));
+                             const mfgYearMatch = selectedMfgYears.size === 0 || (isMfgYearValid && selectedMfgYears.has(parseInt(mfgYear)));
+
+                            // Only count items that pass the current YEAR filters
+                            if (receiveYearMatch && mfgYearMatch && item['CUSTOMER NAME'] && item['CUSTOMER NAME'] !== 'N/A') {
+                                customerNameCounts[item['CUSTOMER NAME']] = (customerNameCounts[item['CUSTOMER NAME']] || 0) + 1;
+                            }
+                        });
+
+                       const sortedCustomerNameCounts = Object.entries(customerNameCounts)
+                            .filter(([, count]) => count > 1) // Exclude counts of 1
+                            .sort(([, countA], [, countB]) => countB - countA);
+
+                       const topNCustomers = 20; // Must match the value used in updateCharts
+
+                       const topCustomerNames = sortedCustomerNameCounts.slice(0, topNCustomers).map(([name]) => name);
+
+
+                      currentFilter = { type: filterType, value: 'Other', excludedValues: topCustomerNames };
+
+                 } else {
+                    currentFilter = { type: filterType, value: clickedValue };
+                 }
+                filterAndUpdate();
+            } else {
+                currentFilter = null;
+                filterAndUpdate();
+            }
+        },
+        // Add 'scales' configuration if needed (already present in your snippet)
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        },
+        plugins: {
+            datalabels: {
+                anchor: 'end',
+                align: 'end',
+                color: 'black',
+                font: {
+                    size: 12
+                },
+                formatter: (value, context) => {
+                    return type === 'pie' ? value : value;
+                }
+            },
+             // Title plugin configuration applied to ALL charts
+            title: {
+                display: true,
+                text: label,
+                font: {
+                    weight: 'bold'
+                },
+                padding: {
+                     top: 10,
+                     bottom: 15
+                }
+            }
+            // Legend plugin config will be added/modified below based on type
+        }
+    };
+
+    // --- Type Specific Options ---
+    if (type === 'pie') {
+         // Pie specific datalabels config
+         options.plugins.datalabels.anchor = (context) => {
+             const index = context.dataIndex;
+             const dataset = context.dataset;
+             const value = dataset.data[index];
+             const total = dataset.data.reduce((a, b) => a + b, 0);
+             const percentage = value / total;
+             const threshold = chartLabels.length > 10 ? 0.1 : 0.05;
+             return percentage > threshold ? 'outside' : 'center';
+         };
+        options.plugins.datalabels.align = 'center';
+        options.plugins.datalabels.offset = 0;
+        options.plugins.datalabels.color = (context) => {
+             const index = context.dataIndex;
+            const dataset = context.dataset;
+             const value = dataset.data[index];
+            const total = dataset.data.reduce((a, b) => a + b, 0);
+            const percentage = value / total;
+            return percentage > (chartLabels.length > 10 ? 0.1 : 0.05) ? '#000' : '#fff';
+        };
+        options.plugins.datalabels.font.weight = 'normal';
+        options.plugins.datalabels.formatter = (value) => {
+            return value;
+        };
+
+         // Pie specific legend config - Typically show legend for pies
+         options.plugins.legend = {
+             display: true,
+             position: 'bottom' // Common position for pie chart legends
+         };
+
+         // Hide Axes for pie charts
+         if(options.scales && options.scales.y) {
+             options.scales.y.display = false;
+         }
+         if(options.scales && options.scales.x) {
+             options.scales.x.display = false;
+         }
+
+    } else if (type === 'bar') {
+        // Bar specific datalabels config
+        options.plugins.datalabels.anchor = 'end';
+        options.plugins.datalabels.align = 'top';
+        options.plugins.datalabels.color = 'black';
+        options.plugins.datalabels.font.weight = 'normal';
+        options.plugins.datalabels.formatter = (value) => value;
+
+         // Bar specific legend config - Typically hide legend for bars if title is present
+         options.plugins.legend = {
+             display: false // Hide legend for bar charts to avoid double header
+         };
+
+
+         // Ensure Axes are displayed for bar charts
+         if(options.scales && options.scales.y) {
+             options.scales.y.display = true;
+         }
+         if(options.scales && options.scales.x) {
+             options.scales.x.display = true;
+         }
+    }
+
+     // Create the new chart instance
+     const newChartInstance = new Chart(canvas, {
+         type: type,
+         data: data,
+         options: options
+     });
+
+     // Assign the new instance to the correct global variable (handled in updateCharts)
+     // switch(canvas.id) { /* ... */ } // Removed this - assignment happens in updateCharts
+
+     return newChartInstance;
+}
+        function filterAndUpdate() {
+            let dataToFilter = activeComplaintData;
+             console.log("Filtering started. Active data size:", dataToFilter.length); // Log starting data size
+
+            // Filtering based on selected years (using sets)
+            const yearFilteredData = dataToFilter.filter(item => {
+                const receiveYear = item['RECEIVE YEAR'];
+                const mfgYear = item['MFG YEAR'];
+
+                const isReceiveYearValid = receiveYear !== undefined && receiveYear !== null && !isNaN(receiveYear);
+                const isMfgYearValid = mfgYear !== undefined && mfgYear !== null && !isNaN(mfgYear);
+
+                // If no years are selected, all items (including those with missing years) match the year filter
+                const receiveYearMatch = selectedReceiveYears.size === 0 || (isReceiveYearValid && selectedReceiveYears.has(parseInt(receiveYear)));
+                const mfgYearMatch = selectedMfgYears.size === 0 || (isMfgYearValid && selectedMfgYears.has(parseInt(mfgYear)));
+
+
+                return receiveYearMatch && mfgYearMatch;
+            });
+             console.log("Data size after Year filtering:", yearFilteredData.length); // Log after year filtering
+
+
+            let finalFilteredData = yearFilteredData;
+
+             if (currentFilter) {
+                console.log("Applying chart filter:", currentFilter); // Log the current filter
+                // Ensure the column exists in the original header for filtering
+                 const originalHeader = activeComplaintData.length > 0 ? Object.keys(activeComplaintData[0]) : [];
+
+                if (originalHeader.includes(currentFilter.type)) {
+                     if (currentFilter.type === 'CUSTOMER NAME' && currentFilter.value === 'Other') {
+                         // Filter for "Other" category in Customer Name
+                         // Include items whose CUSTOMER NAME is NOT in the list of excludedValues
+                         finalFilteredData = yearFilteredData.filter(item => {
+                             const customerName = item['CUSTOMER NAME'];
+                             // Item should NOT be in the list of names explicitly shown as top N
+                             // Also ensure the original count logic matches here for consistency (count > 1 and not N/A)
+                             const customerNameCounts = {};
+                              yearFilteredData.forEach(d => { if(d['CUSTOMER NAME'] && d['CUSTOMER NAME'] !== 'N/A') customerNameCounts[d['CUSTOMER NAME']] = (customerNameCounts[d['CUSTOMER NAME']] || 0) + 1; });
+
+                             return customerName !== undefined && customerName !== null && customerName !== 'N/A' && !currentFilter.excludedValues.includes(customerName) && customerNameCounts[customerName] > 1;
+                         });
+
+                     } else {
+                         // Standard filter for other columns or specific Customer Name
+                         finalFilteredData = yearFilteredData.filter(item => {
+                             const itemValue = item[currentFilter.type];
+                              // Handle potential undefined/null/N/A values in the data
+                              if (itemValue === undefined || itemValue === null || String(itemValue).trim() === '' || String(itemValue).trim() === 'N/A') {
+                                  // If item value is null/undefined/empty/N/A, match if filter value is also null/undefined/empty/N/A
+                                  return currentFilter.value === null || currentFilter.value === undefined || String(currentFilter.value).trim() === '' || String(currentFilter.value).trim() === 'N/A';
+                              }
+                               // Otherwise, compare trimmed string values
+                              return String(itemValue).trim() === String(currentFilter.value).trim();
+                         });
+                     }
+                 } else {
+                      console.warn(`Column "${currentFilter.type}" not found in data header. Cannot apply filter.`);
+                      currentFilter = null; // Clear filter if column is not found
+                      finalFilteredData = yearFilteredData; // Revert to only year filtered data
+                 }
+             }
+            console.log("Data size after all filtering:", finalFilteredData.length); // Log after all filtering
+
+
+            updateCharts(finalFilteredData);
+        }
+
+        function resetDashboard() {
+            console.log("Resetting dashboard..."); // Log reset action
+            currentFilter = null;
+            selectedReceiveYears.clear();
+            selectedMfgYears.clear();
+
+            // Uncheck all year filter checkboxes and update text
+             receiveYearFilterContent.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+             mfgYearFilterContent.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+             updateSelectAllButtonText(selectAllReceiveYearsButton, receiveYearFilterContent, selectedReceiveYears);
+             updateSelectAllButtonText(selectAllMfgYearsButton, mfgYearFilterContent, selectedMfgYears);
+             updateYearToggleLabel(receiveYearToggleLabel, selectedReceiveYears);
+             updateYearToggleLabel(mfgYearToggleLabel, selectedMfgYears);
+
+
+            updateDashboard(); // This will re-populate the year filters and charts
+        }
+
+        function downloadChart(chartId) {
+            const canvasElement = document.getElementById(chartId);
+            if (canvasElement) {
+                const dataURL = canvasElement.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = dataURL;
+                a.download = `${chartId}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        }
+
+        function requestFullscreenForChart(chartId) {
+            const chartItem = document.querySelector(`.chart-item:has(#${chartId})`);
+            if (chartItem) {
+                if (chartItem.requestFullscreen) {
+                    chartItem.requestFullscreen();
+                } else if (chartItem.webkitRequestFullscreen) { /* Safari */
+                    chartItem.webkitRequestFullscreen();
+                } else if (chartItem.msFullscreen) { /* IE11 - Corrected method */
+                    chartItem.msFullscreen();
+                } else if (chartItem.mozRequestFullScreen) { /* Firefox */
+                    chartItem.mozRequestFullScreen();
+                }
+            }
+        }
+    </script>
+</body>
+</html>

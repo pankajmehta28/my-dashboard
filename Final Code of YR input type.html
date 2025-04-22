@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yarn Realization Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        body {
+            background-color: #d8f3dc;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+
+        #table-container {
+            overflow-x: auto;
+        }
+
+        .dropdown-container {
+            position: relative;
+        }
+
+        .dropdown-button {
+            border: 1px solid #ccc;
+            border-radius: 0.25rem;
+            padding: 0.5rem;
+            width: 100%;
+            text-align: left;
+            background-color: #def7ec;
+            cursor: pointer;
+        }
+
+        .dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            border: 1px solid #ccc;
+            border-radius: 0.25rem;
+            background-color: #def7ec;
+            z-index: 10;
+            max-height: 150px;
+            overflow-y: auto;
+            display: none; /* Initially hidden */
+        }
+
+        .dropdown-list.show { /* Class to show the dropdown */
+            display: block;
+        }
+
+        .dropdown-list label {
+            display: block;
+            padding: 0.25rem 0.5rem;
+            cursor: pointer;
+        }
+
+        .dropdown-list label:hover {
+            background-color: #c7edd6;
+        }
+        /* Ensure fullscreen modal takes precedence */
+        #chart-fullscreen {
+            z-index: 100; /* Higher z-index */
+        }
+    </style>
+</head>
+
+<body class="p-6">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex items-center mb-6">
+            <img src="https://www.sagarmanufacturers.com/assets/web/images/smpl-new-logo.png" alt="Company Logo"
+                class="h-20 mr-4" />
+            <h1 class="text-4xl font-bold text-blue-900">Sagar Manufacturers Pvt. Ltd.</h1>
+        </div>
+
+        <h2 class="text-3xl font-bold mb-6 text-center text-black-800">Yarn Realization Dashboard</h2>
+
+        <div class="bg-white shadow-md rounded p-4 mb-6">
+            <label class="block mb-2 font-medium text-gray-700">Upload Excel File:</label>
+            <input type="file" id="fileInput" accept=".xlsx"
+                class="block w-full border border-gray-300 rounded p-2 mb-4" />
+
+            <div class="grid md:grid-cols-6 gap-4 items-end">
+                <div class="md:col-span-1">
+                    <label class="block mb-1">Month:</label>
+                    <div class="dropdown-container">
+                        <button id="monthFilterButton" class="dropdown-button">Select Months</button>
+                        <div id="monthFilterList" class="dropdown-list">
+                            </div>
+                    </div>
+                </div>
+                <div class="md:col-span-1">
+                    <label class="block mb-1">Year:</label>
+                    <div class="dropdown-container">
+                        <button id="yearFilterButton" class="dropdown-button">Select Years</button>
+                        <div id="yearFilterList" class="dropdown-list">
+                            </div>
+                    </div>
+                </div>
+                <div class="md:col-span-1">
+                    <label class="block mb-1">Unit:</label>
+                    <div class="dropdown-container">
+                        <button id="unitFilterButton" class="dropdown-button">Select Units</button>
+                        <div id="unitFilterList" class="dropdown-list">
+                                </div>
+                    </div>
+                </div>
+                <div class="md:col-span-1">
+                    <label class="block mb-1">Report Type:</label>
+                    <select id="reportTypeFilter" class="w-full border border-gray-300 rounded p-2">
+                        <option value="">All</option>
+                        <option value="Monthly">Monthly</option>
+                        <option value="Yearly">Yearly</option>
+                    </select>
+                </div>
+                 <div class="md:col-span-1">
+                    <label class="block mb-1">Select Parameters:</label>
+                    <div class="dropdown-container">
+                        <button id="parameterSelectorButton" class="dropdown-button">Select Parameters</button>
+                        <div id="parameterSelectorList" class="dropdown-list">
+                                </div>
+                    </div>
+                </div>
+                <div class="md:col-span-1 flex space-x-2">
+    <button id="refreshButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold rounded p-2">
+        Refresh
+    </button>
+</div>
+            </div>
+
+            <div class="flex items-center mt-4 space-x-4">
+                <label><input type="radio" name="viewType" value="table" checked class="mr-1">
+                    Table</label>
+                <label><input type="radio" name="viewType" value="chart" class="mr-1">
+                    Chart</label>
+            </div>
+        </div>
+
+        <div class="flex items-center mb-4">
+            <button id="downloadIcon" class="icon-btn" title="Download">⬇️</button>
+            <button id="expandIcon" class="icon-btn" title="Expand">
+                <i class="fas fa-expand-arrows-alt"></i> </button>
+        </div>
+
+        <div id="table-container" class="mb-6">
+            </div>
+
+        <div id="chart-container" class="mb-6 hidden bg-white p-4 rounded shadow-md relative">
+            <canvas id="myChart" width="800" height="400"></canvas>
+        </div>
+
+        <div id="chart-fullscreen" class="hidden fixed top-0 left-0 w-full h-full bg-white flex justify-center items-center p-4">
+             <span id="close-fullscreen" class="absolute top-4 right-6 text-3xl cursor-pointer text-black hover:text-gray-700">&times;</span>
+             <div class="w-full h-full max-w-screen-lg max-h-screen-lg"> <canvas id="myChartFullscreen" class="w-full h-full"></canvas>
+             </div>
+        </div>
+    </div>
+
+    <script>
+        Chart.register(ChartDataLabels);
+
+        let excelData = [],
+            currentChart = null, // Keep track of the main chart instance
+            availableColumns = [];
+
+        // ----- START: MODIFIED EXPAND/FULLSCREEN CODE -----
+
+        // Global variable for the fullscreen chart instance
+        let fullscreenChart = null;
+
+        // --- Modified Event Listener for the Expand Icon ---
+        document.getElementById('expandIcon').addEventListener('click', () => {
+            const chartFullscreen = document.getElementById('chart-fullscreen'); // The modal div
+            const fullscreenCanvasContext = document.getElementById('myChartFullscreen').getContext('2d'); // Get context
+
+            // Check if the original chart exists and is currently visible
+            const chartContainer = document.getElementById('chart-container');
+            const viewType = document.querySelector('input[name="viewType"]:checked').value;
+
+            if (currentChart && viewType === 'chart' && !chartContainer.classList.contains('hidden')) {
+                // If a fullscreen chart instance already exists, destroy it first
+                if (fullscreenChart) {
+                    fullscreenChart.destroy();
+                    fullscreenChart = null;
+                }
+
+                // Prepare a new config based on the original chart
+                const newConfig = {
+                    type: currentChart.config.type,
+                    data: currentChart.config.data, // Directly reference data
+                    options: JSON.parse(JSON.stringify(currentChart.config.options || {})) // Deep copy options safely
+                };
+
+                // Ensure options object exists
+                if (!newConfig.options) {
+                    newConfig.options = {};
+                }
+
+                // Set maintainAspectRatio to false for the fullscreen version
+                newConfig.options.maintainAspectRatio = false;
+                // Ensure responsiveness is true for fullscreen
+                newConfig.options.responsive = true;
+
+                 // Optionally enhance fullscreen title/legend appearance
+                 if (newConfig.options.plugins && newConfig.options.plugins.title) {
+                     newConfig.options.plugins.title.font = { size: 18 }; // Larger title
+                 }
+                 if (newConfig.options.plugins && newConfig.options.plugins.legend) {
+                     newConfig.options.plugins.legend.labels = { font: { size: 14 }}; // Larger legend
+                 }
+                 if (newConfig.options.scales) {
+                     // Example: Larger axis labels if needed
+                     // if(newConfig.options.scales.x) newConfig.options.scales.x.ticks = { font: { size: 12 }};
+                     // if(newConfig.options.scales.y) newConfig.options.scales.y.ticks = { font: { size: 12 }};
+                 }
+
+
+                // Create the new fullscreen chart instance
+                fullscreenChart = new Chart(fullscreenCanvasContext, newConfig);
+
+                // Show the fullscreen modal
+                chartFullscreen.classList.remove('hidden'); // Use Tailwind's class toggling
+
+            } else if (viewType !== 'chart') {
+                alert('Please switch to Chart view to expand.');
+            } else {
+                alert('No chart data loaded or chart is not rendered yet.');
+            }
+        });
+
+        // --- Modified Event Listener for the Close Fullscreen Button ---
+        document.getElementById('close-fullscreen').addEventListener('click', () => {
+            const chartFullscreen = document.getElementById('chart-fullscreen');
+
+            // Hide the fullscreen modal
+            chartFullscreen.classList.add('hidden'); // Use Tailwind's class toggling
+
+            // **Crucially, destroy the fullscreen chart instance**
+            if (fullscreenChart) {
+                fullscreenChart.destroy();
+                fullscreenChart = null; // Clear the variable
+            }
+        });
+
+        // ----- END: MODIFIED EXPAND/FULLSCREEN CODE -----
+
+
+        // --- Event Listeners ---
+        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+        document.getElementById('refreshButton').addEventListener('click', updateView);
+        document.getElementById('downloadIcon').addEventListener('click', downloadData);
+        // View type change listener
+        document.querySelectorAll('input[name="viewType"]').forEach(radio => {
+            radio.addEventListener('change', updateView);
+        });
+        // Report type change listener
+        document.getElementById('reportTypeFilter').addEventListener('change', updateView);
+
+
+        // --- Dropdown Setup ---
+        // Month Filter
+        const monthFilterButton = document.getElementById('monthFilterButton');
+        const monthFilterList = document.getElementById('monthFilterList');
+        monthFilterButton.addEventListener('click', () => monthFilterList.classList.toggle('show'));
+        monthFilterList.addEventListener('change', (event) => { // Use 'change' for checkboxes
+            if (event.target.type === 'checkbox') {
+                if (event.target.value === 'all') {
+                    const checkboxes = monthFilterList.querySelectorAll('input[type="checkbox"]:not([value="all"])');
+                    checkboxes.forEach(cb => cb.checked = event.target.checked);
+                }
+                updateMonthButtonText();
+                // updateView(); // Optionally update immediately or wait for refresh button
+            }
+        });
+        document.addEventListener('click', (event) => {
+            if (!monthFilterButton.contains(event.target) && !monthFilterList.contains(event.target)) {
+                monthFilterList.classList.remove('show');
+            }
+        });
+
+        // Year Filter
+        const yearFilterButton = document.getElementById('yearFilterButton');
+        const yearFilterList = document.getElementById('yearFilterList');
+        yearFilterButton.addEventListener('click', () => yearFilterList.classList.toggle('show'));
+        yearFilterList.addEventListener('change', (event) => {
+            if (event.target.type === 'checkbox') {
+                if (event.target.value === 'all') {
+                    const checkboxes = yearFilterList.querySelectorAll('input[type="checkbox"]:not([value="all"])');
+                    checkboxes.forEach(cb => cb.checked = event.target.checked);
+                }
+                updateYearButtonText();
+                // updateView();
+            }
+        });
+        document.addEventListener('click', (event) => {
+            if (!yearFilterButton.contains(event.target) && !yearFilterList.contains(event.target)) {
+                yearFilterList.classList.remove('show');
+            }
+        });
+
+        // Unit Filter
+        const unitFilterButton = document.getElementById('unitFilterButton');
+        const unitFilterList = document.getElementById('unitFilterList');
+        unitFilterButton.addEventListener('click', () => unitFilterList.classList.toggle('show'));
+        unitFilterList.addEventListener('change', (event) => {
+            if (event.target.type === 'checkbox') {
+                if (event.target.value === 'all') {
+                    const checkboxes = unitFilterList.querySelectorAll('input[type="checkbox"]:not([value="all"])');
+                    checkboxes.forEach(cb => cb.checked = event.target.checked);
+                }
+                updateUnitButtonText();
+                // updateView();
+            }
+        });
+        document.addEventListener('click', (event) => {
+            if (!unitFilterButton.contains(event.target) && !unitFilterList.contains(event.target)) {
+                unitFilterList.classList.remove('show');
+            }
+        });
+
+        // Parameter Selector
+        const parameterSelectorButton = document.getElementById('parameterSelectorButton');
+        const parameterSelectorList = document.getElementById('parameterSelectorList');
+        parameterSelectorButton.addEventListener('click', () => parameterSelectorList.classList.toggle('show'));
+        parameterSelectorList.addEventListener('change', (event) => {
+            if (event.target.type === 'checkbox') {
+                if (event.target.value === 'all') {
+                    const checkboxes = parameterSelectorList.querySelectorAll('input[type="checkbox"]:not([value="all"])');
+                    checkboxes.forEach(cb => cb.checked = event.target.checked);
+                }
+                updateParameterButtonText();
+                // updateView();
+            }
+        });
+         document.addEventListener('click', (event) => {
+             if (!parameterSelectorButton.contains(event.target) && !parameterSelectorList.contains(event.target)) {
+                 parameterSelectorList.classList.remove('show');
+             }
+         });
+
+        // --- Core Functions ---
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                console.log('File uploaded and reader loaded');
+                try {
+                    const workbook = XLSX.read(new Uint8Array(evt.target.result), { type: 'array' });
+                    console.log('workbook:', workbook);
+                    if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) {
+                        throw new Error("Invalid workbook structure.");
+                    }
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    if (!sheet) {
+                        throw new Error(`Sheet "${workbook.SheetNames[0]}" not found or is empty.`);
+                    }
+                    console.log('sheet:', sheet);
+                    excelData = XLSX.utils.sheet_to_json(sheet);
+                    console.log('excelData after parsing:', excelData);
+
+                    if (excelData.length > 0) {
+                        availableColumns = Object.keys(excelData[0]).filter(col => !['Unit', 'Month', 'Year'].includes(col.trim()));
+                        console.log('availableColumns after parsing:', availableColumns);
+                        populateMonthFilter();
+                        populateYearFilter();
+                        populateUnitFilter();
+                        populateParameterSelector();
+                        updateView(); // Initial render after loading data
+                    } else {
+                        alert('No data rows found in the uploaded Excel file.');
+                         // Clear existing displays if necessary
+                        document.getElementById('table-container').innerHTML = '<p>No data loaded.</p>';
+                        document.getElementById('chart-container').innerHTML = '';
+                        document.getElementById('chart-container').classList.add('hidden');
+                        // Clear filters
+                        monthFilterList.innerHTML = ''; updateMonthButtonText();
+                        yearFilterList.innerHTML = ''; updateYearButtonText();
+                        unitFilterList.innerHTML = ''; updateUnitButtonText();
+                        parameterSelectorList.innerHTML = ''; updateParameterButtonText();
+                    }
+                } catch (error) {
+                     console.error("Error processing Excel file:", error);
+                     alert(`Error processing Excel file: ${error.message}. Please ensure it's a valid Excel file with the expected structure.`);
+                     // Reset state if error occurs
+                     excelData = [];
+                     if (currentChart) { currentChart.destroy(); currentChart = null; }
+                     document.getElementById('table-container').innerHTML = '<p>Error loading data.</p>';
+                     document.getElementById('chart-container').innerHTML = '';
+                     document.getElementById('chart-container').classList.add('hidden');
+                     monthFilterList.innerHTML = ''; updateMonthButtonText();
+                     yearFilterList.innerHTML = ''; updateYearButtonText();
+                     unitFilterList.innerHTML = ''; updateUnitButtonText();
+                     parameterSelectorList.innerHTML = ''; updateParameterButtonText();
+                }
+            };
+            reader.onerror = (error) => {
+                console.error("FileReader error:", error);
+                alert("Error reading the file.");
+            }
+            reader.readAsArrayBuffer(file);
+        }
+
+        function populateMonthFilter() {
+            const monthsRaw = excelData.map(row => row.Month).filter(Boolean);
+            // Try converting to numbers for sorting, handle potential non-numeric months gracefully
+            const monthNumbers = monthsRaw.map(m => parseInt(m)).filter(n => !isNaN(n));
+            const uniqueMonths = [...new Set(monthNumbers)].sort((a, b) => a - b);
+            console.log('Months after parsing and sorting:', uniqueMonths);
+            monthFilterList.innerHTML = `
+                <label class="flex items-center space-x-2">
+                    <input type="checkbox" value="all" checked> <span>Select All</span>
+                </label>
+                ${uniqueMonths.map(m => `
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" value="${m}" checked> <span>${m}</span>
+                    </label>
+                `).join('')}
+            `;
+            updateMonthButtonText(); // Update button text after populating
+        }
+
+        function updateMonthButtonText() {
+            const selectedMonths = getSelectedMonths();
+            const allMonthsSelected = monthFilterList.querySelectorAll('input[type="checkbox"]:not([value="all"])').length === selectedMonths.length && selectedMonths.length > 0;
+            const selectAllCheckbox = monthFilterList.querySelector('input[value="all"]');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = allMonthsSelected;
+            }
+            monthFilterButton.textContent = selectedMonths.length > 0 ? `${selectedMonths.length} Month(s) Selected` : 'Select Months';
+        }
+
+        function populateYearFilter() {
+            const yearsRaw = excelData.map(row => row.Year).filter(Boolean);
+            const uniqueYears = [...new Set(yearsRaw)];
+            const numericYears = uniqueYears.map(year => parseInt(year, 10)).filter(year => !isNaN(year));
+            const sortedYears = numericYears.sort((a, b) => a - b);
+            console.log('Sorted Numeric Years:', sortedYears);
+            yearFilterList.innerHTML = `
+                <label class="flex items-center space-x-2">
+                    <input type="checkbox" value="all" checked> <span>Select All</span>
+                </label>
+                ${sortedYears.map(year => `
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" value="${year}" checked> <span>${year}</span>
+                    </label>
+                `).join('')}
+            `;
+            updateYearButtonText();
+        }
+
+        function updateYearButtonText() {
+            const selectedYears = getSelectedYears();
+            const allYearsSelected = yearFilterList.querySelectorAll('input[type="checkbox"]:not([value="all"])').length === selectedYears.length && selectedYears.length > 0;
+            const selectAllCheckbox = yearFilterList.querySelector('input[value="all"]');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = allYearsSelected;
+            }
+            yearFilterButton.textContent = selectedYears.length > 0 ? `${selectedYears.length} Year(s) Selected` : 'Select Years';
+        }
+
+        function populateUnitFilter() {
+            const units = [...new Set(excelData.map(row => row.Unit?.toString().trim()).filter(Boolean))].sort();
+            console.log('Units after parsing:', units);
+            unitFilterList.innerHTML = `
+                <label class="flex items-center space-x-2">
+                    <input type="checkbox" value="all" checked> <span>Select All</span>
+                </label>
+                ${units.map(u => `
+                     <label class="flex items-center space-x-2">
+                         <input type="checkbox" value="${u}" checked> <span>${u}</span>
+                     </label>
+                 `).join('')}
+            `;
+            updateUnitButtonText();
+        }
+
+         function updateUnitButtonText() {
+             const selectedUnits = getSelectedUnits();
+             const allUnitsSelected = unitFilterList.querySelectorAll('input[type="checkbox"]:not([value="all"])').length === selectedUnits.length && selectedUnits.length > 0;
+             const selectAllCheckbox = unitFilterList.querySelector('input[value="all"]');
+             if (selectAllCheckbox) {
+                 selectAllCheckbox.checked = allUnitsSelected;
+             }
+             unitFilterButton.textContent = selectedUnits.length > 0 ? `${selectedUnits.length} Unit(s) Selected` : 'Select Units';
+         }
+
+         function populateParameterSelector() {
+             console.log('Populating Parameters:', availableColumns);
+             parameterSelectorList.innerHTML = `
+                 <label class="flex items-center space-x-2">
+                     <input type="checkbox" value="all" checked> <span>Select All</span>
+                 </label>
+                 ${availableColumns.map(col => `
+                     <label class="flex items-center space-x-2">
+                         <input type="checkbox" value="${col}" checked> <span>${col}</span>
+                     </label>
+                 `).join('')}
+             `;
+             updateParameterButtonText();
+         }
+
+         function updateParameterButtonText() {
+             const selectedParameters = getSelectedParameters();
+             const allParametersSelected = parameterSelectorList.querySelectorAll('input[type="checkbox"]:not([value="all"])').length === selectedParameters.length && selectedParameters.length > 0;
+             const selectAllCheckbox = parameterSelectorList.querySelector('input[value="all"]');
+             if (selectAllCheckbox) {
+                 selectAllCheckbox.checked = allParametersSelected;
+             }
+             parameterSelectorButton.textContent = selectedParameters.length > 0 ? `${selectedParameters.length} Param(s) Selected` : 'Select Parameters';
+         }
+
+        function getSelectedMonths() {
+            const checkboxes = monthFilterList.querySelectorAll('input[type="checkbox"]:checked:not([value="all"])');
+            return Array.from(checkboxes).map(checkbox => checkbox.value); // Keep as strings for matching
+        }
+
+        function getSelectedYears() {
+            const checkboxes = yearFilterList.querySelectorAll('input[type="checkbox"]:checked:not([value="all"])');
+            return Array.from(checkboxes).map(checkbox => checkbox.value); // Keep as strings
+        }
+
+        function getSelectedUnits() {
+            const checkboxes = unitFilterList.querySelectorAll('input[type="checkbox"]:checked:not([value="all"])');
+            return Array.from(checkboxes).map(checkbox => checkbox.value);
+        }
+
+        function getSelectedParameters() {
+            const checkboxes = parameterSelectorList.querySelectorAll('input[type="checkbox"]:checked:not([value="all"])');
+            return Array.from(checkboxes).map(checkbox => checkbox.value);
+        }
+
+        function filterData() {
+             if (!excelData || excelData.length === 0) return [];
+
+             const selectedMonths = getSelectedMonths();
+             const selectedYears = getSelectedYears();
+             const selectedUnits = getSelectedUnits();
+             const reportType = document.getElementById('reportTypeFilter').value;
+
+             console.log("Filtering with:", { selectedMonths, selectedYears, selectedUnits, reportType });
+
+             let filtered = excelData.filter(row => {
+                 // Ensure row values are treated as strings for reliable comparison with filter values
+                 const rowMonthStr = row.Month?.toString();
+                 const rowYearStr = row.Year?.toString();
+                 const rowUnitStr = row.Unit?.toString().trim();
+
+                 let monthMatch = selectedMonths.length === 0 || (rowMonthStr && selectedMonths.includes(rowMonthStr));
+                 let yearMatch = selectedYears.length === 0 || (rowYearStr && selectedYears.includes(rowYearStr));
+                 let unitMatch = selectedUnits.length === 0 || (rowUnitStr && selectedUnits.includes(rowUnitStr));
+
+                 // Check required fields based on report type
+                 if (reportType === 'Monthly' && (!rowMonthStr || !rowYearStr)) return false;
+                 if (reportType === 'Yearly' && !rowYearStr) return false;
+
+                 return monthMatch && yearMatch && unitMatch;
+             });
+             console.log('Filtered data count:', filtered.length);
+             return filtered;
+         }
+
+         function calculateAverages(data, columns) {
+             if (!data || data.length === 0 || !columns || columns.length === 0) {
+                  console.log('calculateAverages: No data or columns to process.');
+                  return [];
+             }
+             const type = document.getElementById('reportTypeFilter').value;
+             const groups = {};
+
+              data.forEach(row => {
+                  let key = '';
+                  let sortKey = '';
+                  const rowYear = row.Year?.toString();
+                  const rowMonth = row.Month?.toString();
+                  const monthNumber = parseInt(rowMonth);
+                  const formattedMonth = isNaN(monthNumber) ? '' : String(monthNumber).padStart(2, '0');
+                  const unit = row.Unit?.toString().trim();
+
+                  if (!rowYear || !unit) return; // Skip rows missing essential grouping keys
+
+                 if (type === 'Yearly') {
+                      key = rowYear;
+                      sortKey = `${rowYear}`;
+                  } else { // Default to Monthly or All (treat 'All' like monthly for grouping)
+                      if (formattedMonth) {
+                          key = `${rowYear}-${formattedMonth}`;
+                          sortKey = `${rowYear}-${formattedMonth}`;
+                      } else {
+                          // Handle cases where month might be missing even if not strictly 'Yearly' report
+                          key = rowYear; // Group by year if month unavailable
+                          sortKey = `${rowYear}`;
+                      }
+                  }
+
+                  if (!groups[key]) {
+                      groups[key] = {};
+                  }
+                  if (!groups[key][unit]) {
+                      groups[key][unit] = { count: 0, sortKey: sortKey, data: {} };
+                      columns.forEach(col => groups[key][unit].data[col] = { sum: 0, validCount: 0 }); // Track sum and count per column
+                  }
+
+                  groups[key][unit].count++; // Overall count for the group (period/unit)
+
+                  columns.forEach(col => {
+                      // Find the actual column name in the row, case-insensitive and trim whitespace
+                      const actualColumnKey = Object.keys(row).find(k => k.trim().toLowerCase() === col.trim().toLowerCase());
+                      if (actualColumnKey) {
+                          const val = parseFloat(row[actualColumnKey]);
+                          if (!isNaN(val)) {
+                              groups[key][unit].data[col].sum += val;
+                              groups[key][unit].data[col].validCount++; // Count only valid numbers for average calculation
+                          }
+                      }
+                  });
+              });
+
+              const averages = Object.entries(groups).flatMap(([period, unitData]) => {
+                  return Object.entries(unitData).map(([unit, vals]) => {
+                      const obj = {
+                          Period: period,
+                          Unit: unit,
+                          sortKey: vals.sortKey
+                      };
+                      columns.forEach(col => {
+                          const colData = vals.data[col];
+                          const average = colData.validCount > 0 ? colData.sum / colData.validCount : 0; // Avoid division by zero
+                          // Multiply by 100 and format
+                          obj[col] = (average * 100).toFixed(1); // Format to one decimal place
+                      });
+                      return obj;
+                  });
+              });
+
+              // Sort based on the sortKey (Year or Year-Month)
+              averages.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+
+              // Remove the temporary sortKey before returning
+              const finalAverages = averages.map(item => {
+                  const { sortKey, ...rest } = item;
+                  return rest;
+              });
+
+              console.log('calculatedAverages:', finalAverages);
+              return finalAverages;
+          }
+        function updateView() {
+            console.log('updateView function triggered');
+            const data = filterData();
+            const selectedParams = getSelectedParameters();
+
+            if (selectedParams.length === 0) {
+                alert("Please select at least one parameter to display.");
+                 document.getElementById('table-container').innerHTML = '<p>No parameters selected.</p>';
+                 document.getElementById('chart-container').classList.add('hidden');
+                 if (currentChart) { currentChart.destroy(); currentChart = null; }
+                return;
+            }
+
+            const avg = calculateAverages(data, selectedParams);
+            const viewType = document.querySelector('input[name="viewType"]:checked').value;
+
+            document.getElementById('table-container').classList.toggle('hidden', viewType !== 'table');
+            document.getElementById('chart-container').classList.toggle('hidden', viewType !== 'chart');
+
+            if (viewType === 'table') {
+                 renderTable(avg);
+                 if (currentChart) { // Optionally destroy chart if switching to table
+                     // currentChart.destroy();
+                     // currentChart = null;
+                 }
+            } else {
+                 renderChart(avg);
+            }
+        }
+
+
+        function renderTable(data) {
+            const container = document.getElementById('table-container');
+            container.innerHTML = ''; // Clear previous table
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-600 py-4">No data available for the selected filters.</p>';
+                return;
+            }
+
+            const table = document.createElement('table');
+            table.className = 'min-w-full bg-white border border-black border-collapse'; // Added border-collapse
+
+            // Table Header
+            const thead = document.createElement('thead');
+            thead.className = 'bg-gray-200'; // Slightly darker header
+            const headerRow = document.createElement('tr');
+            // Add Period and Unit first, then selected parameters
+            const headers = ['Period', 'Unit', ...getSelectedParameters()];
+            headers.forEach(key => {
+                 if (Object.keys(data[0]).includes(key)) { // Only add headers present in data
+                     const th = document.createElement('th');
+                     th.className = 'py-2 px-4 border border-black font-semibold text-gray-700 text-center text-sm uppercase'; // Style header
+                     th.textContent = key;
+                     headerRow.appendChild(th);
+                 }
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // Table Body
+            const tbody = document.createElement('tbody');
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50'; // Add hover effect
+                headers.forEach(key => {
+                     if (Object.keys(item).includes(key)) { // Match data keys with headers
+                         const td = document.createElement('td');
+                         td.className = 'py-2 px-4 border border-black text-gray-800 text-center text-sm'; // Style cells
+                         // Append '%' for parameter columns
+                         td.textContent = (key !== 'Period' && key !== 'Unit') ? `${item[key]}%` : item[key];
+                         row.appendChild(td);
+                     }
+                });
+                tbody.appendChild(row);
+            });
+            table.appendChild(tbody);
+
+            container.appendChild(table); // Add the constructed table to the container
+        }
+
+
+        function renderChart(data) {
+             const chartContainer = document.getElementById('chart-container');
+             const canvas = document.getElementById('myChart');
+             let ctx;
+
+             if (!canvas) { // If canvas doesn't exist, create it
+                  console.log("Creating canvas element for chart.");
+                  const newCanvas = document.createElement('canvas');
+                  newCanvas.id = 'myChart';
+                  newCanvas.width = 800; // Optional: set default size
+                  newCanvas.height = 400;
+                  chartContainer.innerHTML = ''; // Clear any potential "no data" message
+                  chartContainer.appendChild(newCanvas);
+                  ctx = newCanvas.getContext('2d');
+             } else {
+                  ctx = canvas.getContext('2d');
+             }
+
+
+             // Always destroy the previous chart instance if it exists
+             if (currentChart) {
+                  currentChart.destroy();
+                  currentChart = null;
+             }
+
+             if (!data || data.length === 0) {
+                  console.log("No data to render chart.");
+                  chartContainer.innerHTML = '<p class="text-center text-gray-600 py-4">No data available for the selected filters to draw chart.</p>'; // Display message inside container
+                  return;
+             }
+
+             // Ensure the container is visible (it might have been hidden if previously no data)
+              chartContainer.classList.remove('hidden');
+              // Clear any potential "no data" message if canvas was recreated
+              if (chartContainer.querySelector('p')) {
+                  chartContainer.innerHTML = '';
+                  chartContainer.appendChild(canvas || document.getElementById('myChart')); // Ensure canvas is back
+                  ctx = (canvas || document.getElementById('myChart')).getContext('2d'); // Re-get context
+              }
+
+
+             const selectedUnits = getSelectedUnits();
+             const selectedParameters = getSelectedParameters();
+             const labels = [...new Set(data.map(item => item.Period))].sort(); // Ensure labels are sorted
+             const datasets = [];
+
+             // Logic to create datasets based on selected units and parameters
+             if (selectedUnits.length <= 1) {
+                  // If only one unit (or 'All' treated as one) is selected, show parameters as lines
+                  const unitToDisplay = selectedUnits.length === 1 ? selectedUnits[0] : data[0]?.Unit; // Pick the unit
+                  const unitData = unitToDisplay ? data.filter(d => d.Unit === unitToDisplay) : data; // Use all data if no specific unit
+
+                  selectedParameters.forEach(param => {
+                      datasets.push({
+                          label: param, // Label is the parameter name
+                          data: labels.map(period => {
+                              const item = unitData.find(d => d.Period === period);
+                              // Return the numeric value (remove '%') for the chart data point
+                              return item && item[param] !== undefined ? parseFloat(item[param]) : null; // Use null for missing data points
+                          }),
+                          borderColor: getRandomColor(),
+                          backgroundColor: getRandomColor(), // Optional: for fill
+                          fill: false,
+                          tension: 0.1, // Less curvy lines
+                          spanGaps: true // Connect lines over null data points
+                      });
+                  });
+             } else {
+                  // If multiple units are selected, show each unit-parameter combo as a line
+                  selectedUnits.forEach(unit => {
+                      const unitData = data.filter(row => row.Unit === unit);
+                      selectedParameters.forEach(param => {
+                          datasets.push({
+                              label: `${unit} - ${param}`, // Combine unit and parameter for label
+                              data: labels.map(period => {
+                                  const item = unitData.find(d => d.Period === period);
+                                  return item && item[param] !== undefined ? parseFloat(item[param]) : null;
+                              }),
+                              borderColor: getRandomColor(),
+                              backgroundColor: getRandomColor(),
+                              fill: false,
+                              tension: 0.1,
+                              spanGaps: true
+                          });
+                      });
+                  });
+             }
+
+             const chartConfig = {
+                  type: 'line',
+                  data: {
+                      labels: labels,
+                      datasets: datasets
+                  },
+                  options: {
+                      responsive: true,
+                      maintainAspectRatio: false, // Allow chart to fill container height
+                      scales: {
+                          y: {
+                              beginAtZero: true,
+                              ticks: {
+                                  callback: function (value) { return value + '%'; } // Add % to Y-axis
+                              },
+                              title: {
+                                  display: true,
+                                  text: 'Realization %'
+                              }
+                          },
+                          x: {
+                              title: {
+                                  display: true,
+                                  text: 'Period'
+                              }
+                          }
+                      },
+                      plugins: {
+                          title: {
+                              display: true,
+                              text: 'Yarn Realization Trend',
+                              padding: { top: 10, bottom: 20 }, // Add padding
+                               font: { size: 16 } // Adjust font size
+                          },
+                          tooltip: {
+                              callbacks: {
+                                  label: function (context) {
+                                      let label = context.dataset.label || '';
+                                      if (label) label += ': ';
+                                      if (context.parsed.y !== null) label += context.parsed.y.toFixed(1) + '%'; // Format tooltip value
+                                      return label;
+                                  }
+                              }
+                          },
+                          datalabels: {
+                              anchor: 'end',
+                              align: 'top', // Position labels above points
+                              formatter: (value, context) => {
+                                  // Display labels only for specific datasets or conditions if needed
+                                  return value !== null ? value.toFixed(1) + '%' : ''; // Format data labels
+                              },
+                              font: {
+                                      size: 10 // Adjust label font size
+                              },
+                              color: '#444' // Adjust label color
+                          }
+                      }
+                  }
+             };
+
+             // Create the new chart instance and assign it
+             currentChart = new Chart(ctx, chartConfig);
+         }
+
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        function downloadData() {
+            const viewType = document.querySelector('input[name="viewType"]:checked').value;
+
+            if (viewType === 'table') {
+                const dataToDownload = filterData(); // Get the currently filtered raw-ish data
+                const selectedParams = getSelectedParameters();
+                const averagedData = calculateAverages(dataToDownload, selectedParams); // Get the displayed averaged data
+
+                if (!averagedData || averagedData.length === 0) {
+                    alert('No table data available to download.');
+                    return;
+                }
+                 // Format data for download (add % back)
+                 const formattedForDownload = averagedData.map(row => {
+                     const newRow = {...row};
+                     selectedParams.forEach(param => {
+                         if (newRow[param] !== undefined) {
+                             newRow[param] = `${newRow[param]}%`;
+                         }
+                     });
+                     return newRow;
+                 });
+
+                const worksheet = XLSX.utils.json_to_sheet(formattedForDownload);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'YarnRealizationData');
+                XLSX.writeFile(workbook, 'yarn_realization_table_data.xlsx');
+
+            } else if (viewType === 'chart' && currentChart) {
+                const link = document.createElement('a');
+                link.download = 'yarn_realization_chart.png';
+                link.href = currentChart.toBase64Image('image/png', 1); // Use high quality PNG
+                link.click();
+                link.remove(); // Clean up the temporary link
+            } else {
+                alert('No data or chart currently displayed to download.');
+            }
+        }
+
+    </script>
+</body>
+
+</html>
