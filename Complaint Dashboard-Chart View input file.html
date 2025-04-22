@@ -267,16 +267,30 @@
 
 
         <div class="controls">
-            <div class="control-row">
-                <div class="upload-item">
-                    <label for="yarnExcelFile" class="upload-label">Upload Yarn Complaints:</label>
-                    <input type="file" id="yarnExcelFile" accept=".xlsx, .xls">
-                </div>
-                <div class="upload-item">
-                    <label for="fabricExcelFile" class="upload-label">Upload Fabric Complaints:</label>
-                    <input type="file" id="fabricExcelFile" accept=".xlsx, .xls">
-                </div>
-            </div>
+  <div class="control-row" style="display: flex; justify-content: space-between; align-items: center;">
+    
+    <!-- Left side: Upload Inputs -->
+    <div style="display: flex; gap: 2rem;">
+      <div class="upload-item">
+        <label for="yarnExcelFile" class="upload-label">Upload Yarn Complaints:</label>
+        <input type="file" id="yarnExcelFile" accept=".xlsx, .xls">
+      </div>
+      <div class="upload-item">
+        <label for="fabricExcelFile" class="upload-label">Upload Fabric Complaints:</label>
+        <input type="file" id="fabricExcelFile" accept=".xlsx, .xls">
+      </div>
+    </div>
+
+    <!-- Right side: Back Button -->
+    <button onclick="goBack()" class="px-4 py-2 bg-blue-500 font-bold text-white rounded shadow hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400">
+      ← Home
+    </button>
+
+  </div>
+</div>
+
+
+
             <div class="control-row"> <!-- Removed margin-top as control-row has margin-bottom -->
                 <div>
                     <label for="productFilter" class="filter-label">Product:</label>
@@ -529,6 +543,9 @@
                 updateDashboard();
             }
         }
+function goBack() {
+    window.location.href = "protected.html";
+  }
 
         function handleFabricFile(event) {
             const file = event.target.files[0];
