@@ -16,9 +16,39 @@
         .header img { height: 70px; width: auto; margin-right: 20px;}
         .header h1 { font-size: 28px; font-weight: bold; color: #0000A0; margin: 0; } /* Adjusted color */
         h2 { text-align: center; background-color: #D71921; color: #fff; padding: 12px 0; border-radius: 4px; margin-top: 0; margin-bottom: 25px; font-size: 1.5em; }
-        .controls { display: flex; flex-direction: column; align-items: center; gap: 15px; margin-bottom: 25px; padding: 15px; background-color: #fdf6f6; border-radius: 6px; border: 1px solid #f0d0d1; }
-        .controls > input[type="file"] { width: 100%; padding: 10px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff; box-sizing: border-box; }
-        .filter-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 20px; width: 100%; }
+        .controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Changed from left to flex-start for better cross-browser compatibility */
+  gap: 15px;
+  margin-bottom: 25px;
+  padding: 15px;
+  background-color: #fdf6f6;
+  border-radius: 6px;
+  border: 1px solid #f0d0d1;
+}
+
+.controls > input[type="file"] {
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  box-sizing: border-box;
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start; /* Changed from left to flex-start */
+  justify-content: flex-start; /* Changed from center to flex-start */
+  gap: 12px 20px;
+  width: 100%;
+}
+.controls .flex.items-center.w-full.justify-between > .home-button {
+  margin-left: 860px; /* Push the button to the right */
+}
         .controls label { font-weight: bold; margin-right: 5px; color: #D71921; font-size: 0.9em; }
         .controls select { padding: 8px 10px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; min-width: 150px; background-color: #fff; }
         .controls button { padding: 10px 20px; background-color: #D71921; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; transition: background-color 0.2s ease; }
@@ -66,43 +96,84 @@
             <h1 class="text-4xl font-bold text-blue-900">Sagar Manufacturers Pvt. Ltd.</h1>
         </div>
         <h2>Uster Quantum Dashboard</h2>
-        <div class="controls">
-            <input type="file" id="csvFile" accept=".csv" title="Upload Uster Quantum CSV data file"/>
-            <div class="filter-row">
-                <label for="reportType">Report Type:</label>
-                <select id="reportType" title="Choose Chart or Table view">
-                    <option value="chart">Chart</option>
-                    <option value="table">Table</option>
-                </select>
-                <label for="groupBy">Group By:</label>
-                <select id="groupBy" title="Group data by Machine, Lot, or view aggregated">
-                    <option value="Machine name">Machine</option>
-                    <option value="Lot">Lot</option>
-                    <option value="All">All</option>
-                </select>
-                <label for="productFilter">Product:</label>
-                <select id="productFilter" title="Filter by Product"><option value="">-- Product --</option></select>
-                <label for="articleFilter">Article:</label>
-                <select id="articleFilter" title="Filter by Article Number"><option value="">-- Article Number --</option></select>
-                <label for="unitFilter">Unit:</label>
-                <select id="unitFilter" title="Filter by Unit (Machine prefix)"><option value="">-- Unit --</option></select>
-                <label for="parameterGroup">Parameter Group:</label>
-                <select id="parameterGroup" title="Select Parameter Category">
-                    <option value="Cuts">Cuts</option>
-                    <option value="Quality">Quality</option>
-                    <option value="Alarms">Alarms</option>
-                    <option value="Classimat">Classimat</option>
-                </select>
-                <div id="parameterSelectionContainer" style="display: inline-block; vertical-align: middle;">
-                    <label for="parameterDropdown" id="parameterLabel">Parameter:</label> <div id="parameterCheckboxes" class="parameter-checkbox-group" style="display: none;" title="Select one or more parameters">
-                        </div>
-                    <select id="parameterDropdown" style="display: none;" title="Select a parameter">
-                         </select>
-                 </div>
 
-                <button onclick="refreshDataView()" title="Apply filters and update view">Refresh</button>
-            </div>
-        </div>
+<div class="controls flex flex-col gap-4 p-4">
+  <div class="flex items-center w-full justify-between">
+    <input
+      type="file"
+      id="csvFile"
+      accept=".csv"
+      title="Upload Uster Quantum CSV data file"
+      class="border border-gray-300 text-sm rounded px-3 py-2 text-gray-700 bg-white hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+    <button
+  onclick="goBack()"
+  class="home-button bg-blue-600 font-bold text-white px-4 py-2 rounded hover:bg-blue-700"
+>
+  ← Home
+</button>
+  </div>
+
+  <div class="filter-row flex flex-wrap items-center gap-x-4 gap-y-2">
+    <div class="flex items-center gap-2">
+      <label for="reportType">Report Type:</label>
+      <select id="reportType" title="Choose Chart or Table view" class="border border-gray-300 text-sm rounded px-2 py-1">
+        <option value="chart">Chart</option>
+        <option value="table">Table</option>
+      </select>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <label for="articleFilter">Article:</label>
+      <select id="articleFilter" title="Filter by Article Number" class="border border-gray-300 text-sm rounded px-2 py-1">
+        <option value="">-- Article Number --</option>
+      </select>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <label for="parameterGroup">Parameter Group:</label>
+      <select id="parameterGroup" title="Select Parameter Category" class="border border-gray-300 text-sm rounded px-2 py-1">
+        <option value="Cuts">Cuts</option>
+        <option value="Quality">Quality</option>
+        <option value="Alarms">Alarms</option>
+        <option value="Classimat">Classimat</option>
+      </select>
+    </div>
+
+    <div class="flex items-center gap-2 w-full">
+      <label for="productFilter">Product:</label>
+      <select id="productFilter" title="Filter by Product" class="border border-gray-300 text-sm rounded px-2 py-1">
+        <option value="">-- Product --</option>
+      </select>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <label for="groupBy">Group By:</label>
+      <select id="groupBy" title="Group data by Machine, Lot, or view aggregated" class="border border-gray-300 text-sm rounded px-2 py-1">
+        <option value="Machine name">Machine</option>
+        <option value="Lot">Lot</option>
+        <option value="All">All</option>
+      </select>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <label for="unitFilter">Unit:</label>
+      <select id="unitFilter" title="Filter by Unit (Machine prefix)" class="border border-gray-300 text-sm rounded px-2 py-1">
+        <option value="">-- Unit --</option>
+      </select>
+    </div>
+
+    <div id="parameterSelectionContainer" class="flex items-center gap-2" style="vertical-align: middle;">
+      <label for="parameterDropdown" id="parameterLabel">Parameter:</label>
+      <div id="parameterCheckboxes" class="parameter-checkbox-group" style="display: none;" title="Select one or more parameters"></div>
+      <select id="parameterDropdown" style="display: none;" title="Select a parameter" class="border border-gray-300 text-sm rounded px-2 py-1"></select>
+    </div>
+
+    <button onclick="refreshDataView()" title="Apply filters and update view" class="bg-gray-300 text-gray-700 font-semibold rounded px-4 py-2 hover:bg-gray-400">
+      Refresh
+    </button>
+  </div>
+</div>
         <div id="chartContainer">
              <div class="chart-controls-overlay">
                 <span class="icon-button fullscreen-icon" onclick="toggleFullScreen('chartContainer')" title="Toggle Full Screen"></span>
@@ -251,6 +322,10 @@
         fillDropdown("articleFilter", getUnique("Article number"));
         fillDropdown("unitFilter", getUnique("Machine name", name => name?.substring(0, 2))); // Safe substring
     }
+
+function goBack() {
+    window.location.href = "https://pankajmehta28.github.io/my-dashboard/protected.html";
+  }
 
 
     function fillDropdown(id, options) {
