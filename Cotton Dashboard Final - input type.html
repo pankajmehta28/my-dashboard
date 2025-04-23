@@ -26,6 +26,94 @@
         #dataTable {
             font-family: 'Inter', sans-serif;
         }
+
+        /* --- Fullscreen Modal Styles --- */
+        /* Ensure the modal is fixed and covers the whole screen */
+        #chartModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* Semi-transparent black background */
+            z-index: 100;
+            /* Ensure it's on top */
+            display: none;
+            /* Initially hidden */
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Add the 'flex' class to show the modal */
+        #chartModal.flex {
+            display: flex;
+        }
+
+
+        #chartModal .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            max-width: 95%; /* Adjust max width for larger screens */
+            max-height: 95vh; /* Adjust max height */
+            width: 100%; /* Allow content to dictate width up to max */
+            height: 100%; /* Allow content to dictate height up to max */
+            display: flex; /* Use flex to manage canvas size */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #chartModal .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #555;
+            background: none;
+            border: none;
+            padding: 0;
+            line-height: 1;
+        }
+
+        #expandedChart {
+            width: 100% !important; /* Important to override default canvas size */
+            height: 100% !important;
+            max-width: 100%;
+            max-height: 100%;
+        }
+        /* --- End Fullscreen Modal Styles --- */
+
+         /* Sticky table header and first column */
+         #tableContainer .overflow-x-auto {
+             max-height: 70vh; /* Adjust as needed */
+             overflow: auto;
+         }
+
+         #dataTable th,
+         #dataTable td {
+             white-space: nowrap; /* Prevent text wrapping in cells */
+             min-width: 80px; /* Minimum width for cells */
+         }
+
+
+         #dataTable th.sticky {
+             position: sticky;
+             top: 0; /* Stick to the top */
+             z-index: 20; /* Ensure it's above tbody but below modal */
+         }
+
+         #dataTable td.sticky {
+             position: sticky;
+             left: 0; /* Stick to the left */
+             z-index: 15; /* Ensure it's above other td but below sticky th */
+         }
     </style>
 </head>
 
@@ -38,18 +126,17 @@
         </div>
         <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Cotton Mixing Results Trend Dashboard</h2>
 
-       <div class="flex items-center justify-between mb-4 gap-4">
-  <div class="flex flex-col">
-    <label class="block mb-2 font-medium text-gray-700">Upload Excel File:</label>
-    <input type="file" id="fileInput" accept=".xlsx"
-      class="p-2 border rounded w-full max-w-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-  </div>
-
-  <button onclick="goBack()" class="bg-blue-600 font-bold text-white h-fit px-4 py-2 rounded hover:bg-blue-700 mt-6">
-    ← Home
-  </button>
-</div>
-
+       <div class="flex justify-between items-center gap-4 mb-4">
+            <div class="flex-grow mr-4"> <label for="fileInput" class="block mb-1 text-gray-700">Upload Excel File:</label>
+                 <input type="file" id="fileInput" accept=".xlsx, .xls"
+                        class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2"> </div>
+             <button onclick="goBack()"
+                class="px-4 py-2 bg-blue-500 font-bold text-white rounded shadow hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                ← Home
+            </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div>
                 <label for="fromDateFilter" class="block mb-1 text-gray-700">From Date</label>
@@ -90,8 +177,6 @@
             </div>
         </div>
 
-
-
         <div class="mb-4 flex items-center justify-center">
             <label class="mr-4 font-medium text-gray-700">View:</label>
             <div class="inline-flex rounded-md shadow-sm" role="group">
@@ -126,7 +211,7 @@
                     class="absolute top-2 right-2 text-gray-500 hover:text-black text-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="lucide lucide-maximize-2">
+                        class="lucide lucude-maximize-2">
                         <path d="M4 14v6a2 2 0 0 0 2 2h6" />
                         <path d="M10 10l4-4" />
                         <path d="M15 15l-4-4" />
@@ -155,7 +240,7 @@
         <div id="tableContainer" class="bg-white p-4 rounded shadow-md hidden">
             <h2 class="font-semibold mb-2 text-gray-800">Data Table</h2>
             <div class="overflow-x-auto">
-                <table id="dataTable" class="min-w-full divide-y divide-gray-200 table-auto">
+                <table id="dataTable" class="min-w-full divide-y divide-gray-200 table-auto border border-gray-200">
                     <thead class="bg-gray-50">
                         <tr></tr>
                     </thead>
@@ -165,25 +250,21 @@
         </div>
     </div>
 
-    <div id="chartModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 flex">
-        <div class="bg-white p-4 rounded shadow-lg w-full max-w-6xl h-[90vh] relative flex flex-col">
-            <button onclick="closeModal()"
-                class="absolute top-2 right-2 text-gray-500 hover:text-black text-xl">✕</button>
-            <div class="flex-grow">
-                <canvas id="expandedChart" style="width: 100%; height: 100%;"></canvas>
-            </div>
-            </div>
+    <div id="chartModal" class="hidden">
+        <div class="modal-content">
+             <button onclick="closeModal()" class="close-button">✕</button>
+            <canvas id="expandedChart"></canvas>
+        </div>
     </div>
-
     <script>
         flatpickr(".flatpickr", {
             dateFormat: "Y-m-d",
         });
 
         let rawData = [];
-        let chartInstances = {};
+        let chartInstances = {}; // Stores instances for chart1 and chart2
         let currentView = 'chart'; // Default view
-        let expandedChartInstance = null;
+        let expandedChartInstance = null; // Global variable for the fullscreen chart instance
 
         // Register the data labels plugin
         Chart.register(ChartDataLabels);
@@ -198,9 +279,9 @@
         const downloadOptions = document.getElementById('downloadOptions');
         const chartModal = document.getElementById('chartModal');
         const expandedChartCanvas = document.getElementById('expandedChart');
+        const fileInput = document.getElementById('fileInput'); // Get file input element
 
 
-        document.getElementById('fileInput').addEventListener('change', handleFile);
         reportTypeFilterEl.addEventListener('change', renderData);
         unitFilterEl.addEventListener('change', renderData);
         lineFilterEl.addEventListener('change', renderData);
@@ -212,6 +293,16 @@
             downloadOptions.classList.toggle('hidden');
         });
 
+        // Close dropdown if clicked outside
+        document.addEventListener('click', (event) => {
+            if (!downloadDropdownBtn.contains(event.target) && !downloadOptions.contains(event.target)) {
+                downloadOptions.classList.add('hidden');
+            }
+        });
+
+        // Add event listener for the file input
+        fileInput.addEventListener('change', handleFileUpload);
+
 
         function excelDateToJSDate(serial) {
             const utc_days = Math.floor(serial - 25569);
@@ -220,46 +311,93 @@
             return new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate());
         }
 
-        function handleFile(event) {
-            const file = event.target.files[0];
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {
-                    type: 'array'
-                });
+         function handleFileUpload(event) {
+             const file = event.target.files[0];
+             if (!file) {
+                 return;
+             }
+
+             const reader = new FileReader();
+             reader.onload = async (e) => {
+                 const arrayBuffer = e.target.result;
+                 await processData(arrayBuffer); // Pass arrayBuffer to processData
+             };
+             reader.onerror = (error) => {
+                 console.error("FileReader error:", error);
+                 alert("Error reading the file.");
+             };
+             reader.readAsArrayBuffer(file);
+         }
+
+
+        async function processData(arrayBuffer) {
+            if (!arrayBuffer) {
+                console.log("ArrayBuffer is null or undefined.");
+                return;
+            }
+            console.log("Processing ArrayBuffer:", arrayBuffer);
+            try {
+                const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
+                console.log("Workbook read successfully:", workbook);
                 const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                rawData = XLSX.utils.sheet_to_json(sheet, {
-                    header: 1
-                });
+                console.log("Sheet:", sheet);
+                // Use header: 1 to get array of arrays first to check headers
+                 const sheetDataAsArrays = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                console.log("Raw Data (arrays) after sheet_to_json:", sheetDataAsArrays);
 
                 // Check for header row
-                if (!rawData || rawData.length === 0 || !Array.isArray(rawData[0])) {
+                if (!sheetDataAsArrays || sheetDataAsArrays.length === 0 || !Array.isArray(sheetDataAsArrays[0])) {
                     alert('Error: The Excel file is empty or contains invalid data.');
+                     rawData = []; // Clear previous data
+                     populateFilters(); // Clear filters
+                     renderData(); // Render empty state
                     return;
                 }
 
-                // Convert to object format, handling missing columns
-                const headers = rawData[0].map(h => h ? h.trim() : ''); // Trim header names and handle null/undefined
-                rawData = rawData.slice(1).map(row => {
-                    const obj = {};
-                    headers.forEach((header, index) => {
-                        obj[header] = row[index];
-                    });
+                // Get headers and filter out invalid ones
+                 const headers = sheetDataAsArrays[0].map(h => h ? String(h).trim() : '').filter(h => h !== ''); // Ensure headers are strings and not empty
+
+                 if (headers.length === 0) {
+                     alert('Error: Could not detect headers in the Excel file.');
+                     rawData = []; // Clear previous data
+                     populateFilters(); // Clear filters
+                     renderData(); // Render empty state
+                     return;
+                 }
+
+                // Convert to object format using the cleaned headers
+                rawData = XLSX.utils.sheet_to_json(sheet, { header: headers });
+                console.log("Raw Data (objects) after sheet_to_json:", rawData);
+
+
+                // Process date and ensure key fields are strings
+                rawData = rawData.map(row => {
+                    const obj = { ...row }; // Create a copy
+
+                    // Process ISSUE_DATE
                     try {
-                        if (typeof obj.ISSUE_DATE === 'number') {
-                            obj.ISSUE_DATE = excelDateToJSDate(obj.ISSUE_DATE);
+                         const dateValue = row.ISSUE_DATE;
+                        if (typeof dateValue === 'number') {
+                            obj.ISSUE_DATE = excelDateToJSDate(dateValue);
+                        } else if (typeof dateValue === 'string') {
+                            const date = new Date(dateValue);
+                            obj.ISSUE_DATE = isNaN(date.getTime()) ? null : date;
                         } else {
-                            const date = new Date(obj.ISSUE_DATE);
-                            obj.ISSUE_DATE = isNaN(date) ? null : date;
+                            obj.ISSUE_DATE = null;
                         }
                     } catch {
                         obj.ISSUE_DATE = null;
                     }
-                    return obj;
-                }).filter(r => r.ISSUE_DATE); // Filter out rows with missing dates
 
-                console.log("Raw Data after processing:", rawData); // Inspect rawData
+                     // Ensure other key fields are converted to strings and trimmed
+                    if (obj.UNIT !== undefined && obj.UNIT !== null) obj.UNIT = String(obj.UNIT).trim(); else obj.UNIT = '';
+                    if (obj.LINE !== undefined && obj.LINE !== null) obj.LINE = String(obj.LINE).trim(); else obj.LINE = '';
+                    if (obj.COTTON !== undefined && obj.COTTON !== null) obj.COTTON = String(obj.COTTON).trim(); else obj.COTTON = '';
+
+                    return obj;
+                }).filter(r => r.ISSUE_DATE); // Filter out rows with missing or invalid dates
+
+                console.log("Raw Data after date and key processing:", rawData); // Inspect rawData
 
                 // Check for required columns
                 const requiredColumns = ['UNIT', 'LINE', 'COTTON', 'ISSUE_DATE', 'Avg_UHML', 'Avg_SFI', 'Avg_Trash',
@@ -269,13 +407,29 @@
 
                 if (missingColumns.length > 0) {
                     alert(
-                        `Error: The Excel file is missing the following required columns: ${missingColumns.join(', ')}`);
-                    return;
+                        `Warning: The Excel file is missing the following columns which might affect the display: ${missingColumns.join(', ')}`);
+                     // Continue processing even with missing optional columns, but alert the user
                 }
+
+                 if (rawData.length === 0) {
+                     alert('No valid data rows found after processing.');
+                     rawData = []; // Ensure rawData is empty
+                     populateFilters(); // Clear filters
+                     renderData(); // Render empty state
+                     return;
+                 }
+
+
                 populateFilters();
                 renderData(); // Initial data rendering
-            };
-            reader.readAsArrayBuffer(file);
+
+            } catch (error) {
+                console.error("Error during data processing:", error);
+                alert("Error processing the Excel file. Please ensure it's a valid Excel file with the expected structure.");
+                 rawData = []; // Clear previous data
+                 populateFilters(); // Clear filters
+                 renderData(); // Render empty state
+            }
         }
 
         function populateFilters() {
@@ -303,16 +457,14 @@
             });
         }
 
- function goBack() {
-    window.location.href = "https://pankajmehta28.github.io/my-dashboard/protected.html";
-  }
-
         function switchView(viewType) {
             currentView = viewType;
             const chartContainer = document.getElementById('chartContainer');
             const tableContainer = document.getElementById('tableContainer');
-            chartContainer.style.display = viewType === 'table' ? 'none' : 'grid'; // Use style.display
-            tableContainer.style.display = viewType === 'chart' ? 'none' : 'block'; // Use style.display
+             // Use Tailwind hidden class instead of style.display
+            chartContainer.classList.toggle('hidden', viewType === 'table');
+            tableContainer.classList.toggle('hidden', viewType === 'chart');
+
             document.getElementById('chartViewBtn').classList.toggle('bg-gray-100', viewType === 'chart');
             document.getElementById('tableViewBtn').classList.toggle('bg-gray-100', viewType === 'table');
             renderData();
@@ -322,16 +474,23 @@
             const unit = unitFilterEl.value;
             const line = lineFilterEl.value;
             const cotton = cottonFilterEl.value;
-            const fromDate = fromDateFilterEl.value;
-            const toDate = toDateFilterEl.value;
+            const fromDate = fromDateFilterEl.value ? new Date(fromDateFilterEl.value) : null;
+            const toDate = toDateFilterEl.value ? new Date(toDateFilterEl.value) : null;
+
+            // Set time to start/end of day for date range filtering
+            if (fromDate) fromDate.setHours(0, 0, 0, 0);
+            if (toDate) toDate.setHours(23, 59, 59, 999);
+
 
             return rawData.filter(row => {
                 const date = row.ISSUE_DATE;
-                const isInRange = (!fromDate || new Date(date) >= new Date(fromDate)) && (!toDate || new Date(date) <=
-                    new Date(toDate));
-                const unitMatch = !unit || String(row.UNIT) === unit; // Ensure comparison with string
-                const lineMatch = !line || String(row.LINE) === line; // Ensure comparison with string
-                const cottonMatch = !cotton || String(row.COTTON) === cotton; // Ensure comparison with string
+                if (!date) return false; // Exclude rows without valid dates
+
+                const isInRange = (!fromDate || date >= fromDate) && (!toDate || date <= toDate);
+                const unitMatch = !unit || String(row.UNIT) === unit;
+                const lineMatch = !line || String(row.LINE) === line;
+                const cottonMatch = !cotton || String(row.COTTON) === cotton;
+
 
                 return unitMatch && lineMatch && cottonMatch && isInRange;
             });
@@ -340,140 +499,237 @@
         function groupData(filteredData, reportType) {
             const grouped = {};
             if (!filteredData || filteredData.length === 0) {
-                return {}; // Return empty object if filteredData is empty
+                return {};
             }
             filteredData.forEach(row => {
                 const date = row.ISSUE_DATE;
+                if (!date) return; // Skip rows with missing dates
                 let key = '';
+                let sortKey = date.getTime(); // Default sort key for daily
+
                 switch (reportType) {
                     case 'daily':
                         key = date.toISOString().split('T')[0];
+                        sortKey = date.getTime();
                         break;
                     case 'weekly':
-                        const weekStart = new Date(date);
-                        weekStart.setDate(date.getDate() - date.getDay() + (date.getDay() === 0 ? -6 : 1));
-                        const weekEnd = new Date(weekStart);
-                        weekEnd.setDate(weekStart.getDate() + 6);
-                        key = `${weekStart.toISOString().split('T')[0]} to ${weekEnd.toISOString().split('T')[0]}`;
-                        break;
-                    case 'monthly':
-                        key = date.toLocaleString('default', {
-                            year: 'numeric',
-                            month: 'short'
-                        });
-                        break;
-                    case 'yearly':
-                        key = date.getFullYear().toString();
-                        break;
-                    default:
-                        key = date.toLocaleString('default', {
-                            year: 'numeric',
-                            month: 'short'
-                        });
-                        break;
-                }
-                if (!grouped[key]) grouped[key] = [];
-                grouped[key].push(row);
-            });
-            return grouped;
-        }
-
-        function calculateAverages(groupedData) {
-            const averages = {};
-            if (!groupedData || Object.keys(groupedData).length === 0) {
-                return {};
-            }
-            for (const key in groupedData) {
-                const group = groupedData[key];
-                let weekStartDate = null;
-                if (reportTypeFilterEl.value === 'weekly') {
-                    weekStartDate = new Date(key.split(' to ')[0]);
-                } else if (reportTypeFilterEl.value === 'daily') {
-                    weekStartDate = new Date(key);
-                } else if (reportTypeFilterEl.value === 'monthly') {
-                    weekStartDate = new Date(Date.parse(key + " 1, 2000"));
-                } else if (reportTypeFilterEl.value === 'yearly') {
-                    weekStartDate = new Date(key + "-01-01");
-                } else {
-                    weekStartDate = new Date(key);
-                }
-                averages[key] = {
-                    Avg_UHML: group.length ? group.reduce((sum, row) => sum + (parseFloat(row.Avg_UHML) || 0), 0) /
-                        group.length : 0,
-                    Avg_SFI: group.length ? group.reduce((sum, row) => sum + (parseFloat(row.Avg_SFI) || 0), 0) /
-                        group.length : 0,
-                    Avg_Trash: group.length ? group.reduce((sum, row) => sum + (parseFloat(row.Avg_Trash) || 0), 0) /
-                        group.length : 0,
-                    Avg_RD: group.length ? group.reduce((sum, row) => sum + (parseFloat(row.Avg_RD) || 0), 0) /
-                        group.length : 0,
-                    Avg_STR: group.length ? group.reduce((sum, row) => sum + (parseFloat(row.Avg_STR) || 0), 0) /
-                        group.length : 0,
-                    Avg_MIC: group.length ? group.reduce((sum, row) => sum + (parseFloat(row.Avg_MIC) || 0), 0) /
-                        group.length : 0,
-                    Avg_Mois: group.length ? group.reduce((sum, row) => sum + (parseFloat(row.Avg_Mois) || 0), 0) /
-                        group.length : 0,
-                    dateKey: key,
-                    weekStartDate: weekStartDate, // Store the week start date as a Date object
-                    unit: document.getElementById('unitFilter').value || 'All',
-                    line: document.getElementById('lineFilter').value || 'All',
-                    cotton: document.getElementById('cottonFilter').value || 'All'
-                };
-            }
-            return averages;
-        }
-
-        function renderCharts(labels, averages) {
-            const dataForChart1 = ['Avg_UHML', 'Avg_SFI', 'Avg_Trash', 'Avg_RD'].map(field => ({
-                label: field,
-                data: labels.map(key => averages[key] ? parseFloat(averages[key][field]).toFixed(1) : 0),
-                borderWidth: 2,
-                tension: 0.4,
-                backgroundColor: getChartColor(field),
-                borderColor: getChartColor(field),
-                fill: false,
-                pointRadius: 5,
-                pointHoverRadius: 7,
-            }));
-
-            const dataForChart2 = ['Avg_STR', 'Avg_MIC', 'Avg_Mois'].map(field => ({
-                label: field,
-                data: labels.map(key => averages[key] ? parseFloat(averages[key][field]).toFixed(1) : 0),
-                borderWidth: 2,
-                tension: 0.4,
-                backgroundColor: getChartColor(field),
-                borderColor: getChartColor(field),
-                fill: false,
-                pointRadius: 5,
-                pointHoverRadius: 7,
-            }));
-
-            function getXAxisLabel(key, reportType) {
-                switch (reportType) {
-                    case 'daily':
-                        return new Date(key).getDate(); // Day of the month
-                    case 'weekly':
-                        const [start, end] = key.split(' to ');
-                        const startDate = new Date(start);
-                        const d = new Date(Date.UTC(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()));
+                         // ISO week calculation
+                        const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
                         const dayNum = d.getUTCDay() || 7;
                         d.setUTCDate(d.getUTCDate() + 4 - dayNum);
                         const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-                        const weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
-                        return weekNo;
+                        const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+                        key = `${d.getUTCFullYear()}-Wk${String(weekNo).padStart(2, '0')}`; // Format like YYYY-WkWW
+                        sortKey = d.getTime(); // Use the date's timestamp as sort key
+                        break;
                     case 'monthly':
-                        return new Date(Date.parse(key + " 1, 2000")).getMonth() + 1; // Month number
+                         const month = date.getMonth() + 1;
+                         key = `${date.getFullYear()}-${String(month).padStart(2, '0')}`; // Format YYYY-MM
+                         sortKey = new Date(date.getFullYear(), date.getMonth(), 1).getTime(); // Sort by month start date
+                        break;
                     case 'yearly':
-                        return key; // Year
+                        key = date.getFullYear().toString(); // Format YYYY
+                        sortKey = new Date(date.getFullYear(), 0, 1).getTime(); // Sort by year start date
+                        break;
                     default:
-                        return key;
+                        key = date.toISOString().split('T')[0]; // Default to daily if reportType is unexpected
+                        sortKey = date.getTime();
+                        break;
                 }
+
+                // Group only by the period key
+                if (!grouped[key]) {
+                     grouped[key] = { data: [], sortKey: sortKey };
+                }
+                grouped[key].data.push(row);
+            });
+
+            // Sort groups by sortKey (date)
+            const sortedGroupKeys = Object.keys(grouped).sort((a, b) => grouped[a].sortKey - grouped[b].sortKey);
+
+            const sortedGrouped = {};
+            sortedGroupKeys.forEach(key => {
+                sortedGrouped[key] = grouped[key];
+            });
+
+            return sortedGrouped;
+        }
+
+
+        function calculateAverages(groupedData) {
+            const averages = [];
+            if (!groupedData || Object.keys(groupedData).length === 0) {
+                return [];
             }
 
-            const xAxisLabels = labels.map(key => getXAxisLabel(key, reportTypeFilterEl.value));
+            for (const periodKey in groupedData) {
+                const group = groupedData[periodKey].data; // Array of rows for this period
+                const sortKey = groupedData[periodKey].sortKey;
 
-            drawChart('chart1', xAxisLabels, dataForChart1);
-            drawChart('chart2', xAxisLabels, dataForChart2);
+
+                if (group.length === 0) continue; // Should not happen with current grouping, but good practice
+
+                 const averageRow = {
+                    Period: periodKey, // This will be the x-axis label (unique per period)
+                    sortKey: sortKey // Keep sort key for sorting
+                };
+
+                 const fieldsToAverage = ['Avg_UHML', 'Avg_SFI', 'Avg_Trash', 'Avg_RD', 'Avg_STR', 'Avg_MIC', 'Avg_Mois'];
+
+                 fieldsToAverage.forEach(field => {
+                    const sum = group.reduce((currentSum, row) => {
+                         const value = parseFloat(row[field]);
+                         return currentSum + (isNaN(value) ? 0 : value); // Add 0 if value is not a number
+                    }, 0);
+                    const validCount = group.filter(row => !isNaN(parseFloat(row[field]))).length; // Count only valid numbers
+                    averageRow[field] = validCount > 0 ? (sum / validCount) : 0; // Calculate average, default to 0 if no valid numbers
+                 });
+
+
+                averages.push(averageRow);
+            }
+
+             // Sort the final averages array by the sortKey
+             averages.sort((a, b) => a.sortKey - b.sortKey);
+
+             // Remove the temporary sortKey before returning
+            return averages.map(item => {
+                const { sortKey, ...rest } = item;
+                return rest;
+            });
         }
+
+       function goBack() {
+    window.location.href = "https://pankajmehta28.github.io/my-dashboard/protected.html";
+  }
+        function renderCharts(labels, averages) {
+             // Destroy existing charts if they exist
+            if (chartInstances.chart1) chartInstances.chart1.destroy();
+            if (chartInstances.chart2) chartInstances.chart2.destroy();
+
+            // Ensure canvases exist
+            const canvas1 = document.getElementById('chart1');
+            const canvas2 = document.getElementById('chart2');
+            if (!canvas1 || !canvas2) {
+                console.error("Chart canvases not found!");
+                return;
+            }
+
+            // Use the 'Period' property from the sorted averages array as labels
+            const chartLabels = averages.map(avg => avg.Period);
+
+
+            const dataForChart1 = ['Avg_UHML', 'Avg_SFI', 'Avg_Trash', 'Avg_RD'].map(field => ({
+                label: field.replace('Avg_', ''), // Use shorter labels
+                data: chartLabels.map(period => { // Map over chartLabels (unique periods)
+                    const entry = averages.find(avg => avg.Period === period); // Find the average for this period
+                    return entry ? parseFloat(entry[field]).toFixed(1) : null; // Use null for missing data points
+                }),
+                borderWidth: 2,
+                tension: 0.4,
+                backgroundColor: getChartColor(field),
+                borderColor: getChartColor(field),
+                fill: false,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                spanGaps: true // Connect lines over null data points
+            }));
+
+            const dataForChart2 = ['Avg_STR', 'Avg_MIC', 'Avg_Mois'].map(field => ({
+                label: field.replace('Avg_', ''), // Use shorter labels
+                 data: chartLabels.map(period => { // Map over chartLabels (unique periods)
+                    const entry = averages.find(avg => avg.Period === period); // Find the average for this period
+                    return entry ? parseFloat(entry[field]).toFixed(1) : null; // Use null for missing data points
+                }),
+                borderWidth: 2,
+                tension: 0.4,
+                backgroundColor: getChartColor(field),
+                borderColor: getChartColor(field),
+                fill: false,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                 spanGaps: true
+            }));
+
+            // const reportType = reportTypeFilterEl.value; // Not needed here anymore
+
+
+            // Chart 1 Options
+            const options1 = {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) label += ': ';
+                                if (context.parsed.y !== null) label += context.parsed.y.toFixed(1);
+                                // The tooltip now shows the average for the combined filters for this period
+                                // We don't have Unit/Line/Cotton per point anymore, it's included in the overall average
+                                // Optionally, display the applied filters in the tooltip or chart title
+                                return label;
+                            }
+                        }
+                    },
+                     datalabels: {
+                        display: true,
+                        align: 'end',
+                        anchor: 'end',
+                         formatter: (value) => value !== null ? parseFloat(value).toFixed(1) : '',
+                        font: { size: 10 }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: { display: false, text: 'Period' },
+                         ticks: {
+                             autoSkip: true,
+                             maxRotation: 0,
+                             minRotation: 0,
+                             // The callback should just return the label string from the chartLabels array
+                             callback: function(value, index) {
+                                 return chartLabels[index];
+                             }
+                        },
+                         grid: { display: false }
+                    },
+                    y: {
+                        title: { display: false, text: 'Average Value' },
+                        ticks: {
+                             beginAtZero: false, // Allow y-axis not to start at zero
+                         },
+                        grid: { color: '#e0e0e0' }
+                    }
+                }
+            };
+
+            // Chart 2 Options (similar to Chart 1 options)
+            const options2 = JSON.parse(JSON.stringify(options1)); // Deep copy options
+
+            // Update the tooltip callback for Chart 2 if needed (same logic applies)
+             options2.plugins.tooltip.callbacks.label = function(context) {
+                 let label = context.dataset.label || '';
+                 if (label) label += ': ';
+                 if (context.parsed.y !== null) label += context.parsed.y.toFixed(1);
+                 return label; // No Unit/Line/Cotton info per point anymore
+             };
+
+
+            chartInstances.chart1 = new Chart(canvas1.getContext('2d'), {
+                type: 'line',
+                data: { labels: chartLabels, datasets: dataForChart1 },
+                options: options1
+            });
+
+            chartInstances.chart2 = new Chart(canvas2.getContext('2d'), {
+                type: 'line',
+                data: { labels: chartLabels, datasets: dataForChart2 },
+                options: options2
+            });
+        }
+
 
         function getChartColor(fieldName) {
             const colorMap = {
@@ -488,230 +744,115 @@
             return colorMap[fieldName] || '#8e44ad';
         }
 
-        function drawChart(canvasId, labels, datasets) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            if (chartInstances[canvasId]) {
-                chartInstances[canvasId].destroy();
+        function renderTable(averages) {
+            const tableHead = document.querySelector('#dataTable thead tr');
+            const tableBody = document.querySelector('#dataTable tbody');
+            tableHead.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            if (!averages || averages.length === 0) { // Check if averages array is empty
+                const noDataRow = document.createElement('tr');
+                const noDataCell = document.createElement('td');
+                noDataCell.colSpan = 10; // Adjust colspan based on expected columns
+                noDataCell.textContent = 'No data available for the selected filters.';
+                noDataCell.classList.add('text-center', 'py-4', 'text-gray-500');
+                noDataRow.appendChild(noDataCell);
+                tableBody.appendChild(noDataRow);
+                return;
             }
 
-            const maxDataValue = Math.max(...datasets.flatMap(dataset => dataset.data));
-            const suggestedMax = maxDataValue > 0 ? maxDataValue * 1.2 : 10;
+            // Headers for the table: Period + selected filters + averaged metrics
+            const headers = ['Period'];
+             const selectedUnit = unitFilterEl.value || 'All';
+             const selectedLine = lineFilterEl.value || 'All';
+             const selectedCotton = cottonFilterEl.value || 'All';
 
-            chartInstances[canvasId] = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: datasets
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                font: {
-                                    size: 12,
-                                    family: 'Inter',
-                                    color: '#555'
-                                }
-                            }
-                        },
-                        tooltip: {
-                            titleFont: {
-                                size: 14,
-                                family: 'Inter',
-                                color: '#333'
-                            },
-                            bodyFont: {
-                                size: 12,
-                                family: 'Inter',
-                                color: '#444'
-                            },
-                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                            borderColor: '#ddd',
-                            borderWidth: 1,
-                            titleColor: '#333',
-                            bodyColor: '#444',
-                            footerColor: '#666',
-                            yAlign: 'bottom',
-                            xAlign: 'center'
-                        },
-                        datalabels: {
-                            display: true, // Ensure data labels are displayed
-                            align: 'end',
-                            anchor: 'end',
-                            formatter: (value) => parseFloat(value).toFixed(1), // Format to one decimal place
-                            font: {
-                                size: 10
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            display: true,
-                            title: {
-                                display: false,
-                                text: 'Date',
-                                font: {
-                                    size: 14,
-                                    family: 'Inter',
-                                    color: '#555'
-                                }
-                            },
-                            ticks: {
-                                font: {
-                                    size: 12,
-                                    family: 'Inter',
-                                    color: '#666'
-                                },
-                                autoSkip: true,
-                                maxRotation: 0,
-                                minRotation: 0,
-                                callback: function(value, index, values) {
-                                    return labels[index];
-                                }
-                            },
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            display: true,
-                            title: {
-                                display: false,
-                                text: 'Average Value',
-                                font: {
-                                    size: 14,
-                                    family: 'Inter',
-                                    color: '#555'
-                                }
-                            },
-                            ticks: {
-                                font: {
-                                    size: 12,
-                                    family: 'Inter',
-                                    color: '#666'
-                                },
-                                beginAtZero: true,
-                                suggestedMax: suggestedMax
-                            },
-                            grid: {
-                                color: '#e0e0e0'
-                            }
-                        }
-                    }
-                }
+             // Only add filter columns if they are not 'All'
+             if (selectedUnit !== 'All') headers.push('Unit');
+             if (selectedLine !== 'All') headers.push('Line');
+             if (selectedCotton !== 'All') headers.push('Cotton');
+
+
+             // Add averaged metric headers from the first average object
+             if (averages.length > 0) {
+                 const firstAverageRow = averages[0];
+                 Object.keys(firstAverageRow).forEach(key => {
+                     if (key !== 'Period' && key !== 'sortKey') { // Add all other keys except Period and sortKey
+                        headers.push(key);
+                     }
+                 });
+             }
+
+
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.textContent = headerText.replace(/_/g, ' ').replace(/Avg /g, ''); // Format header text
+                th.classList.add('px-4', 'py-2', 'text-left', 'font-semibold', 'text-gray-700', 'uppercase', 'tracking-wider', 'border-b', 'border-gray-200', 'border-r');
+                 if (headerText === 'Period') {
+                     th.classList.add('sticky', 'left-0', 'bg-gray-50', 'z-10');
+                 }
+                 if (headerText === headers.length -1) {
+                     th.classList.remove('border-r');
+                 }
+                tableHead.appendChild(th);
             });
-        }
-function renderTable(averages) {
-    const tableHead = document.querySelector('#dataTable thead tr');
-    const tableBody = document.querySelector('#dataTable tbody');
-    tableHead.innerHTML = '';
-    tableBody.innerHTML = '';
 
-    if (!averages || Object.keys(averages).length === 0) {
-        const noDataRow = document.createElement('tr');
-        const noDataCell = document.createElement('td');
-        noDataCell.colSpan = 12; // Increased colspan to accommodate the Date column
-        noDataCell.textContent = 'No data available for the selected filters.';
-        noDataCell.classList.add('text-center', 'py-4', 'text-gray-500');
-        noDataRow.appendChild(noDataCell);
-        tableBody.appendChild(noDataRow);
-        return;
-    }
+            averages.forEach(rowData => { // Each row is now a period with its averages
+                const tr = document.createElement('tr');
+                 tr.classList.add('hover:bg-gray-50');
 
-    const headers = ['Date', 'Week Range', 'Month', 'Year', 'Unit', 'Line', 'Cotton'];
-    const firstRowData = Object.values(averages)[0];
-    if (firstRowData) {
-        headers.push(...Object.keys(firstRowData).filter(key => !['dateKey', 'weekStartDate', 'unit', 'line', 'cotton'].includes(key)));
-    }
-    headers.forEach(headerText => {
-        const th = document.createElement('th');
-        th.textContent = headerText.replace(/_/g, ' ').replace(/Avg_/g, '');
-        th.classList.add('px-4', 'py-2', 'text-left', 'font-semibold', 'text-gray-700', 'uppercase', 'tracking-wider', 'border-b', 'border-gray-200');
-        tableHead.appendChild(th);
-    });
+                headers.forEach((header, index) => {
+                    const td = document.createElement('td');
+                    let cellValue = '-';
 
-    for (const key in averages) {
-        const rowData = averages[key];
-        const tr = document.createElement('tr');
-        const weekStartDate = rowData.weekStartDate;
-        const weekEndDate = new Date(weekStartDate);
-        weekEndDate.setDate(weekStartDate.getDate() + 6);
+                    if (header === 'Period') {
+                         cellValue = rowData.Period;
+                         td.classList.add('sticky', 'left-0', 'bg-white', 'z-10'); // Sticky for period column, ensure bg-white to cover
+                    } else if (header === 'Unit') {
+                         cellValue = selectedUnit; // Display selected filter value
+                    } else if (header === 'Line') {
+                         cellValue = selectedLine; // Display selected filter value
+                    } else if (header === 'Cotton') {
+                         cellValue = selectedCotton; // Display selected filter value
+                    } else if (rowData[header] !== undefined) {
+                         // For averaged metrics, format to 1 decimal place
+                        cellValue = parseFloat(rowData[header]).toFixed(1);
+                    }
 
-        let dateForTable = '';
-        if (reportTypeFilterEl.value === 'weekly') {
-            dateForTable = weekStartDate.toISOString().split('T')[0];
-        } else if (reportTypeFilterEl.value === 'daily') {
-            dateForTable = rowData.dateKey;
-        } else if (reportTypeFilterEl.value === 'monthly') {
-            dateForTable = new Date(Date.parse(rowData.dateKey + " 1, 2000")).toISOString().split('T')[0];
-        } else if (reportTypeFilterEl.value === 'yearly') {
-            dateForTable = new Date(rowData.dateKey + "-01-01").toISOString().split('T')[0];
-        } else {
-            dateForTable = rowData.dateKey;
+                    td.textContent = cellValue;
+                    td.classList.add('px-4', 'py-2', 'text-gray-900', 'border-b', 'border-gray-200', 'border-r');
+
+                     if (index === headers.length -1) {
+                         td.classList.remove('border-r');
+                     }
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            });
+             // Add border to the right of all cells in the last column manually
+             const lastColumnIndex = headers.length - 1;
+             tableBody.querySelectorAll('tr').forEach(row => {
+                 const cells = row.querySelectorAll('td');
+                 if (cells.length > lastColumnIndex) {
+                     cells[lastColumnIndex].classList.add('border-r');
+                 }
+             });
+
         }
 
-        const weekRange = `${weekStartDate.toISOString().split('T')[0]} to ${weekEndDate.toISOString().split('T')[0]}`;
-        const month = weekStartDate.toLocaleString('default', { month: 'short' });
-        const year = weekStartDate.getFullYear();
-
-        const dataValues = [dateForTable, weekRange, month, year, rowData.unit, rowData.line, rowData.cotton];
-
-        dataValues.forEach(value => {
-            const td = document.createElement('td');
-            td.textContent = value;
-            td.classList.add('px-4', 'py-2', 'text-gray-900', 'border-b', 'border-gray-200');
-            tr.appendChild(td);
-        });
-
-        for (const header of headers.slice(7)) {
-            const dataCell = document.createElement('td');
-            const cellValue = rowData[header] !== undefined ? parseFloat(rowData[header]).toFixed(1) : '-';
-            dataCell.textContent = cellValue;
-            dataCell.classList.add('px-4', 'py-2', 'text-gray-900', 'border-b', 'border-gray-200');
-            tr.appendChild(dataCell);
-        }
-        tableBody.appendChild(tr);
-    }
-}
-
-        function getWeekNumber(d) {
-            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-            const dayNum = d.getUTCDay() || 7;
-            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-        }
 
         function renderData() {
             const filteredData = getFilteredData();
             const reportType = reportTypeFilterEl.value;
             const groupedData = groupData(filteredData, reportType);
             const averages = calculateAverages(groupedData);
-            const sortedKeys = Object.keys(averages).sort((a, b) => {
-                const parseDateKey = (key, reportType) => {
-                    if (reportType === 'daily') return new Date(key);
-                    if (reportType === 'weekly') return new Date(key.split(' to ')[0]);
-                    if (reportType === 'monthly') return new Date(Date.parse(key + " 1, 2000"));
-                    if (reportType === 'yearly') return new Date(key + "-01-01");
-                    return new Date(key);
-                };
+            console.log("Calculated Averages:", averages); // This should still show in the console
 
-                const dateA = parseDateKey(a, reportType);
-                const dateB = parseDateKey(b, reportType);
-                return dateA - dateB;
-            });
-
+            const labels = averages.map(avg => avg.Period); // Get labels from the sorted averages
 
             if (currentView === 'chart') {
-                document.getElementById('chartContainer').style.display = 'grid';
-                document.getElementById('tableContainer').style.display = 'none';
-                renderCharts(sortedKeys, averages);
+                renderCharts(labels, averages);
             } else if (currentView === 'table') {
-                document.getElementById('chartContainer').style.display = 'none';
-                document.getElementById('tableContainer').style.display = 'block';
                 renderTable(averages);
             }
         }
@@ -719,88 +860,146 @@ function renderTable(averages) {
         function downloadData(type) {
             downloadOptions.classList.add('hidden');
             if (type === 'chart1') {
-                if (currentView === 'chart' && chartInstances['chart1']) {
-                    downloadChart('chart1', 'Chart1.png');
-                } else {
-                    alert('Please switch to the chart view to download Chart 1.');
-                }
+                const canvas = document.getElementById('chart1');
+                 if (!chartInstances.chart1) {
+                     alert('Chart 1 not available to download.');
+                     return;
+                 }
+                const image = chartInstances.chart1.toBase64Image('image/png', 1.0); // Use chart instance method
+                downloadImage(image, 'chart1.png');
             } else if (type === 'chart2') {
-                if (currentView === 'chart' && chartInstances['chart2']) {
-                    downloadChart('chart2', 'Chart2.png');
-                } else {
-                    alert('Please switch to the chart view to download Chart 2.');
-                }
+                const canvas = document.getElementById('chart2');
+                 if (!chartInstances.chart2) {
+                     alert('Chart 2 not available to download.');
+                     return;
+                 }
+                const image = chartInstances.chart2.toBase64Image('image/png', 1.0); // Use chart instance method
+                downloadImage(image, 'chart2.png');
             } else if (type === 'table') {
-                if (currentView === 'table') {
-                    downloadTableData();
-                } else {
-                    alert('Please switch to the table view to download the table data.');
-                }
-            }
+                 const table = document.getElementById('dataTable');
+                 // Check if the table has more than just the header row
+                 if (!table || table.querySelectorAll('tbody tr').length === 0 || table.querySelectorAll('tbody td.text-center').length > 0) {
+                     alert('No table data available to download.');
+                     return;
+                 }
+                 let csv = [];
+                 const rows = table.querySelectorAll('table tr');
+
+                 for (let i = 0; i < rows.length; i++) {
+                     const row = [], cols = rows[i].querySelectorAll('td, th');
+                     for (let j = 0; j < cols.length; j++) {
+                         let cellText = cols[j].innerText;
+                         // Escape quotes by doubling them
+                         cellText = cellText.replace(/"/g, '""');
+                         // Enclose fields containing commas or quotes in double quotes
+                         if (cellText.includes(',') || cellText.includes('"') || cellText.includes('\n')) {
+                             cellText = `"${cellText}"`;
+                         }
+                         row.push(cellText);
+                     }
+                     csv.push(row.join(','));
+                 }
+                 downloadFile(csv.join('\n'), 'cotton_mixing_table_data.csv', 'text/csv');
+             }
         }
 
-        function downloadChart(canvasId, filename) {
-            const canvas = document.getElementById(canvasId);
-            if (!canvas) {
-                console.error('Canvas element with id "${canvasId}" not found.');
-                return;
-            }
-            const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/png');
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        function downloadImage(dataUrl, filename) {
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
 
-        function downloadTableData() {
-            const table = document.getElementById('dataTable');
-            if (!table) {
-                console.error("Table element with id 'dataTable' not found.");
-                return;
-            }
-            const ws = XLSX.utils.table_to_sheet(table);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Data');
-            XLSX.writeFile(wb, 'CottonMixingData.xlsx');
+        function downloadFile(data, filename, type) {
+            const file = new Blob([data], { type: type });
+            const a = document.createElement('a');
+            const url = URL.createObjectURL(file);
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function () {
+                URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            }, 0);
         }
 
-        function getWeekNumber(d) {
-            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-            const dayNum = d.getUTCDay() || 7;
-            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-        }
-
+        // --- Modified expandChart function to recreate chart instance ---
         function expandChart(chartId) {
-            const canvas = document.getElementById(chartId);
-            if (!canvas) return;
+            const originalChart = chartInstances[chartId]; // Get the specific chart instance
 
-            const config = chartInstances[chartId].config;
-
-            if (expandedChartInstance) {
-                expandedChartInstance.destroy();
+            if (!originalChart) {
+                alert(`Chart ${chartId} data not loaded or chart is not rendered yet.`);
+                return;
             }
 
-            expandedChartInstance = new Chart(expandedChartCanvas, config);
-            chartModal.classList.remove('hidden');
-        }
-
-        function closeModal() {
-            chartModal.classList.add('hidden');
+            // Destroy the previous fullscreen chart instance if it exists
             if (expandedChartInstance) {
                 expandedChartInstance.destroy();
                 expandedChartInstance = null;
             }
+
+            const fullscreenCanvasContext = expandedChartCanvas.getContext('2d');
+
+            // Create a new config based on the original chart's config
+            // Use JSON.parse(JSON.stringify()) for a deep copy of options
+            const newConfig = {
+                type: originalChart.config.type,
+                data: originalChart.config.data,
+                options: JSON.parse(JSON.stringify(originalChart.config.options || {}))
+            };
+
+            // Ensure options object exists
+             if (!newConfig.options) {
+                 newConfig.options = {};
+             }
+
+            // Set options for fullscreen view
+            newConfig.options.maintainAspectRatio = false; // Allow it to fill the container
+            newConfig.options.responsive = true; // Should already be true, but good to ensure
+
+            // Optionally enhance appearance for fullscreen
+             if (newConfig.options.plugins && newConfig.options.plugins.title) {
+                  newConfig.options.plugins.title.font = { size: 20 }; // Larger title
+             }
+             if (newConfig.options.plugins && newConfig.options.plugins.legend && newConfig.options.plugins.legend.labels) {
+                  newConfig.options.plugins.legend.labels.font = { size: 14 }; // Larger legend font
+             }
+             if (newConfig.options.scales) {
+                 // Example: Larger axis tick font if needed
+                 if(newConfig.options.scales.x && newConfig.options.scales.x.ticks) newConfig.options.scales.x.ticks.font = { size: 12 };
+                 if(newConfig.options.scales.y && newConfig.options.scales.y.ticks) newConfig.options.scales.y.ticks.font = { size: 12 };
+             }
+
+
+            // Create the new fullscreen chart instance
+            expandedChartInstance = new Chart(fullscreenCanvasContext, newConfig);
+
+            // Show the modal
+            chartModal.classList.remove('hidden');
+            chartModal.classList.add('flex');
         }
 
-        // Initial setup: chart view is default, so hide table
-        switchView('chart');
+        // --- Modified closeModal function to destroy chart instance ---
+        function closeModal() {
+            // Hide the modal
+            chartModal.classList.add('hidden');
+            chartModal.classList.remove('flex');
+
+            // Destroy the fullscreen chart instance
+            if (expandedChartInstance) {
+                expandedChartInstance.destroy();
+                expandedChartInstance = null; // Clear the variable
+            }
+        }
+
+        // Initial call to populate filters if data is already available (e.g., after loading from local storage)
+        // If you want to load data on page load, call handleFileUpload() here with a default file? Or just wait for user upload.
+        // Leaving it commented out means the user must upload a file first.
+
     </script>
 </body>
 
 </html>
-
-
-
