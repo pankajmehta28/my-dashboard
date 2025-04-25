@@ -532,13 +532,13 @@ function goBack() {
                 console.log(`Processing Group '${groupKey}' for parameter: ${parameter}`);
 
                  // Check if groupKey and parameter actually exist in the data
-                 if (!filteredData[0]?.hasOwnProperty(groupKey) || !filteredData[0]?.hasOwnProperty(parameter)) {
-                     const missing = [];
-                     if (!filteredData[0]?.hasOwnProperty(groupKey)) missing.push(`Group By key ('${groupKey}')`);
-                     if (!filteredData[0]?.hasOwnProperty(parameter)) missing.push(`Parameter ('${parameter}')`);
-                     alert(`Error: ${missing.join(' and ')} not found in the data columns. Please check the CSV header.`);
-                     return;
-                 }
+if (!filteredData[0]?.hasOwnProperty(groupKey) || (parameter !== 'Total Alarms' && !filteredData[0]?.hasOwnProperty(parameter))) {
+    const missing = [];
+    if (!filteredData[0]?.hasOwnProperty(groupKey)) missing.push(`Group By key ('${groupKey}')`);
+    if (parameter !== 'Total Alarms' && !filteredData[0]?.hasOwnProperty(parameter)) missing.push(`Parameter ('${parameter}')`);
+    alert(`Error: ${missing.join(' and ')} not found in the data columns. Please check the CSV header.`);
+    return;
+}
 
                 const groupDateMap = {}; // { groupVal_date: { total, count } }
 
