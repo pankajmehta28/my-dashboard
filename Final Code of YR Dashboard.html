@@ -5,14 +5,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Yarn Realization Dashboard</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
         body {
-            background-color: #d8f3dc;
+            background-color: #f0f0f0;
             font-family: 'Segoe UI', sans-serif;
         }
 
@@ -24,8 +25,11 @@
             margin-right: 1rem;
         }
 
-        #table-container {
+        #table-container,
+        #comparison-container {
             overflow-x: auto;
+             background-color: #ffffff; /* Add background for print */
+            /* Removed padding here - will add margin via html2pdf options */
         }
 
         .dropdown-container {
@@ -38,7 +42,7 @@
             padding: 0.5rem;
             width: 100%;
             text-align: left;
-            background-color: #def7ec;
+            background-color: #ffffff;
             cursor: pointer;
         }
 
@@ -49,14 +53,16 @@
             right: 0;
             border: 1px solid #ccc;
             border-radius: 0.25rem;
-            background-color: #def7ec;
+            background-color: #ffffff;
             z-index: 10;
             max-height: 150px;
             overflow-y: auto;
-            display: none; /* Initially hidden */
+            display: none;
+            /* Initially hidden */
         }
 
-        .dropdown-list.show { /* Class to show the dropdown */
+        .dropdown-list.show {
+            /* Class to show the dropdown */
             display: block;
         }
 
@@ -67,12 +73,78 @@
         }
 
         .dropdown-list label:hover {
-            background-color: #c7edd6;
+            background-color: #ffffff;
         }
+
         /* Ensure fullscreen modal takes precedence */
         #chart-fullscreen {
-            z-index: 100; /* Higher z-index */
+            z-index: 100;
+            /* Higher z-index */
         }
+         /* Style for the unit average boxes */
+        .unit-avg-box {
+            background-color: #dc2626; /* Tailwind red-600 */
+            color: #ffffff; /* Tailwind white */
+            padding: 0.75rem; /* p-3 */
+            border-radius: 0.25rem; /* rounded */
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); /* shadow */
+            font-weight: 700; /* font-bold */
+            text-align: center;
+            margin-bottom: 0.5rem; /* Add some space below each box */
+            white-space: nowrap; /* Prevent text wrapping */
+            cursor: pointer; /* Indicate clickable - can remove if no interaction */
+             display: flex; /* Use flexbox for centering text */
+            justify-content: center;
+            align-items: center;
+             flex-shrink: 0; /* Prevent shrinking in flex container */
+             /* Added Minimum Width */
+            min-width: 8rem; /* Adjust this value (e.g., 6rem, 10rem) as needed for desired width */
+             user-select: none; /* Prevent text selection on click */
+        }
+         .unit-avg-box:hover {
+            background-color: #b91c1c; /* Darker red on hover */
+        }
+
+        /* Basic table styling for comparison view */
+        #comparison-container table {
+             width: auto; /* Allow table to shrink/grow based on content */
+        }
+        #comparison-container th,
+        #comparison-container td {
+            border: 1px solid #000;
+            padding: 0.5rem;
+            text-align: center;
+            font-size: 0.875rem; /* text-sm */
+        }
+         #comparison-container thead th {
+            font-weight: bold;
+            background-color: #e5e7eb; /* gray-200 */
+         }
+
+/* Added rule to force left alignment for the first TD in comparison table body */
+        #comparison-container tbody td:first-child {
+            text-align: left;
+        }
+
+         /* Optional: Add page break hint for PDF generation */
+        .html2pdf__page-break {
+            height: 10px; /* Small height for visibility */
+            background-color: #e0e0e0; /* Light gray for debugging */
+            margin: 20px 0; /* Space around the break */
+            display: block; /* Ensure it takes up space */
+        }
+
+         /* Styling for the temporary PDF title */
+        .pdf-temp-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            /* Ensure it's visible and doesn't interfere with layout too much */
+            width: 100%; /* Take full width */
+            box-sizing: border-box; /* Include padding/border in width */
+        }
+
     </style>
 </head>
 
@@ -85,94 +157,113 @@
         </div>
 
         <h2 class="text-3xl font-bold mb-6 text-center text-black-800">Yarn Realization Dashboard</h2>
+        <div class="flex justify-between items-center gap-4 mb-4">
+            <button id="loadDataButton"
+                class="px-4 py-2 bg-blue-600 font-bold text-white rounded shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                Load Data
+            </button>
 
-<div class="flex justify-between items-center gap-4 mb-4">
-  <button id="loadDataButton"
-    class="px-4 py-2 bg-blue-600 font-bold text-white rounded shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-    Load Data
-  </button>
+            <button onclick="goBack()"
+                class="px-4 py-2 bg-blue-500 font-bold text-white rounded shadow hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-400">
+                ← Home
+            </button>
+        </div>
 
-  <button onclick="goBack()"
-    class="px-4 py-2 bg-blue-500 font-bold text-white rounded shadow hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400">
-    ← Home
-  </button>
-</div>
+        <div class="grid md:grid-cols-6 gap-4 items-end">
+            <div class="md:col-span-1">
+                <label class="block mb-1 font-bold">Month:</label>
+                <div class="dropdown-container">
+                    <button id="monthFilterButton" class="dropdown-button">Select Months</button>
+                    <div id="monthFilterList" class="dropdown-list">
+                    </div>
+                </div>
+            </div>
+            <div class="md:col-span-1">
+                <label class="block mb-1 font-bold">Year:</label>
+                <div class="dropdown-container">
+                    <button id="yearFilterButton" class="dropdown-button">Select Years</button>
+                    <div id="yearFilterList" class="dropdown-list">
+                    </div>
+                </div>
+            </div>
+            <div class="md:col-span-1">
+                <label class="block mb-1 font-bold">Unit:</label>
+                <div class="dropdown-container">
+                    <button id="unitFilterButton" class="dropdown-button">Select Units</button>
+                    <div id="unitFilterList" class="dropdown-list">
+                    </div>
+                </div>
+            </div>
+            <div class="md:col-span-1">
+                <label class="block mb-1 font-bold">Report Type:</label>
+                <select id="reportTypeFilter" class="w-full border border-gray-300 rounded p-2">
+                    <option value="">All</option>
+                    <option value="Monthly">Monthly</option>
+                    <option value="Yearly">Yearly</option>
+                </select>
+            </div>
+            <div class="md:col-span-1">
+                <label class="block mb-1 font-bold">Select Parameters:</label>
+                <div class="dropdown-container">
+                    <button id="parameterSelectorButton" class="dropdown-button">Select Parameters</button>
+                    <div id="parameterSelectorList" class="dropdown-list">
+                    </div>
+                </div>
+            </div>
+            <div class="md:col-span-1 flex space-x-2">
+                <button id="refreshButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold rounded p-2">
+                    Refresh
+                </button>
+            </div>
+        </div>
 
-            <div class="grid md:grid-cols-6 gap-4 items-end">
-                <div class="md:col-span-1">
-                    <label class="block mb-1">Month:</label>
-                    <div class="dropdown-container">
-                        <button id="monthFilterButton" class="dropdown-button">Select Months</button>
-                        <div id="monthFilterList" class="dropdown-list">
-                        </div>
-                    </div>
-                </div>
-                <div class="md:col-span-1">
-                    <label class="block mb-1">Year:</label>
-                    <div class="dropdown-container">
-                        <button id="yearFilterButton" class="dropdown-button">Select Years</button>
-                        <div id="yearFilterList" class="dropdown-list">
-                        </div>
-                    </div>
-                </div>
-                <div class="md:col-span-1">
-                    <label class="block mb-1">Unit:</label>
-                    <div class="dropdown-container">
-                        <button id="unitFilterButton" class="dropdown-button">Select Units</button>
-                        <div id="unitFilterList" class="dropdown-list">
-                                </div>
-                    </div>
-                </div>
-                <div class="md:col-span-1">
-                    <label class="block mb-1">Report Type:</label>
-                    <select id="reportTypeFilter" class="w-full border border-gray-300 rounded p-2">
-                        <option value="">All</option>
-                        <option value="Monthly">Monthly</option>
-                        <option value="Yearly">Yearly</option>
-                    </select>
-                </div>
-                 <div class="md:col-span-1">
-                    <label class="block mb-1">Select Parameters:</label>
-                    <div class="dropdown-container">
-                        <button id="parameterSelectorButton" class="dropdown-button">Select Parameters</button>
-                        <div id="parameterSelectorList" class="dropdown-list">
-                                    </div>
-                    </div>
-                </div>
-                <div class="md:col-span-1 flex space-x-2">
-    <button id="refreshButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold rounded p-2">
-        Refresh
+        <div id="unit-avg-boxes-container" class="mt-6 flex flex-nowrap items-center gap-4 overflow-x-auto">
+            </div>
+
+
+        <div class="flex items-center mt-4 space-x-4">
+            <label><input type="radio" name="viewType" value="table" checked class="mr-1"> Table</label>
+            <label><input type="radio" name="viewType" value="chart" class="mr-1"> Chart</label>
+             <label><input type="radio" name="viewType" value="comparison" class="mr-1"> Comparison</label>
+        </div>
+
+         <div class="flex items-center mb-4">
+            <div class="dropdown-container">
+                <button id="downloadButton" class="icon-btn" title="Download">⬇️</button>
+                <div id="downloadDropdown" class="dropdown-list">
+                     <!-- New List Items for Download Options -->
+            <div id="downloadExcelOption" class="px-2 py-1 hover:bg-gray-100 cursor-pointer">Excel</div>
+            <div id="downloadChartOption" class="px-2 py-1 hover:bg-gray-100 cursor-pointer hidden">Chart</div>
+        </div>
+            </div>
+           <button id="expandIcon" class="icon-btn" title="Expand">
+        <i class="fas fa-expand-arrows-alt"></i>
     </button>
 </div>
-            </div>
 
-            <div class="flex items-center mt-4 space-x-4">
-                <label><input type="radio" name="viewType" value="table" checked class="mr-1">
-                    Table</label>
-                <label><input type="radio" name="viewType" value="chart" class="mr-1">
-                    Chart</label>
-            </div>
-        </div>
-
-        <div class="flex items-center mb-4">
-            <button id="downloadIcon" class="icon-btn" title="Download">⬇️</button>
-            <button id="expandIcon" class="icon-btn" title="Expand">
-                <i class="fas fa-expand-arrows-alt"></i> </button>
-        </div>
 
         <div id="table-container" class="mb-6">
-        </div>
+             </div>
 
         <div id="chart-container" class="mb-6 hidden bg-white p-4 rounded shadow-md relative">
             <canvas id="myChart" width="800" height="400"></canvas>
         </div>
 
-        <div id="chart-fullscreen" class="hidden fixed top-0 left-0 w-full h-full bg-white flex justify-center items-center p-4">
-             <span id="close-fullscreen" class="absolute top-4 right-6 text-3xl cursor-pointer text-black hover:text-gray-700">&times;</span>
-             <div class="w-full h-full max-w-screen-lg max-h-screen-lg"> <canvas id="myChartFullscreen" class="w-full h-full"></canvas>
+        <div id="comparison-container" class="mb-6 hidden">
              </div>
+
+
+        <div id="chart-fullscreen"
+            class="hidden fixed top-0 left-0 w-full h-full bg-white flex justify-center items-center p-4">
+            <span id="close-fullscreen"
+                class="absolute top-4 right-6 text-3xl cursor-pointer text-black hover:text-gray-700">&times;</span>
+            <div class="w-full h-full max-w-screen-lg max-h-screen-lg"> <canvas id="myChartFullscreen"
+                    class="w-full h-full"></canvas>
+            </div>
         </div>
     </div>
+
+
 
     <script>
         Chart.register(ChartDataLabels);
@@ -181,321 +272,14 @@
             currentChart = null, // Keep track of the main chart instance
             availableColumns = [];
 
-        // ----- START: MODIFIED EXPAND/FULLSCREEN CODE -----
-
-        // Global variable for the fullscreen chart instance
         let fullscreenChart = null;
 
-        // --- Modified Event Listener for the Expand Icon ---
-        document.getElementById('expandIcon').addEventListener('click', () => {
-            const chartFullscreen = document.getElementById('chart-fullscreen'); // The modal div
-            const fullscreenCanvasContext = document.getElementById('myChartFullscreen').getContext('2d'); // Get context
 
-            // Check if the original chart exists and is currently visible
-            const chartContainer = document.getElementById('chart-container');
-            const viewType = document.querySelector('input[name="viewType"]:checked').value;
-
-            if (currentChart && viewType === 'chart' && !chartContainer.classList.contains('hidden')) {
-                // If a fullscreen chart instance already exists, destroy it first
-                if (fullscreenChart) {
-                    fullscreenChart.destroy();
-                    fullscreenChart = null;
-                }
-
-                // Prepare a new config based on the original chart
-                const newConfig = {
-                    type: currentChart.config.type,
-                    data: currentChart.config.data, // Directly reference data
-                    options: JSON.parse(JSON.stringify(currentChart.config.options || {})) // Deep copy options safely
-                };
-
-                // Ensure options object exists
-                if (!newConfig.options) {
-                    newConfig.options = {};
-                }
-
-                // Set maintainAspectRatio to false for the fullscreen version
-                newConfig.options.maintainAspectRatio = false;
-                // Ensure responsiveness is true for fullscreen
-                newConfig.options.responsive = true;
-
-                 // Optionally enhance fullscreen title/legend appearance
-                 if (newConfig.options.plugins && newConfig.options.plugins.title) {
-                     newConfig.options.plugins.title.font = { size: 18 }; // Larger title
-                 }
-                 if (newConfig.options.plugins && newConfig.options.plugins.legend) {
-                     newConfig.options.plugins.legend.labels = { font: { size: 14 }}; // Larger legend
-                 }
-                 if (newConfig.options.scales) {
-                     // Example: Larger axis labels if needed
-                     // if(newConfig.options.scales.x) newConfig.options.scales.x.ticks = { font: { size: 12 }};
-                     // if(newConfig.options.scales.y) newConfig.options.scales.y.ticks = { font: { size: 12 }};
-                 }
-
-
-                // Create the new fullscreen chart instance
-                fullscreenChart = new Chart(fullscreenCanvasContext, newConfig);
-
-                // Show the fullscreen modal
-                chartFullscreen.classList.remove('hidden'); // Use Tailwind's class toggling
-
-            } else if (viewType !== 'chart') {
-                alert('Please switch to Chart view to expand.');
-            } else {
-                alert('No chart data loaded or chart is not rendered yet.');
-            }
-        });
-
-        // --- Modified Event Listener for the Close Fullscreen Button ---
-        document.getElementById('close-fullscreen').addEventListener('click', () => {
-            const chartFullscreen = document.getElementById('chart-fullscreen');
-
-            // Hide the fullscreen modal
-            chartFullscreen.classList.add('hidden'); // Use Tailwind's class toggling
-
-            // **Crucially, destroy the fullscreen chart instance**
-            if (fullscreenChart) {
-                fullscreenChart.destroy();
-                fullscreenChart = null; // Clear the variable
-            }
-        });
-
-        // ----- END: MODIFIED EXPAND/FULLSCREEN CODE -----
-
-        // --- Event Listeners ---
-
-        document.getElementById('refreshButton').addEventListener('click', updateView);
-        document.getElementById('downloadIcon').addEventListener('click', downloadData);
-        // View type change listener
-        document.querySelectorAll('input[name="viewType"]').forEach(radio => {
-            radio.addEventListener('change', updateView);
-        });
-        // Report type change listener
-        document.getElementById('reportTypeFilter').addEventListener('change', updateView);
-
-
-        // --- Dropdown Setup ---
-        // Month Filter
-        const monthFilterButton = document.getElementById('monthFilterButton');
-        const monthFilterList = document.getElementById('monthFilterList');
-        monthFilterButton.addEventListener('click', () => monthFilterList.classList.toggle('show'));
-        monthFilterList.addEventListener('change', (event) => { // Use 'change' for checkboxes
-            if (event.target.type === 'checkbox') {
-                if (event.target.value === 'all') {
-                    const checkboxes = monthFilterList.querySelectorAll('input[type="checkbox"]:not([value="all"])');
-                    checkboxes.forEach(cb => cb.checked = event.target.checked);
-                }
-                updateMonthButtonText();
-                // updateView(); // Optionally update immediately or wait for refresh button
-            }
-        });
-        document.addEventListener('click', (event) => {
-            if (!monthFilterButton.contains(event.target) && !monthFilterList.contains(event.target)) {
-                monthFilterList.classList.remove('show');
-            }
-        });
-
-        // Year Filter
-        const yearFilterButton = document.getElementById('yearFilterButton');
-        const yearFilterList = document.getElementById('yearFilterList');
-        yearFilterButton.addEventListener('click', () => yearFilterList.classList.toggle('show'));
-        yearFilterList.addEventListener('change', (event) => {
-            if (event.target.type === 'checkbox') {
-                if (event.target.value === 'all') {
-                    const checkboxes = yearFilterList.querySelectorAll('input[type="checkbox"]:not([value="all"])');
-                    checkboxes.forEach(cb => cb.checked = event.target.checked);
-                }
-                updateYearButtonText();
-                // updateView();
-            }
-        });
-        document.addEventListener('click', (event) => {
-            if (!yearFilterButton.contains(event.target) && !yearFilterList.contains(event.target)) {
-                yearFilterList.classList.remove('show');
-            }
-        });
-
-        // Unit Filter
-        const unitFilterButton = document.getElementById('unitFilterButton');
-        const unitFilterList = document.getElementById('unitFilterList');
-        unitFilterButton.addEventListener('click', () => unitFilterList.classList.toggle('show'));
-        unitFilterList.addEventListener('change', (event) => {
-            if (event.target.type === 'checkbox') {
-                if (event.target.value === 'all') {
-                    const checkboxes = unitFilterList.querySelectorAll('input[type="checkbox"]:not([value="all"])');
-                    checkboxes.forEach(cb => cb.checked = event.target.checked);
-                }
-                updateUnitButtonText();
-                // updateView();
-            }
-        });
-        document.addEventListener('click', (event) => {
-            if (!unitFilterButton.contains(event.target) && !unitFilterList.contains(event.target)) {
-                unitFilterList.classList.remove('show');
-            }
-        });
-
-        // Parameter Selector
-        const parameterSelectorButton = document.getElementById('parameterSelectorButton');
-        const parameterSelectorList = document.getElementById('parameterSelectorList');
-        parameterSelectorButton.addEventListener('click', () => parameterSelectorList.classList.toggle('show'));
-        parameterSelectorList.addEventListener('change', (event) => {
-            if (event.target.type === 'checkbox') {
-                if (event.target.value === 'all') {
-                    const checkboxes = parameterSelectorList.querySelectorAll('input[type="checkbox"]:not([value="all"])');
-                    checkboxes.forEach(cb => cb.checked = event.target.checked);
-                }
-                updateParameterButtonText();
-                // updateView();
-            }
-        });
-         document.addEventListener('click', (event) => {
-             if (!parameterSelectorButton.contains(event.target) && !parameterSelectorList.contains(event.target)) {
-                 parameterSelectorList.classList.remove('show');
-             }
-         });
-
-        // --- Core Functions ---
-        async function loadDataFromSupabase() {
-            const supabaseUrl = 'https://jdajahcjljvnkopfdrpi.supabase.co/storage/v1/object/public/yr//YR%20Unit%20wise%20long%20term%20-%20pankaj%20mehta.xlsx'; // Replace with your actual Supabase URL
-
-            try {
-                const response = await fetch(supabaseUrl);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const arrayBuffer = await response.arrayBuffer();
-                const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
-
-                if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) {
-                    throw new Error("Invalid workbook structure.");
-                }
-                const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                if (!sheet) {
-                    throw new Error(`Sheet "${workbook.SheetNames[0]}" not found or is empty.`);
-                }
-
-                excelData = XLSX.utils.sheet_to_json(sheet);
-
-                if (excelData.length > 0) {
-                    availableColumns = Object.keys(excelData[0]).filter(col => !['Unit', 'Month', 'Year'].includes(col.trim()));
-                    populateMonthFilter();
-                    populateYearFilter();
-                    populateUnitFilter();
-                    populateParameterSelector();
-                    updateView(); // Initial render after loading data
-                } else {
-                    alert('No data rows found in the Excel file.');
-                    document.getElementById('table-container').innerHTML = '<p>No data loaded.</p>';
-                    document.getElementById('chart-container').innerHTML = '';
-                    document.getElementById('chart-container').classList.add('hidden');
-                    monthFilterList.innerHTML = ''; updateMonthButtonText();
-                    yearFilterList.innerHTML = ''; updateYearButtonText();
-                    unitFilterList.innerHTML = ''; updateUnitButtonText();
-                    parameterSelectorList.innerHTML = ''; updateParameterButtonText();
-                }
-
-            } catch (error) {
-                console.error("Error loading data from Supabase:", error);
-                alert(`Error loading data: ${error.message}. Please ensure the URL is correct and the file is accessible.`);
-                excelData = [];
-                if (currentChart) { currentChart.destroy(); currentChart = null; }
-                document.getElementById('table-container').innerHTML = '<p>Error loading data.</p>';
-                document.getElementById('chart-container').innerHTML = '';
-                document.getElementById('chart-container').classList.add('hidden');
-                monthFilterList.innerHTML = ''; updateMonthButtonText();
-                yearFilterList.innerHTML = ''; updateYearButtonText();
-                unitFilterList.innerHTML = ''; updateUnitButtonText();
-                parameterSelectorList.innerHTML = ''; updateParameterButtonText();
-            }
+        // --- Helper Functions ---
+        function goBack() {
+            window.location.href = "protected.html";
         }
 
-        // Event listener for the "Load Data" button
-        document.getElementById('loadDataButton').addEventListener('click', loadDataFromSupabase);
-
-        function handleFileUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (evt) => {
-                console.log('File uploaded and reader loaded');
-                try {
-                    const workbook = XLSX.read(new Uint8Array(evt.target.result), { type: 'array' });
-                    console.log('workbook:', workbook);
-                    if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) {
-                        throw new Error("Invalid workbook structure.");
-                    }
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    if (!sheet) {
-                        throw new Error(`Sheet "${workbook.SheetNames[0]}" not found or is empty.`);
-                    }
-                    console.log('sheet:', sheet);
-                    excelData = XLSX.utils.sheet_to_json(sheet);
-                    console.log('excelData after parsing:', excelData);
-
-                    if (excelData.length > 0) {
-                        availableColumns = Object.keys(excelData[0]).filter(col => !['Unit', 'Month', 'Year'].includes(col.trim()));
-                        console.log('availableColumns after parsing:', availableColumns);
-                        populateMonthFilter();
-                        populateYearFilter();
-                        populateUnitFilter();
-                        populateParameterSelector();
-                        updateView(); // Initial render after loading data
-                    } else {
-                        alert('No data rows found in the uploaded Excel file.');
-                         // Clear existing displays if necessary
-                        document.getElementById('table-container').innerHTML = '<p>No data loaded.</p>';
-                        document.getElementById('chart-container').innerHTML = '';
-                        document.getElementById('chart-container').classList.add('hidden');
-                        // Clear filters
-                        monthFilterList.innerHTML = ''; updateMonthButtonText();
-                        yearFilterList.innerHTML = ''; updateYearButtonText();
-                        unitFilterList.innerHTML = ''; updateUnitButtonText();
-                        parameterSelectorList.innerHTML = ''; updateParameterButtonText();
-                    }
-                } catch (error) {
-                     console.error("Error processing Excel file:", error);
-                    alert(`Error processing Excel file: ${error.message}. Please ensure it's a valid Excel file with the expected structure.`);
-                    // Reset state if error occurs
-                    excelData = [];
-                    if (currentChart) { currentChart.destroy(); currentChart = null; }
-                    document.getElementById('table-container').innerHTML = '<p>Error loading data.</p>';
-                    document.getElementById('chart-container').innerHTML = '';
-                    document.getElementById('chart-container').classList.add('hidden');
-                    monthFilterList.innerHTML = ''; updateMonthButtonText();
-                    yearFilterList.innerHTML = ''; updateYearButtonText();
-                    unitFilterList.innerHTML = ''; updateUnitButtonText();
-                    parameterSelectorList.innerHTML = ''; updateParameterButtonText();
-                }
-            };
-            reader.onerror = (error) => {
-                console.error("FileReader error:", error);
-                alert("Error reading the file.");
-            }
-            reader.readAsArrayBuffer(file);
-        }
-
-        function populateMonthFilter() {
-            const monthsRaw = excelData.map(row => row.Month).filter(Boolean);
-            // Try converting to numbers for sorting, handle potential non-numeric months gracefully
-            const monthNumbers = monthsRaw.map(m => parseInt(m)).filter(n => !isNaN(n));
-            const uniqueMonths = [...new Set(monthNumbers)].sort((a, b) => a - b);
-            console.log('Months after parsing and sorting:', uniqueMonths);
-            monthFilterList.innerHTML = `
-                <label class="flex items-center space-x-2">
-                    <input type="checkbox" value="all" checked> <span>Select All</span>
-                </label>
-                ${uniqueMonths.map(m => `
-                    <label class="flex items-center space-x-2">
-                        <input type="checkbox" value="${m}" checked> <span>${m}</span>
-                    </label>
-                `).join('')}
-            `;
-            updateMonthButtonText(); // Update button text after populating
-        }
-function goBack() {
-    window.location.href = "https://pankajmehta28.github.io/my-dashboard/protected.html";
-  }
         function updateMonthButtonText() {
             const selectedMonths = getSelectedMonths();
             const allMonthsSelected = monthFilterList.querySelectorAll('input[type="checkbox"]:not([value="all"])').length === selectedMonths.length && selectedMonths.length > 0;
@@ -506,12 +290,38 @@ function goBack() {
             monthFilterButton.textContent = selectedMonths.length > 0 ? `${selectedMonths.length} Month(s) Selected` : 'Select Months';
         }
 
+        function populateMonthFilter() {
+            const monthsRaw = excelData.map(row => row.Month).filter(Boolean);
+            const monthNumbers = monthsRaw.map(m => parseInt(m)).filter(n => !isNaN(n));
+            const uniqueMonths = [...new Set(monthNumbers)].sort((a, b) => a - b);
+            monthFilterList.innerHTML = `
+                <label class="flex items-center space-x-2">
+                    <input type="checkbox" value="all" checked> <span>Select All</span>
+                </label>
+                ${uniqueMonths.map(m => `
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" value="${m}" checked> <span>${m}</span>
+                    </label>
+                `).join('')}
+            `;
+            updateMonthButtonText();
+        }
+
+        function updateYearButtonText() {
+            const selectedYears = getSelectedYears();
+            const allYearsSelected = yearFilterList.querySelectorAll('input[type="checkbox"]:not([value="all"])').length === selectedYears.length && selectedYears.length > 0;
+            const selectAllCheckbox = yearFilterList.querySelector('input[value="all"]');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = allYearsSelected;
+            }
+            yearFilterButton.textContent = selectedYears.length > 0 ? `${selectedYears.length} Year(s) Selected` : 'Select Years';
+        }
+
         function populateYearFilter() {
             const yearsRaw = excelData.map(row => row.Year).filter(Boolean);
             const uniqueYears = [...new Set(yearsRaw)];
             const numericYears = uniqueYears.map(year => parseInt(year, 10)).filter(year => !isNaN(year));
             const sortedYears = numericYears.sort((a, b) => a - b);
-            console.log('Sorted Numeric Years:', sortedYears);
             yearFilterList.innerHTML = `
                 <label class="flex items-center space-x-2">
                     <input type="checkbox" value="all" checked> <span>Select All</span>
@@ -525,19 +335,38 @@ function goBack() {
             updateYearButtonText();
         }
 
-        function updateYearButtonText() {
-            const selectedYears = getSelectedYears();
-            const allYearsSelected = yearFilterList.querySelectorAll('input[type="checkbox"]:not([value="all"])').length === selectedYears.length && selectedYears.length > 0;
-            const selectAllCheckbox = yearFilterList.querySelector('input[value="all"]');
-            if (selectAllCheckbox) {
-                selectAllCheckbox.checked = allYearsSelected;
+        // FIX: Updated logic for updating 'Select All' checkbox based on individual selections
+        function updateUnitButtonText() {
+            console.log("updateUnitButtonText called."); // Debug log
+            const checkboxes = unitFilterList.querySelectorAll('input[type="checkbox"]:not([value="all"])');
+            const allCheckbox = unitFilterList.querySelector('input[value="all"]');
+            const selectedUnits = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+            console.log("Individual checkboxes checked:", selectedUnits.length, "Total individuals:", checkboxes.length); // Debug log
+
+            const allUnitsAreChecked = selectedUnits.length === checkboxes.length && checkboxes.length > 0;
+            console.log("All individual units are checked?", allUnitsAreChecked); // Debug log
+
+
+            if (allCheckbox) {
+                 // If all individual units are checked, check 'all'. Otherwise, ensure 'all' is unchecked.
+                 // The individual checkbox click handler ensures 'all' gets unchecked if an individual is unchecked.
+                 // This logic handles the case where checking the *last* individual unit should check 'all'.
+                 allCheckbox.checked = allUnitsAreChecked;
             }
-            yearFilterButton.textContent = selectedYears.length > 0 ? `${selectedYears.length} Year(s) Selected` : 'Select Years';
+
+            // Update button text based on selected count
+            if (allUnitsAreChecked) {
+                 unitFilterButton.textContent = 'All Units Selected';
+             } else if (selectedUnits.length > 0) {
+                 unitFilterButton.textContent = `${selectedUnits.length} Unit(s) Selected`;
+             } else {
+                 unitFilterButton.textContent = 'Select Units';
+             }
         }
+
 
         function populateUnitFilter() {
             const units = [...new Set(excelData.map(row => row.Unit?.toString().trim()).filter(Boolean))].sort();
-            console.log('Units after parsing:', units);
             unitFilterList.innerHTML = `
                 <label class="flex items-center space-x-2">
                     <input type="checkbox" value="all" checked> <span>Select All</span>
@@ -551,54 +380,46 @@ function goBack() {
             updateUnitButtonText();
         }
 
-         function updateUnitButtonText() {
-            const selectedUnits = getSelectedUnits();
-            const allUnitsSelected = unitFilterList.querySelectorAll('input[type="checkbox"]:not([value="all"])').length === selectedUnits.length && selectedUnits.length > 0;
-            const selectAllCheckbox = unitFilterList.querySelector('input[value="all"]');
+        function updateParameterButtonText() {
+            const selectedParameters = getSelectedParameters();
+            const allParametersSelected = parameterSelectorList.querySelectorAll('input[type="checkbox"]:not([value="all"])').length === selectedParameters.length && selectedParameters.length > 0;
+            const selectAllCheckbox = parameterSelectorList.querySelector('input[value="all"]');
             if (selectAllCheckbox) {
-                selectAllCheckbox.checked = allUnitsSelected;
+                selectAllCheckbox.checked = allParametersSelected;
             }
-            unitFilterButton.textContent = selectedUnits.length > 0 ? `${selectedUnits.length} Unit(s) Selected` : 'Select Units';
-         }
+            parameterSelectorButton.textContent = selectedParameters.length > 0 ? `${selectedParameters.length} Param(s) Selected` : 'Select Parameters';
+        }
 
-         function populateParameterSelector() {
-             console.log('Populating Parameters:', availableColumns);
-             parameterSelectorList.innerHTML = `
-                 <label class="flex items-center space-x-2">
-                     <input type="checkbox" value="all" checked> <span>Select All</span>
-                 </label>
-                 ${availableColumns.map(col => `
-                     <label class="flex items-center space-x-2">
-                         <input type="checkbox" value="${col}" checked> <span>${col}</span>
-                     </label>
-                 `).join('')}
-             `;
-             updateParameterButtonText();
-         }
-
-         function updateParameterButtonText() {
-             const selectedParameters = getSelectedParameters();
-             const allParametersSelected = parameterSelectorList.querySelectorAll('input[type="checkbox"]:not([value="all"])').length === selectedParameters.length && selectedParameters.length > 0;
-             const selectAllCheckbox = parameterSelectorList.querySelector('input[value="all"]');
-             if (selectAllCheckbox) {
-                 selectAllCheckbox.checked = allParametersSelected;
-             }
-             parameterSelectorButton.textContent = selectedParameters.length > 0 ? `${selectedParameters.length} Param(s) Selected` : 'Select Parameters';
-         }
+        function populateParameterSelector() {
+            const params = availableColumns.slice();
+            parameterSelectorList.innerHTML = `
+                <label class="flex items-center space-x-2">
+                    <input type="checkbox" value="all" checked> <span>Select All</span>
+                </label>
+                ${params.map(col => `
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" value="${col}" checked> <span>${col}</span>
+                    </label>
+                `).join('')}
+            `;
+            updateParameterButtonText();
+        }
 
         function getSelectedMonths() {
             const checkboxes = monthFilterList.querySelectorAll('input[type="checkbox"]:checked:not([value="all"])');
-            return Array.from(checkboxes).map(checkbox => checkbox.value); // Keep as strings for matching
+            return Array.from(checkboxes).map(checkbox => checkbox.value);
         }
 
         function getSelectedYears() {
             const checkboxes = yearFilterList.querySelectorAll('input[type="checkbox"]:checked:not([value="all"])');
-            return Array.from(checkboxes).map(checkbox => checkbox.value); // Keep as strings
+            return Array.from(checkboxes).map(checkbox => checkbox.value);
         }
 
         function getSelectedUnits() {
             const checkboxes = unitFilterList.querySelectorAll('input[type="checkbox"]:checked:not([value="all"])');
-            return Array.from(checkboxes).map(checkbox => checkbox.value);
+             const selected = Array.from(checkboxes).map(checkbox => checkbox.value);
+             console.log("getSelectedUnits returning:", selected); // Debug log
+             return selected;
         }
 
         function getSelectedParameters() {
@@ -606,27 +427,43 @@ function goBack() {
             return Array.from(checkboxes).map(checkbox => checkbox.value);
         }
 
+         function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+
+        // --- Data Processing / Filtering ---
         function filterData() {
             if (!excelData || excelData.length === 0) return [];
 
             const selectedMonths = getSelectedMonths();
             const selectedYears = getSelectedYears();
-            const selectedUnits = getSelectedUnits();
+            const selectedUnits = getSelectedUnits(); // Use the function to get current selection
             const reportType = document.getElementById('reportTypeFilter').value;
 
-            console.log("Filtering with:", { selectedMonths, selectedYears, selectedUnits, reportType });
+            console.log("Filtering with:", {
+                selectedMonths,
+                selectedYears,
+                selectedUnits, // Debug log
+                reportType
+            });
 
             let filtered = excelData.filter(row => {
-                // Ensure row values are treated as strings for reliable comparison with filter values
                 const rowMonthStr = row.Month?.toString();
                 const rowYearStr = row.Year?.toString();
                 const rowUnitStr = row.Unit?.toString().trim();
 
                 let monthMatch = selectedMonths.length === 0 || (rowMonthStr && selectedMonths.includes(rowMonthStr));
                 let yearMatch = selectedYears.length === 0 || (rowYearStr && selectedYears.includes(rowYearStr));
+                // FIX: If selectedUnits is empty, it means 'Select All' is effectively chosen by the UI logic
                 let unitMatch = selectedUnits.length === 0 || (rowUnitStr && selectedUnits.includes(rowUnitStr));
 
-                // Check required fields based on report type
+
                 if (reportType === 'Monthly' && (!rowMonthStr || !rowYearStr)) return false;
                 if (reportType === 'Yearly' && !rowYearStr) return false;
 
@@ -638,123 +475,94 @@ function goBack() {
 
         function calculateAverages(data, columns) {
             if (!data || data.length === 0 || !columns || columns.length === 0) {
-                 console.log('calculateAverages: No data or columns to process.');
-                 return [];
+                console.log('calculateAverages: No data or columns to process.');
+                return [];
             }
             const type = document.getElementById('reportTypeFilter').value;
             const groups = {};
 
-             data.forEach(row => {
-                 let key = '';
-                 let sortKey = '';
-                 const rowYear = row.Year?.toString();
-                 const rowMonth = row.Month?.toString();
-                 const monthNumber = parseInt(rowMonth);
-                 const formattedMonth = isNaN(monthNumber) ? '' : String(monthNumber).padStart(2, '0');
-                 const unit = row.Unit?.toString().trim();
+            data.forEach(row => {
+                let key = '';
+                let sortKey = '';
+                const rowYear = row.Year?.toString();
+                const rowMonth = row.Month?.toString();
+                const monthNumber = parseInt(rowMonth);
+                const formattedMonth = isNaN(monthNumber) ? '' : String(monthNumber).padStart(2, '0');
+                const unit = row.Unit?.toString().trim();
 
-                 if (!rowYear || !unit) return; // Skip rows missing essential grouping keys
+                if (!rowYear || !unit) return;
 
                 if (type === 'Yearly') {
-                     key = rowYear;
-                     sortKey = `${rowYear}`;
-                 } else { // Default to Monthly or All (treat 'All' like monthly for grouping)
-                     if (formattedMonth) {
-                         key = `${rowYear}-${formattedMonth}`;
-                         sortKey = `${rowYear}-${formattedMonth}`;
-                     } else {
-                         // Handle cases where month might be missing even if not strictly 'Yearly' report
-                         key = rowYear; // Group by year if month unavailable
-                         sortKey = `${rowYear}`;
-                     }
-                 }
+                    key = rowYear;
+                    sortKey = `${rowYear}`;
+                } else {
+                    if (formattedMonth) {
+                        key = `${rowYear}-${formattedMonth}`;
+                        sortKey = `${rowYear}-${formattedMonth}`;
+                    } else {
+                        key = rowYear;
+                        sortKey = `${rowYear}`;
+                    }
+                }
 
-                 if (!groups[key]) {
-                     groups[key] = {};
-                 }
-                 if (!groups[key][unit]) {
-                     groups[key][unit] = { count: 0, sortKey: sortKey, data: {} };
-                     columns.forEach(col => groups[key][unit].data[col] = { sum: 0, validCount: 0 }); // Track sum and count per column
-                 }
+                if (!groups[key]) {
+                    groups[key] = {};
+                }
+                if (!groups[key][unit]) {
+                    groups[key][unit] = {
+                        count: 0,
+                        sortKey: sortKey,
+                        data: {}
+                    };
+                    columns.forEach(col => groups[key][unit].data[col] = {
+                        sum: 0,
+                        validCount: 0
+                    });
+                }
 
-                 groups[key][unit].count++; // Overall count for the group (period/unit)
+                groups[key][unit].count++;
 
-                 columns.forEach(col => {
-                     // Find the actual column name in the row, case-insensitive and trim whitespace
-                     const actualColumnKey = Object.keys(row).find(k => k.trim().toLowerCase() === col.trim().toLowerCase());
-                     if (actualColumnKey) {
-                         const val = parseFloat(row[actualColumnKey]);
-                         if (!isNaN(val)) {
-                             groups[key][unit].data[col].sum += val;
-                             groups[key][unit].data[col].validCount++; // Count only valid numbers for average calculation
-                         }
-                     }
-                 });
-             });
+                columns.forEach(col => {
+                    const actualColumnKey = Object.keys(row).find(k => k.trim().toLowerCase() === col.trim().toLowerCase());
+                    if (actualColumnKey) {
+                        const val = parseFloat(row[actualColumnKey]);
+                        if (!isNaN(val)) {
+                            groups[key][unit].data[col].sum += val;
+                            groups[key][unit].data[col].validCount++;
+                        }
+                    }
+                });
+            });
 
-             const averages = Object.entries(groups).flatMap(([period, unitData]) => {
-                 return Object.entries(unitData).map(([unit, vals]) => {
-                     const obj = {
-                         Period: period,
-                         Unit: unit,
-                         sortKey: vals.sortKey
-                     };
-                     columns.forEach(col => {
-                         const colData = vals.data[col];
-                         const average = colData.validCount > 0 ? colData.sum / colData.validCount : 0; // Avoid division by zero
-                         // Multiply by 100 and format
-                         obj[col] = (average * 100).toFixed(1); // Format to one decimal place
-                     });
-                     return obj;
-                 });
-             });
+            const averages = Object.entries(groups).flatMap(([period, unitData]) => {
+                return Object.entries(unitData).map(([unit, vals]) => {
+                    const obj = {
+                        Period: period,
+                        Unit: unit,
+                        sortKey: vals.sortKey
+                    };
+                    columns.forEach(col => {
+                        const colData = vals.data[col];
+                        const average = colData.validCount > 0 ? (colData.sum / colData.validCount) * 100 : 0;
+                        obj[col] = average.toFixed(1); // Format to one decimal place (without %)
+                    });
+                    return obj;
+                });
+            });
 
-             // Sort based on the sortKey (Year or Year-Month)
-             averages.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+            averages.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
 
-             // Remove the temporary sortKey before returning
-             const finalAverages = averages.map(item => {
-                 const { sortKey, ...rest } = item;
-                 return rest;
-             });
-
-             console.log('calculatedAverages:', finalAverages);
-             return finalAverages;
-         }
-        function updateView() {
-            console.log('updateView function triggered');
-            const data = filterData();
-            const selectedParams = getSelectedParameters();
-
-            if (selectedParams.length === 0) {
-                alert("Please select at least one parameter to display.");
-                 document.getElementById('table-container').innerHTML = '<p>No parameters selected.</p>';
-                 document.getElementById('chart-container').classList.add('hidden');
-                 if (currentChart) { currentChart.destroy(); currentChart = null; }
-                return;
-            }
-
-            const avg = calculateAverages(data, selectedParams);
-            const viewType = document.querySelector('input[name="viewType"]:checked').value;
-
-            document.getElementById('table-container').classList.toggle('hidden', viewType !== 'table');
-            document.getElementById('chart-container').classList.toggle('hidden', viewType !== 'chart');
-
-            if (viewType === 'table') {
-                 renderTable(avg);
-                 if (currentChart) { // Optionally destroy chart if switching to table
-                     // currentChart.destroy();
-                     // currentChart = null;
-                 }
-            } else {
-                 renderChart(avg);
-            }
+            const finalAveragesWithSortKey = averages.map(item => ({ ...item }));
+            console.log('calculatedAverages:', finalAveragesWithSortKey);
+            return finalAveragesWithSortKey;
         }
 
 
+        // --- Rendering Functions (Define BEFORE updateView) ---
+
         function renderTable(data) {
             const container = document.getElementById('table-container');
-            container.innerHTML = ''; // Clear previous table
+            container.innerHTML = '';
 
             if (!data || data.length === 0) {
                 container.innerHTML = '<p class="text-center text-gray-600 py-4">No data available for the selected filters.</p>';
@@ -762,248 +570,1102 @@ function goBack() {
             }
 
             const table = document.createElement('table');
-            table.className = 'min-w-full bg-white border border-black border-collapse'; // Added border-collapse
+            // FIX: Removed min-w-full class to potentially help with PDF layout
+            table.className = 'bg-white border border-black border-collapse';
 
-            // Table Header
             const thead = document.createElement('thead');
-            thead.className = 'bg-gray-200'; // Slightly darker header
+            thead.className = 'bg-gray-200';
             const headerRow = document.createElement('tr');
-            // Add Period and Unit first, then selected parameters
-            const headers = ['Period', 'Unit', ...getSelectedParameters()];
+            const headers = Object.keys(data[0]);
+
             headers.forEach(key => {
-                 if (Object.keys(data[0]).includes(key)) { // Only add headers present in data
-                     const th = document.createElement('th');
-                     th.className = 'py-2 px-4 border border-black font-semibold text-gray-700 text-center text-sm uppercase'; // Style header
-                     th.textContent = key;
-                     headerRow.appendChild(th);
-                 }
+                const th = document.createElement('th');
+                th.className = 'py-2 px-3 border border-black font-semibold text-black-700 text-center text-sm sentencecase';
+                th.textContent = key;
+                headerRow.appendChild(th);
             });
             thead.appendChild(headerRow);
             table.appendChild(thead);
 
-            // Table Body
             const tbody = document.createElement('tbody');
             data.forEach(item => {
                 const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-50'; // Add hover effect
+                row.className = 'hover:bg-gray-50';
                 headers.forEach(key => {
-                         if (Object.keys(item).includes(key)) { // Match data keys with headers
-                             const td = document.createElement('td');
-                             td.className = 'py-2 px-4 border border-black text-gray-800 text-center text-sm'; // Style cells
-                             // Append '%' for parameter columns
-                             td.textContent = (key !== 'Period' && key !== 'Unit') ? `${item[key]}%` : item[key];
-                             row.appendChild(td);
-                         }
+                    const td = document.createElement('td');
+                    td.className = 'py-2 px-4 border border-black text-black-800 text-center text-sm';
+                    td.textContent = (key !== 'Period' && key !== 'Unit') ? `${item[key]}%` : item[key];
+                    row.appendChild(td);
                 });
                 tbody.appendChild(row);
             });
             table.appendChild(tbody);
 
-            container.appendChild(table); // Add the constructed table to the container
+            container.appendChild(table);
+        }
+
+        function renderComparisonTable(data) {
+             const container = document.getElementById('comparison-container');
+             container.innerHTML = '';
+
+             if (!data || data.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-600 py-4">No data available for the selected filters.</p>';
+                return;
+            }
+
+            const uniqueUnits = [...new Set(data.map(row => row.Unit?.toString().trim()).filter(Boolean))].sort();
+             const uniquePeriods = [...new Set(data.map(row => {
+                 const year = row.Year?.toString();
+                 const month = row.Month?.toString();
+                 const monthNum = parseInt(month);
+                 if (document.getElementById('reportTypeFilter').value === 'Yearly') {
+                     return year || 'Unknown Year';
+                 } else {
+                      return (year && !isNaN(monthNum) && monthNum >= 1 && monthNum <= 12) ? `${year}-${String(monthNum).padStart(2, '0')}` : (year || 'Unknown Period');
+                 }
+             }).filter(p => p !== 'Unknown Period'))].sort();
+
+            const selectedParameters = getSelectedParameters();
+
+             if (selectedParameters.length === 0) {
+                 container.innerHTML = '<p class="text-center text-gray-600 py-4">No parameters selected for comparison.</p>';
+                 return;
+             }
+
+
+            const table = document.createElement('table');
+             // FIX: Removed min-w-full class
+            table.className = 'bg-white border border-black border-collapse';
+
+            const thead = document.createElement('thead');
+            thead.className = 'bg-gray-200';
+
+            // Header Row 1: Parameter | Units spanning periods
+            const headerRow1 = document.createElement('tr');
+            headerRow1.className = 'bg-gray-300';
+
+            const emptyTh = document.createElement('th');
+            emptyTh.className = 'py-2 px-4 border border-black font-semibold text-black-700 text-left text-sm uppercase';
+            emptyTh.textContent = 'Parameter';
+            emptyTh.rowSpan = 2;
+            headerRow1.appendChild(emptyTh);
+
+            uniqueUnits.forEach((unit, index) => {
+                 const unitTh = document.createElement('th');
+                 unitTh.className = 'py-2 px-4 border border-black font-semibold text-black-700 text-left text-sm sentencecase';
+                 unitTh.textContent = `U${index + 1}`;
+                 unitTh.colSpan = uniquePeriods.length;
+                 unitTh.dataset.originalUnit = unit;
+                 headerRow1.appendChild(unitTh);
+            });
+            thead.appendChild(headerRow1);
+
+            // Header Row 2: Periods under each unit
+            const headerRow2 = document.createElement('tr');
+            uniqueUnits.forEach(() => {
+                 uniquePeriods.forEach(period => {
+                     const periodTh = document.createElement('th');
+                     periodTh.className = 'py-2 px-2 border border-black font-semibold text-black-700 text-center text-sm text-xs';
+                     periodTh.textContent = period;
+                     periodTh.dataset.period = period;
+                     headerRow2.appendChild(periodTh);
+                 });
+            });
+             thead.appendChild(headerRow2);
+             table.appendChild(thead);
+
+            // Table Body: Parameters as rows, data cells per Unit/Period
+            const tbody = document.createElement('tbody');
+
+            selectedParameters.forEach(param => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 text-left';
+
+                const paramTd = document.createElement('td');
+                paramTd.className = 'py-2 px-4 border border-black text-black-800 text-left font-semibold text-sm';
+
+                const shouldBeBold = ['upto Card Waste', 'Comber Noil', 'Overall Waste', 'YR'].some(boldParam =>
+                    param.trim().toLowerCase() === boldParam.toLowerCase()
+                );
+
+                if (shouldBeBold) {
+                    paramTd.classList.add('font-bold');
+                }
+
+                paramTd.textContent = param;
+                row.appendChild(paramTd);
+
+                uniqueUnits.forEach(unit => {
+                     uniquePeriods.forEach(period => {
+                         const dataTd = document.createElement('td');
+                         dataTd.className = 'py-2 px-2 border border-black text-black-800 text-left text-sm';
+
+                         if (shouldBeBold) {
+                             dataTd.classList.add('font-bold');
+                         }
+
+                         const matchingRow = data.find(d => {
+                              const rowUnit = d.Unit?.toString().trim();
+                              const rowYear = d.Year?.toString();
+                              const rowMonth = d.Month?.toString();
+                               const monthNum = parseInt(rowMonth);
+
+                               let rowPeriod;
+                               if (document.getElementById('reportTypeFilter').value === 'Yearly') {
+                                    rowPeriod = rowYear || 'Unknown Year';
+                               } else {
+                                    rowPeriod = (rowYear && !isNaN(monthNum) && monthNum >= 1 && monthNum <= 12) ? `${rowYear}-${String(monthNum).padStart(2, '0')}` : (rowYear || 'Unknown Period');
+                               }
+
+                             return rowUnit === unit && rowPeriod === period;
+                         });
+
+                         let value = '';
+                         if (matchingRow) {
+                              const paramKey = Object.keys(matchingRow).find(k => k.trim().toLowerCase() === param.trim().toLowerCase());
+                              if(paramKey !== undefined) {
+                                   const rawValue = matchingRow[paramKey];
+                                   const numValue = parseFloat(rawValue);
+                                   if (!isNaN(numValue)) {
+                                        value = (numValue * 100).toFixed(1) + '%';
+                                   } else {
+                                        value = rawValue !== undefined ? rawValue : '';
+                                   }
+                              }
+                         }
+
+                         dataTd.textContent = value;
+                         row.appendChild(dataTd);
+                     });
+                });
+
+                tbody.appendChild(row);
+            });
+
+            table.appendChild(tbody);
+             container.appendChild(table);
         }
 
 
         function renderChart(data) {
-             const chartContainer = document.getElementById('chart-container');
-             const canvas = document.getElementById('myChart');
-             let ctx;
+            const chartContainer = document.getElementById('chart-container');
+            let canvas = document.getElementById('myChart');
+            let ctx;
 
-             if (!canvas) { // If canvas doesn't exist, create it
-                  console.log("Creating canvas element for chart.");
-                  const newCanvas = document.createElement('canvas');
-                  newCanvas.id = 'myChart';
-                  newCanvas.width = 800; // Optional: set default size
-                  newCanvas.height = 400;
-                  chartContainer.innerHTML = ''; // Clear any potential "no data" message
-                  chartContainer.appendChild(newCanvas);
-                  ctx = newCanvas.getContext('2d');
+            if (!canvas || !canvas.getContext) {
+                 console.log("Recreating canvas element for chart.");
+                 const newCanvas = document.createElement('canvas');
+                 newCanvas.id = 'myChart';
+                 newCanvas.width = 800;
+                 newCanvas.height = 400;
+                 chartContainer.innerHTML = '';
+                 chartContainer.appendChild(newCanvas);
+                 canvas = newCanvas;
+                 ctx = canvas.getContext('2d');
+            } else {
+                 ctx = canvas.getContext('2d');
+            }
+
+            if (currentChart) {
+                currentChart.destroy();
+                currentChart = null;
+            }
+
+            if (!data || data.length === 0) {
+                console.log("No data to render chart.");
+                chartContainer.innerHTML = '<p class="text-center text-gray-600 py-4">No data available for the selected filters to draw chart.</p>';
+                return;
+            }
+
+            chartContainer.classList.remove('hidden');
+             if (chartContainer.querySelector('p')) {
+                 chartContainer.innerHTML = '';
+                 chartContainer.appendChild(canvas);
+                 ctx = canvas.getContext('2d');
+            }
+
+
+            const selectedUnits = getSelectedUnits();
+            const selectedParameters = getSelectedParameters();
+            const labels = [...new Set(data.map(item => item.Period))].sort();
+            const datasets = [];
+
+            if (selectedUnits.length <= 1) {
+                const unitToDisplay = selectedUnits.length === 1 ? selectedUnits[0] : data[0]?.Unit;
+                const unitData = unitToDisplay ? data.filter(d => d.Unit === unitToDisplay) : data;
+
+                selectedParameters.forEach(param => {
+                    datasets.push({
+                        label: param,
+                        data: labels.map(period => {
+                            const item = unitData.find(d => d.Period === period);
+                             // Parse formatted percentage string back to number for chart
+                             if (item && item[param] !== undefined) {
+                                 const valStr = item[param].toString().replace('%', '');
+                                 return parseFloat(valStr);
+                             }
+                            return null;
+                        }),
+                        borderColor: getRandomColor(),
+                        backgroundColor: 'transparent',
+                        fill: false,
+                        tension: 0.1,
+                        spanGaps: true
+                    });
+                });
+            } else {
+                selectedUnits.forEach(unit => {
+                    const unitData = data.filter(row => row.Unit === unit);
+                    selectedParameters.forEach(param => {
+                        datasets.push({
+                            label: `${unit} - ${param}`,
+                            data: labels.map(period => {
+                                const item = unitData.find(d => d.Period === period);
+                                 // Parse formatted percentage string back to number for chart
+                                 if (item && item[param] !== undefined) {
+                                     const valStr = item[param].toString().replace('%', '');
+                                     return parseFloat(valStr);
+                                 }
+                                return null;
+                            }),
+                            borderColor: getRandomColor(),
+                            backgroundColor: 'transparent',
+                            fill: false,
+                            tension: 0.1,
+                            spanGaps: true
+                        });
+                    });
+                });
+            }
+
+            const chartConfig = {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Realization %'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Period'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Yarn Realization Trend',
+                            padding: {
+                                top: 10,
+                                bottom: 20
+                            },
+                            font: {
+                                size: 16
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed.y !== null) label += context.parsed.y.toFixed(1) + '%';
+                                    return label;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: (value, context) => {
+                                return value !== null ? value.toFixed(1) + '%' : '';
+                            },
+                            font: {
+                                size: 10
+                            },
+                            color: '#444'
+                        }
+                    }
+                }
+            };
+
+            currentChart = new Chart(ctx, chartConfig);
+        }
+
+       / --- Download Functions ---/
+
+        // Function to download the Chart as a PNG image
+        function downloadChartAsPNG() {
+            const chartCanvas = document.getElementById('myChart');
+             // Check if the chart canvas exists and is currently visible in the chart view
+            const chartContainer = document.getElementById('chart-container');
+            const viewType = document.querySelector('input[name="viewType"]:checked').value;
+
+            if (!chartCanvas || !currentChart || viewType !== 'chart' || chartContainer.classList.contains('hidden')) {
+                alert("Chart view is not currently displayed or chart data is not available.");
+                 // No need to hide dropdown here, handled by click listener
+                return;
+            }
+
+            try {
+                 // Use the chart's canvas to generate a data URL
+                 const dataURL = chartCanvas.toDataURL('image/png');
+
+                 // Create a temporary link element
+                 const link = document.createElement('a');
+                 link.href = dataURL;
+                 link.download = 'yarn_realization_chart.png'; // Set the filename
+
+                 // Programmatically click the link to trigger the download
+                 document.body.appendChild(link); // Append to body is sometimes needed
+                 link.click();
+
+                 // Clean up the temporary link
+                 document.body.removeChild(link);
+
+                 console.log("Chart downloaded as PNG.");
+            } catch (error) {
+                 console.error("Error downloading chart:", error);
+                 alert("An error occurred while downloading the chart. Check console.");
+            } finally {
+                 // No need to hide dropdown here
+            }
+
+        }
+
+        // Excel Download Logic
+        // Renamed from downloadData to handle specific Excel trigger
+        function downloadExcelData() {
+            const viewType = document.querySelector('input[name="viewType"]:checked').value;
+
+            if (viewType !== 'table' && viewType !== 'comparison') {
+                alert('Excel download is only available for Table and Comparison views.');
+                // No need to hide dropdown here
+                return;
+            }
+
+            let dataForExcel;
+            let filename = 'data.xlsx';
+            const selectedParams = getSelectedParameters();
+
+            try { // Added try/catch for Excel download
+                if (viewType === 'table') {
+                    dataForExcel = calculateAverages(filterData(), selectedParams).map(item => {
+                         const { sortKey, ...rest } = item;
+                         return rest;
+                    });
+                     filename = 'yarn_realization_table_data.xlsx';
+
+                     if (!dataForExcel || dataForExcel.length === 0) {
+                         alert('No table data available to download.');
+                         return;
+                     }
+
+                     dataForExcel = dataForExcel.map(row => {
+                         const newRow = { ...row };
+                          selectedParams.forEach(param => {
+                              const actualParamKey = Object.keys(newRow).find(key => key.trim().toLowerCase() === param.trim().toLowerCase());
+                              if (actualParamKey !== undefined) {
+                                  const value = parseFloat(newRow[actualParamKey]);
+                                  if (!isNaN(value)) {
+                                      newRow[actualParamKey] = `${value.toFixed(1)}%`;
+                                  } else {
+                                       newRow[actualParamKey] = newRow[actualParamKey];
+                                   }
+                              }
+                          });
+                         return newRow;
+                     });
+
+                    const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
+                    const workbook = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
+                    XLSX.writeFile(workbook, filename);
+                    console.log("Excel Table data downloaded successfully.");
+
+
+                } else if (viewType === 'comparison') {
+                     const filteredData = filterData();
+
+                     if (!filteredData || filteredData.length === 0) {
+                         alert('No comparison data available to download.');
+                         return;
+                     }
+                     if (selectedParams.length === 0) {
+                          alert('Please select at least one parameter for the comparison view Excel download.');
+                          return;
+                     }
+
+                    const uniqueUnits = [...new Set(filteredData.map(row => row.Unit?.toString().trim()).filter(Boolean))].sort();
+                     const uniquePeriods = [...new Set(filteredData.map(row => {
+                          const year = row.Year?.toString();
+                          const month = row.Month?.toString();
+                          const monthNum = parseInt(month);
+                          if (document.getElementById('reportTypeFilter').value === 'Yearly') {
+                              return year || 'Unknown Year';
+                          } else {
+                               return (year && !isNaN(monthNum) && monthNum >= 1 && monthNum <= 12) ? `${year}-${String(monthNum).padStart(2, '0')}` : (year || 'Unknown Period');
+                          }
+                      }).filter(p => p !== 'Unknown Period'))].sort();
+                    const comparisonParameters = getSelectedParameters();
+
+                    const headerRow1 = ['Parameter'];
+                    const headerRow2 = [''];
+                    uniqueUnits.forEach((unit) => {
+                        headerRow1.push(...Array(uniquePeriods.length).fill(unit));
+                        headerRow2.push(...uniquePeriods);
+                    });
+
+                    dataForExcel = [headerRow1, headerRow2];
+
+                    comparisonParameters.forEach(param => {
+                        const rowData = [param];
+
+                         uniqueUnits.forEach(unit => {
+                             uniquePeriods.forEach(period => {
+                                 const matchingRow = filteredData.find(d => {
+                                      const rowUnit = d.Unit?.toString().trim();
+                                      const rowYear = d.Year?.toString();
+                                      const rowMonth = d.Month?.toString();
+                                       const monthNum = parseInt(rowMonth);
+
+                                       let rowPeriod;
+                                       if (document.getElementById('reportTypeFilter').value === 'Yearly') {
+                                            rowPeriod = rowYear || 'Unknown Year';
+                                       } else {
+                                            rowPeriod = (rowYear && !isNaN(monthNum) && monthNum >= 1 && monthNum <= 12) ? `${rowYear}-${String(monthNum).padStart(2, '0')}` : (rowYear || 'Unknown Period');
+                                       }
+
+                                     return rowUnit === unit && rowPeriod === period;
+                                  });
+
+                                  let value = '';
+                                  if (matchingRow) {
+                                       const paramKey = Object.keys(matchingRow).find(k => k.trim().toLowerCase() === param.trim().toLowerCase());
+                                       if(paramKey !== undefined) {
+                                           const rawValue = matchingRow[paramKey];
+                                           const numValue = parseFloat(rawValue);
+                                           if (!isNaN(numValue)) {
+                                                value = (numValue * 100).toFixed(1) + '%';
+                                           } else {
+                                                value = rawValue !== undefined ? rawValue : '';
+                                           }
+                                       }
+                                  }
+                                 rowData.push(value);
+                             });
+                        });
+                         dataForExcel.push(rowData);
+                    });
+
+                    filename = 'yarn_realization_comparison_data.xlsx';
+
+                    const worksheet = XLSX.utils.aoa_to_sheet(dataForExcel);
+                     const merges = [];
+                     let colIndex = 1;
+                     uniqueUnits.forEach(() => {
+                          merges.push({ s: { r: 0, c: colIndex }, e: { r: 0, c: colIndex + uniquePeriods.length - 1 } });
+                          colIndex += uniquePeriods.length;
+                     });
+                     if(merges.length > 0) {
+                        worksheet['!merges'] = merges;
+                     }
+
+                    const workbook = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
+                    XLSX.writeFile(workbook, filename);
+                    console.log("Excel Comparison data downloaded successfully.");
+
+
+                } // End else if viewType === comparison
+            } catch (error) {
+                console.error("Error during Excel download:", error);
+                alert("An error occurred during Excel download. Check the browser console for details.");
+            } finally {
+                 // No need to hide dropdown here
+            }
+        }
+
+
+
+       // --- Main View Update Function ---
+    function updateView() {
+    console.log('updateView function triggered');
+    const filteredData = filterData(); // Get filtered data first
+
+    // --- Calculate and Display Unit-wise Average YR ---
+    const unitAvgBoxesContainer = document.getElementById('unit-avg-boxes-container');
+    // Add null check here
+    if (unitAvgBoxesContainer) {
+        unitAvgBoxesContainer.innerHTML = ''; // Clear previous boxes
+    }
+
+
+    const selectedUnitsForBoxes = getSelectedUnits(); // Get units from the filter dropdown
+
+    // Only attempt to calculate and display if container exists and data/units are available
+    if (unitAvgBoxesContainer && (filteredData.length === 0 || selectedUnitsForBoxes.length === 0)) {
+         unitAvgBoxesContainer.innerHTML = '<p class="text-center text-gray-600 py-4">No unit data available for selected filters.</p>';
+    } else if (unitAvgBoxesContainer) { // Only proceed if the container element exists
+        const unitYRAverages = {};
+        const yrColumnName = availableColumns.find(col => col.trim().toLowerCase() === 'yr');
+
+        if (yrColumnName) {
+             // Only process data rows for the selected units
+             filteredData.filter(row => selectedUnitsForBoxes.includes(row.Unit?.toString().trim())).forEach(row => {
+                 const unit = row.Unit?.toString().trim();
+                 const yrValue = parseFloat(row[yrColumnName]);
+
+                 if (unit && !isNaN(yrValue)) {
+                     if (!unitYRAverages[unit]) {
+                         unitYRAverages[unit] = { sum: 0, count: 0 };
+                     }
+                     unitYRAverages[unit].sum += yrValue;
+                     unitYRAverages[unit].count++;
+                 }
+             });
+
+             const unitsWithAverages = Object.keys(unitYRAverages).sort();
+
+             if (unitsWithAverages.length > 0) {
+                 unitsWithAverages.forEach((unit, index) => {
+                     const unitData = unitYRAverages[unit];
+                     const average = unitData.count > 0 ? (unitData.sum / unitData.count) * 100 : 0;
+
+                     const avgBox = document.createElement('div');
+                     avgBox.className = 'unit-avg-box';
+                     avgBox.textContent = `U${index + 1}: ${average.toFixed(1)}%`;
+                     avgBox.dataset.originalUnit = unit; // Store original unit name
+                     unitAvgBoxesContainer.appendChild(avgBox);
+                 });
              } else {
-                  ctx = canvas.getContext('2d');
+                 unitAvgBoxesContainer.innerHTML = '<p class="text-center text-gray-600 py-4">No "YR" data found for selected units.</p>';
              }
 
+        } else {
+             unitAvgBoxesContainer.innerHTML = '<p class="text-center text-red-600 py-4">"YR" column not found in data.</p>';
+        }
+    }
+    // --- End Unit-wise Average YR Calculation ---
 
-             // Always destroy the previous chart instance if it exists
+
+    const selectedParams = getSelectedParameters();
+
+    // Only show alert if there's data but no parameters for views that need parameters
+    if (filteredData.length > 0 && selectedParams.length === 0 && document.querySelector('input[name="viewType"]:checked').value !== 'comparison') {
+         alert("Please select at least one parameter to display.");
+    }
+
+
+    // Get view containers and add null checks before accessing classList
+    const tableContainer = document.getElementById('table-container');
+    const chartContainer = document.getElementById('chart-container');
+    const comparisonContainer = document.getElementById('comparison-container');
+
+    // Hide all view containers first (with null checks)
+    if (tableContainer) tableContainer.classList.add('hidden');
+    if (chartContainer) chartContainer.classList.add('hidden');
+    if (comparisonContainer) comparisonContainer.classList.add('hidden');
+
+
+    const viewType = document.querySelector('input[name="viewType"]:checked').value;
+
+    // FIX: Show/hide chart download option in the dropdown based on view type
+    const downloadChartOption = document.getElementById('downloadChartOption');
+     if (downloadChartOption) {
+          if (viewType === 'chart') {
+               downloadChartOption.classList.remove('hidden');
+          } else {
+               downloadChartOption.classList.add('hidden');
+          }
+     }
+
+
+    if (viewType === 'table') {
+        if (tableContainer) { // Check if tableContainer exists
+            tableContainer.classList.remove('hidden');
+            const avgWithSortKey = calculateAverages(filteredData, selectedParams);
+            const avgForDisplay = avgWithSortKey.map(item => {
+                const { sortKey, ...rest } = item;
+                return rest;
+            });
+            renderTable(avgForDisplay);
+        } else {
+             console.error("Table container element not found.");
+        }
+        // Destroy chart if switching away from chart view (moved from original spot)
+         if (currentChart) {
+             currentChart.destroy();
+             currentChart = null;
+         }
+
+    } else if (viewType === 'chart') {
+        if (chartContainer) { // Check if chartContainer exists
+            chartContainer.classList.remove('hidden');
+             const avgWithSortKey = calculateAverages(filteredData, selectedParams);
+             const avgForDisplay = avgWithSortKey.map(item => {
+                 const { sortKey, ...rest } = item;
+                 return rest;
+             });
+            renderChart(avgForDisplay);
+        } else {
+             console.error("Chart container element not found.");
+        }
+        // downloadChartButton.classList.remove('hidden'); // This is now handled in the download button listener
+
+    } else if (viewType === 'comparison') {
+         if (comparisonContainer) { // Check if comparisonContainer exists
+            comparisonContainer.classList.remove('hidden');
+             if (selectedParams.length === 0) {
+                 comparisonContainer.innerHTML = '<p class="text-center text-gray-600 py-4">Please select at least one parameter for the comparison view.</p>';
+             } else {
+                  renderComparisonTable(filteredData); // Comparison table uses raw filteredData
+             }
+         } else {
+              console.error("Comparison container element not found.");
+         }
+         // downloadChartButton.classList.add('hidden'); // This is now handled in the download button listener
+    }
+
+    // Ensure fullscreen chart is hidden if not on chart view
+    const chartFullscreen = document.getElementById('chart-fullscreen');
+    if (chartFullscreen && viewType !== 'chart' && fullscreenChart) {
+        chartFullscreen.classList.add('hidden');
+        fullscreenChart.destroy();
+        fullscreenChart = null;
+    }
+}
+
+        // --- Data Loading Function (Calls updateView after data is ready) ---
+    async function loadDataFromSupabase() {
+    const supabaseUrl = 'https://jdajahcjljvnkopfdrpi.supabase.co/storage/v1/object/public/yr//YR%20Unit%20wise%20long%20term%20-%20pankaj%20mehta.xlsx'; // Replace with your actual Supabase URL
+
+    try {
+        const response = await fetch(supabaseUrl);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        const workbook = XLSX.read(new Uint8Array(arrayBuffer), {
+            type: 'array'
+        });
+
+        if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) {
+            throw new Error("Invalid workbook structure.");
+        }
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        if (!sheet) {
+            throw new Error(`Sheet "${workbook.SheetNames[0]}" not found or is empty.`);
+        }
+
+        excelData = XLSX.utils.sheet_to_json(sheet);
+
+        if (excelData.length > 0) {
+            const allKeys = Object.keys(excelData[0]);
+            availableColumns = allKeys.filter(key => {
+                 if (['Unit', 'Month', 'Year'].includes(key.trim())) return false;
+                 // Check if the column has at least one non-empty, non-null value
+                 return excelData.some(row => row[key] !== null && row[key] !== undefined && row[key] !== '');
+            });
+
+            populateMonthFilter();
+            populateYearFilter();
+            populateUnitFilter();
+            populateParameterSelector();
+
+            // FIX: Call updateView after successful data load and filter population
+            updateView();
+
+        } else {
+            alert('No data rows found in the Excel file.');
+            // Clear existing views if no data
+            document.getElementById('table-container').innerHTML = '<p>No data loaded.</p>';
+            const chartContainer = document.getElementById('chart-container'); // Add null check
+            if (chartContainer) { chartContainer.innerHTML = ''; chartContainer.classList.add('hidden'); }
+            const comparisonContainer = document.getElementById('comparison-container'); // Add null check
+            if (comparisonContainer) { comparisonContainer.innerHTML = ''; comparisonContainer.classList.add('hidden'); }
+
+            // Clear filters and unit boxes
+            const monthFilterList = document.getElementById('monthFilterList'); if(monthFilterList) monthFilterList.innerHTML = ''; updateMonthButtonText(); // Add null checks
+            const yearFilterList = document.getElementById('yearFilterList'); if(yearFilterList) yearFilterList.innerHTML = ''; updateYearButtonText(); // Add null checks
+            const unitFilterList = document.getElementById('unitFilterList'); if(unitFilterList) unitFilterList.innerHTML = ''; updateUnitButtonText(); // Add null checks
+            const parameterSelectorList = document.getElementById('parameterSelectorList'); if(parameterSelectorList) parameterSelectorList.innerHTML = ''; updateParameterButtonText(); // Add null checks
+            const unitAvgBoxesContainer = document.getElementById('unit-avg-boxes-container'); if(unitAvgBoxesContainer) unitAvgBoxesContainer.innerHTML = '<p class="text-center text-gray-600 py-4">No unit data available.</p>'; // Add null check
+
+             // Ensure chart is destroyed if it exists
              if (currentChart) {
                   currentChart.destroy();
                   currentChart = null;
              }
-
-             if (!data || data.length === 0) {
-                  console.log("No data to render chart.");
-                  chartContainer.innerHTML = '<p class="text-center text-gray-600 py-4">No data available for the selected filters to draw chart.</p>'; // Display message inside container
-                  return;
-             }
-
-             // Ensure the container is visible (it might have been hidden if previously no data)
-             chartContainer.classList.remove('hidden');
-             // Clear any potential "no data" message if canvas was recreated
-             if (chartContainer.querySelector('p')) {
-                  chartContainer.innerHTML = '';
-                  chartContainer.appendChild(canvas || document.getElementById('myChart')); // Ensure canvas is back
-                  ctx = (canvas || document.getElementById('myChart')).getContext('2d'); // Re-get context
-             }
-
-
-             const selectedUnits = getSelectedUnits();
-             const selectedParameters = getSelectedParameters();
-             const labels = [...new Set(data.map(item => item.Period))].sort(); // Ensure labels are sorted
-             const datasets = [];
-
-             // Logic to create datasets based on selected units and parameters
-             if (selectedUnits.length <= 1) {
-                  // If only one unit (or 'All' treated as one) is selected, show parameters as lines
-                  const unitToDisplay = selectedUnits.length === 1 ? selectedUnits[0] : data[0]?.Unit; // Pick the unit
-                  const unitData = unitToDisplay ? data.filter(d => d.Unit === unitToDisplay) : data; // Use all data if no specific unit
-
-                  selectedParameters.forEach(param => {
-                       datasets.push({
-                            label: param, // Label is the parameter name
-                            data: labels.map(period => {
-                                 const item = unitData.find(d => d.Period === period);
-                                 // Return the numeric value (remove '%') for the chart data point
-                                 return item && item[param] !== undefined ? parseFloat(item[param]) : null; // Use null for missing data points
-                            }),
-                            borderColor: getRandomColor(),
-                            backgroundColor: getRandomColor(), // Optional: for fill
-                            fill: false,
-                            tension: 0.1, // Less curvy lines
-                            spanGaps: true // Connect lines over null data points
-                       });
-                  });
-             } else {
-                  // If multiple units are selected, show each unit-parameter combo as a line
-                  selectedUnits.forEach(unit => {
-                       const unitData = data.filter(row => row.Unit === unit);
-                       selectedParameters.forEach(param => {
-                            datasets.push({
-                                 label: `${unit} - ${param}`, // Combine unit and parameter for label
-                                 data: labels.map(period => {
-                                      const item = unitData.find(d => d.Period === period);
-                                      return item && item[param] !== undefined ? parseFloat(item[param]) : null;
-                                 }),
-                                 borderColor: getRandomColor(),
-                                 backgroundColor: getRandomColor(),
-                                 fill: false,
-                                 tension: 0.1,
-                                 spanGaps: true
-                            });
-                       });
-                  });
-             }
-
-             const chartConfig = {
-                  type: 'line',
-                  data: {
-                       labels: labels,
-                       datasets: datasets
-                  },
-                  options: {
-                       responsive: true,
-                       maintainAspectRatio: false, // Allow chart to fill container height
-                       scales: {
-                            y: {
-                                 beginAtZero: true,
-                                 ticks: {
-                                      callback: function (value) { return value + '%'; } // Add % to Y-axis
-                                 },
-                                 title: {
-                                      display: true,
-                                      text: 'Realization %'
-                                 }
-                            },
-                            x: {
-                                 title: {
-                                      display: true,
-                                      text: 'Period'
-                                 }
-                            }
-                       },
-                       plugins: {
-                            title: {
-                                 display: true,
-                                 text: 'Yarn Realization Trend',
-                                 padding: { top: 10, bottom: 20 }, // Add padding
-                                  font: { size: 16 } // Adjust font size
-                            },
-                            tooltip: {
-                                 callbacks: {
-                                      label: function (context) {
-                                           let label = context.dataset.label || '';
-                                           if (label) label += ': ';
-                                           if (context.parsed.y !== null) label += context.parsed.y.toFixed(1) + '%'; // Format tooltip value
-                                           return label;
-                                      }
-                                 }
-                            },
-                            datalabels: {
-                                 anchor: 'end',
-                                 align: 'top', // Position labels above points
-                                 formatter: (value, context) => {
-                                      // Display labels only for specific datasets or conditions if needed
-                                      return value !== null ? value.toFixed(1) + '%' : ''; // Format data labels
-                                 },
-                                 font: {
-                                         size: 10 // Adjust label font size
-                                 },
-                                 color: '#444' // Adjust label color
-                            }
-                       }
-                  }
-             };
-
-             // Create the new chart instance and assign it
-             currentChart = new Chart(ctx, chartConfig);
         }
 
+    } catch (error) {
+        console.error("Error loading data from Supabase:", error);
+        alert(`Error loading data: ${error.message}. Please ensure the URL is correct and the file is accessible.`);
+        excelData = [];
+        // Clear existing views and filters on error
+        if (currentChart) { currentChart.destroy(); currentChart = null; }
+        const tableContainer = document.getElementById('table-container'); if(tableContainer) tableContainer.innerHTML = '<p>Error loading data.</p>'; // Add null check
+        const chartContainer = document.getElementById('chart-container'); if(chartContainer) { chartContainer.innerHTML = ''; chartContainer.classList.add('hidden'); } // Add null check
+        const comparisonContainer = document.getElementById('comparison-container'); if(comparisonContainer) { comparisonContainer.innerHTML = ''; comparisonContainer.classList.add('hidden'); } // Add null check
 
-        function getRandomColor() {
-            const letters = '0123456789ABCDEF';
-            let color = '#';
-            for (let i = 0; i < 6; i++) {
-                color += letters[Math.floor(Math.random() * 16)];
-            }
-            return color;
-        }
+        const monthFilterList = document.getElementById('monthFilterList'); if(monthFilterList) monthFilterList.innerHTML = ''; updateMonthButtonText(); // Add null checks
+        const yearFilterList = document.getElementById('yearFilterList'); if(yearFilterList) yearFilterList.innerHTML = ''; updateYearButtonText(); // Add null checks
+        const unitFilterList = document.getElementById('unitFilterList'); if(unitFilterList) unitFilterList.innerHTML = ''; updateUnitButtonText(); // Add null checks
+        const parameterSelectorList = document.getElementById('parameterSelectorList'); if(parameterSelectorList) parameterSelectorList.innerHTML = ''; updateParameterButtonText(); // Add null checks
+        const unitAvgBoxesContainer = document.getElementById('unit-avg-boxes-container'); if(unitAvgBoxesContainer) unitAvgBoxesContainer.innerHTML = '<p class="text-center text-red-600 py-4">Error loading unit data.</p>'; // Add null check
+    }
+}
 
-        function downloadData() {
-            const viewType = document.querySelector('input[name="viewType"]:checked').value;
+        // file upload handler (alternative loader - ensure it also calls updateView)
+function handleFileUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+        try {
+            const workbook = XLSX.read(new Uint8Array(evt.target.result), { type: 'array' });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            if (!sheet) throw new Error(`Sheet "${workbook.SheetNames[0]}" not found or is empty.`);
+            excelData = XLSX.utils.sheet_to_json(sheet);
 
-            if (viewType === 'table') {
-                const dataToDownload = filterData(); // Get the currently filtered raw-ish data
-                const selectedParams = getSelectedParameters();
-                const averagedData = calculateAverages(dataToDownload, selectedParams); // Get the displayed averaged data
-
-                if (!averagedData || averagedData.length === 0) {
-                    alert('No table data available to download.');
-                    return;
-                }
-                 // Format data for download (add % back)
-                 const formattedForDownload = averagedData.map(row => {
-                     const newRow = {...row};
-                     selectedParams.forEach(param => {
-                         if (newRow[param] !== undefined) {
-                             newRow[param] = `${newRow[param]}%`;
-                         }
-                     });
-                     return newRow;
+            if (excelData.length > 0) {
+                 const allKeys = Object.keys(excelData[0]);
+                 availableColumns = allKeys.filter(key => {
+                     if (['Unit', 'Month', 'Year'].includes(key.trim())) return false;
+                      // Check if the column has at least one non-empty, non-null value
+                      return excelData.some(row => row[key] !== null && row[key] !== undefined && row[key] !== '');
                  });
-
-                const worksheet = XLSX.utils.json_to_sheet(formattedForDownload);
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, 'YarnRealizationData');
-                XLSX.writeFile(workbook, 'yarn_realization_table_data.xlsx');
-
-            } else if (viewType === 'chart' && currentChart) {
-                const link = document.createElement('a');
-                link.download = 'yarn_realization_chart.png';
-                link.href = currentChart.toBase64Image('image/png', 1); // Use high quality PNG
-                link.click();
-                link.remove(); // Clean up the temporary link
+                 populateMonthFilter(); populateYearFilter(); populateUnitFilter(); populateParameterSelector();
+                 // FIX: Call updateView after successful data load and filter population
+                 updateView();
             } else {
-                alert('No data or chart currently displayed to download.');
+                alert('No data rows found in the uploaded Excel file.');
+                // Clear existing views if no data
+                const tableContainer = document.getElementById('table-container'); if(tableContainer) tableContainer.innerHTML = '<p>No data loaded.</p>'; // Add null check
+                const chartContainer = document.getElementById('chart-container'); if(chartContainer) { chartContainer.innerHTML = ''; chartContainer.classList.add('hidden'); } // Add null check
+                const comparisonContainer = document.getElementById('comparison-container'); if(comparisonContainer) { comparisonContainer.innerHTML = ''; comparisonContainer.classList.add('hidden'); } // Add null check
+
+                // Clear filters and unit boxes
+                const monthFilterList = document.getElementById('monthFilterList'); if(monthFilterList) monthFilterList.innerHTML = ''; updateMonthButtonText(); // Add null checks
+                const yearFilterList = document.getElementById('yearFilterList'); if(yearFilterList) yearFilterList.innerHTML = ''; updateYearButtonText(); // Add null checks
+                const unitFilterList = document.getElementById('unitFilterList'); if(unitFilterList) unitFilterList.innerHTML = ''; updateUnitButtonText(); // Add null checks
+                const parameterSelectorList = document.getElementById('parameterSelectorList'); if(parameterSelectorList) parameterSelectorList.innerHTML = ''; updateParameterButtonText(); // Add null checks
+                const unitAvgBoxesContainer = document.getElementById('unit-avg-boxes-container'); if(unitAvgBoxesContainer) unitAvgBoxesContainer.innerHTML = '<p class="text-center text-gray-600 py-4">No unit data available.</p>'; // Add null check
+
+                 // Ensure chart is destroyed if it exists
+                 if (currentChart) {
+                      currentChart.destroy();
+                      currentChart = null;
+                 }
             }
+        } catch (error) {
+            console.error("Error processing Excel file:", error);
+            alert(`Error processing Excel file: ${error.message}. Please ensure it's a valid Excel file.`);
+            excelData = [];
+            // Clear existing views and filters on error
+            if (currentChart) { currentChart.destroy(); currentChart = null; }
+            const tableContainer = document.getElementById('table-container'); if(tableContainer) tableContainer.innerHTML = '<p>Error loading data.</p>'; // Add null check
+            const chartContainer = document.getElementById('chart-container'); if(chartContainer) { chartContainer.innerHTML = ''; chartContainer.classList.add('hidden'); } // Add null check
+            const comparisonContainer = document.getElementById('comparison-container'); if(comparisonContainer) { comparisonContainer.innerHTML = ''; comparisonContainer.classList.add('hidden'); } // Add null check
+
+            const monthFilterList = document.getElementById('monthFilterList'); if(monthFilterList) monthFilterList.innerHTML = ''; updateMonthButtonText(); // Add null checks
+            const yearFilterList = document.getElementById('yearFilterList'); if(yearFilterList) yearFilterList.innerHTML = ''; updateYearButtonText(); // Add null checks
+            const unitFilterList = document.getElementById('unitFilterList'); if(unitFilterList) unitFilterList.innerHTML = ''; updateUnitButtonText(); // Add null checks
+            const parameterSelectorList = document.getElementById('parameterSelectorList'); if(parameterSelectorList) parameterSelectorList.innerHTML = ''; updateParameterButtonText(); // Add null checks
+            const unitAvgBoxesContainer = document.getElementById('unit-avg-boxes-container'); if(unitAvgBoxesContainer) unitAvgBoxesContainer.innerHTML = '<p class="text-center text-red-600 py-4">Error loading unit data.</p>'; // Add null check
+        }
+    };
+    reader.onerror = (error) => {
+        console.error("FileReader error:", error);
+        alert("Error reading the file.");
+         const unitAvgBoxesContainer = document.getElementById('unit-avg-boxes-container'); // Add null check
+         if(unitAvgBoxesContainer) unitAvgBoxesContainer.innerHTML = '<p class="text-center text-red-600 py-4">Error loading unit data.</p>';
+    }
+    reader.readAsArrayBuffer(file);
+}
+
+        // --- Event Handlers ---
+
+        // FIX: Removed filtering logic from handleUnitBoxClick
+        // This function is now just a placeholder for potential visual feedback or can be removed.
+        function handleUnitBoxClick(event) {
+            const clickedUnit = event.target.dataset.originalUnit; // Use originalUnit name
+            console.log(`Unit box clicked (no filtering): ${clickedUnit}`); // Debug log
+            // No filter manipulation or updateView call here
         }
 
+         // Function to handle the Refresh button click
+        function handleRefreshClick() {
+            console.log('Refresh button clicked, applying filters and updating view.');
+             // No need to specifically reset unit filter here, updateView will read current filter state
+             updateView(); // updateView will read all filter states and render
+        }
+
+
+       // --- Event Listeners (Ensure this block is after all function definitions) ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Primary Buttons
+    const loadDataButton = document.getElementById('loadDataButton');
+    if (loadDataButton) { // Added null check
+         loadDataButton.addEventListener('click', loadDataFromSupabase);
+    }
+
+    const refreshButton = document.getElementById('refreshButton');
+     if (refreshButton) { // Added null check
+          refreshButton.addEventListener('click', handleRefreshClick);
+     }
+
+
+    // View type change listener
+    document.querySelectorAll('input[name="viewType"]').forEach(radio => {
+         radio.addEventListener('change', updateView);
+    });
+    // Report type change listener
+    const reportTypeFilter = document.getElementById('reportTypeFilter');
+     if (reportTypeFilter) { // Added null check
+          reportTypeFilter.addEventListener('change', updateView);
+     }
+
+
+     // Expand Icon listener
+            document.getElementById('expandIcon').addEventListener('click', () => {
+                const chartFullscreen = document.getElementById('chart-fullscreen');
+                const fullscreenCanvasContext = document.getElementById('myChartFullscreen').getContext('2d');
+                const chartContainer = document.getElementById('chart-container');
+                const viewType = document.querySelector('input[name="viewType"]:checked').value;
+
+                if (currentChart && viewType === 'chart' && !chartContainer.classList.contains('hidden')) {
+                    if (fullscreenChart) {
+                        fullscreenChart.destroy();
+                        fullscreenChart = null;
+                    }
+
+                    const newConfig = {
+                        type: currentChart.config.type,
+                        data: JSON.parse(JSON.stringify(currentChart.config.data)),
+                        options: JSON.parse(JSON.stringify(currentChart.config.options || {}))
+                    };
+                    if (!newConfig.options) newConfig.options = {};
+                    newConfig.options.maintainAspectRatio = false;
+                    newConfig.options.responsive = true;
+
+                     if (newConfig.options.plugins && newConfig.options.plugins.title) {
+                         newConfig.options.plugins.title.font = { size: 18 };
+                     }
+                     if (newConfig.options.plugins && newConfig.options.plugins.legend) {
+                         newConfig.options.plugins.legend.labels = { font: { size: 14 } };
+                     }
+
+                    fullscreenChart = new Chart(fullscreenCanvasContext, newConfig);
+                    chartFullscreen.classList.remove('hidden');
+
+                } else if (viewType !== 'chart') {
+                    alert('Please switch to Chart view to expand.');
+                } else {
+                    alert('No chart data loaded or chart is not rendered yet.');
+                }
+            });
+
+            // Close Fullscreen listener
+            document.getElementById('close-fullscreen').addEventListener('click', () => {
+                const chartFullscreen = document.getElementById('chart-fullscreen');
+                chartFullscreen.classList.add('hidden');
+                if (fullscreenChart) {
+                    fullscreenChart.destroy();
+                    fullscreenChart = null;
+                }
+            });
+
+
+
+    // Example: Download Dropdown Trigger (Toggle visibility)
+    const downloadButton = document.getElementById('downloadButton');
+    const downloadDropdown = document.getElementById('downloadDropdown');
+    if (downloadButton && downloadDropdown) { // Added null check
+         downloadButton.addEventListener('click', (event) => {
+             event.stopPropagation(); // Prevent click from closing dropdown immediately
+             downloadDropdown.classList.toggle('show');
+
+             // FIX: Hide/Show Chart download option based on view type when dropdown opens
+             const downloadChartOption = document.getElementById('downloadChartOption');
+             const viewType = document.querySelector('input[name="viewType"]:checked').value;
+             if (downloadChartOption) { // Added null check
+                  if (viewType === 'chart') {
+                       downloadChartOption.classList.remove('hidden');
+                  } else {
+                       downloadChartOption.classList.add('hidden');
+                  }
+             }
+         });
+         // Close download dropdown if clicked outside
+         document.addEventListener('click', (event) => {
+              if (downloadButton && downloadDropdown && !downloadButton.contains(event.target) && !downloadDropdown.contains(event.target)) { // Added null checks
+                  downloadDropdown.classList.remove('show');
+              }
+         });
+    }
+
+
+    // FIX: Add click listeners for the download options
+    const downloadExcelOption = document.getElementById('downloadExcelOption');
+    const downloadPdfOption = document.getElementById('downloadPdfOption');
+    // Renamed variable to avoid conflict if downloadChartOption is also used elsewhere
+    const downloadChartOptionElement = document.getElementById('downloadChartOption');
+
+
+    if (downloadExcelOption) { // Added null check
+        downloadExcelOption.addEventListener('click', () => {
+             downloadExcelData(); // Call specific excel function
+             if (downloadDropdown) downloadDropdown.classList.remove('show'); // Hide dropdown after click
+        });
+    }
+    if (downloadPdfOption) { // Added null check
+        downloadPdfOption.addEventListener('click', () => {
+             generatePdf(); // Call the NEW pdf function (jspdf-autotable)
+             if (downloadDropdown) downloadDropdown.classList.remove('show'); // Hide dropdown after click
+        });
+    }
+    // Use the renamed element variable (Added null check)
+    if (downloadChartOptionElement) {
+        downloadChartOptionElement.addEventListener('click', () => {
+             downloadChartAsPNG(); // Call specific chart function
+             if (downloadDropdown) downloadDropdown.classList.remove('show'); // Hide dropdown after click
+        });
+    }
+
+
+
+    // Example: Filter Dropdown Buttons - Toggle visibility (Added null checks)
+    const monthFilterButton = document.getElementById('monthFilterButton');
+    const monthFilterList = document.getElementById('monthFilterList');
+     if (monthFilterButton && monthFilterList) {
+          monthFilterButton.addEventListener('click', () => monthFilterList.classList.toggle('show'));
+     }
+
+    const yearFilterButton = document.getElementById('yearFilterButton');
+    const yearFilterList = document.getElementById('yearFilterList');
+     if (yearFilterButton && yearFilterList) {
+          yearFilterButton.addEventListener('click', () => yearFilterList.classList.toggle('show'));
+     }
+
+    const unitFilterButton = document.getElementById('unitFilterButton');
+    const unitFilterList = document.getElementById('unitFilterList');
+     if (unitFilterButton && unitFilterList) {
+          unitFilterButton.addEventListener('click', () => unitFilterList.classList.toggle('show'));
+     }
+
+    const parameterSelectorButton = document.getElementById('parameterSelectorButton');
+    const parameterSelectorList = document.getElementById('parameterSelectorList');
+     if (parameterSelectorButton && parameterSelectorList) {
+          parameterSelectorButton.addEventListener('click', () => parameterSelectorList.classList.toggle('show'));
+     }
+
+
+    // Filter Dropdown Lists - Handle checkbox changes (No updateView calls here) (Added null checks)
+    if (monthFilterList) {
+         monthFilterList.addEventListener('change', (event) => {
+              if (event.target.type === 'checkbox') {
+                  if (event.target.value === 'all') {
+                       const checkboxes = monthFilterList.querySelectorAll('input[type="checkbox"]:not([value="all"])');
+                       checkboxes.forEach(cb => cb.checked = event.target.checked);
+                  } else {
+                       const selectAllCheckbox = monthFilterList.querySelector('input[value="all"]');
+                        if (selectAllCheckbox && !event.target.checked) {
+                            selectAllCheckbox.checked = false;
+                        }
+                  }
+                  updateMonthButtonText();
+              }
+         });
+    }
+     if (yearFilterList) {
+          yearFilterList.addEventListener('change', (event) => {
+               if (event.target.type === 'checkbox') {
+                   if (event.target.value === 'all') {
+                       const checkboxes = yearFilterList.querySelectorAll('input[type="checkbox"]:not([value="all"])');
+                       checkboxes.forEach(cb => cb.checked = event.target.checked);
+                   } else {
+                        const selectAllCheckbox = yearFilterList.querySelector('input[value="all"]');
+                         if (selectAllCheckbox && !event.target.checked) {
+                             selectAllCheckbox.checked = false;
+                         }
+                   }
+                   updateYearButtonText();
+               }
+          });
+     }
+     if (unitFilterList) {
+          unitFilterList.addEventListener('change', (event) => {
+              console.log("Unit filter change event:", event.target.value, "Checked:", event.target.checked);
+              if (event.target.type === 'checkbox') {
+                  if (event.target.value === 'all') {
+                       console.log("'Select All' checkbox clicked.");
+                       const checkboxes = unitFilterList.querySelectorAll('input[type="checkbox"]:not([value="all"])');
+                       checkboxes.forEach(cb => cb.checked = event.target.checked);
+                  } else {
+                       console.log(`Individual unit checkbox clicked: ${event.target.value}`);
+                       const selectAllCheckbox = unitFilterList.querySelector('input[value="all"]');
+                        if (selectAllCheckbox && selectAllCheckbox.checked) {
+                            console.log("Individual unit clicked, unchecking 'Select All'.");
+                            selectAllCheckbox.checked = false;
+                        }
+                  }
+                  updateUnitButtonText(); // This updates button text and 'all' checkbox state
+              }
+          });
+     }
+     if (parameterSelectorList) {
+          parameterSelectorList.addEventListener('change', (event) => {
+               if (event.target.type === 'checkbox') {
+                   if (event.target.value === 'all') {
+                       const checkboxes = parameterSelectorList.querySelectorAll('input[type="checkbox"]:not([value="all"])');
+                       checkboxes.forEach(cb => cb.checked = event.target.checked);
+                   } else {
+                        const selectAllCheckbox = parameterSelectorList.querySelector('input[value="all"]');
+                         if (selectAllCheckbox && !event.target.checked) {
+                             selectAllCheckbox.checked = false;
+                         }
+                   }
+                   updateParameterButtonText();
+               }
+          });
+     }
+
+
+    // Close dropdowns if clicked outside (Added null checks)
+     document.addEventListener('click', (event) => {
+          if (monthFilterButton && monthFilterList && !monthFilterButton.contains(event.target) && !monthFilterList.contains(event.target)) {
+               monthFilterList.classList.remove('show');
+          }
+          if (yearFilterButton && yearFilterList && !yearFilterButton.contains(event.target) && !yearFilterList.contains(event.target)) {
+               yearFilterList.classList.remove('show');
+          }
+          if (unitFilterButton && unitFilterList && !unitFilterButton.contains(event.target) && !unitFilterList.contains(event.target)) {
+               unitFilterList.classList.remove('show');
+          }
+          if (parameterSelectorButton && parameterSelectorList && !parameterSelectorButton.contains(event.target) && !parameterSelectorList.contains(event.target)) {
+               parameterSelectorList.classList.remove('show');
+          }
+     });
+
+
+}); // End DOMContentLoaded
     </script>
 </body>
 
