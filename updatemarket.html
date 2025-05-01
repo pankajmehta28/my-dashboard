@@ -1,36 +1,61 @@
-**1.  `index.html` (Front-end)**
-
-```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Update Market for Bill To Cities</title>
   <style>
+    body {
+        font-family: sans-serif;
+        line-height: 1.6;
+        margin: 20px;
+        background-color: #f8f8f8;
+    }
+    h2 {
+        color: #333;
+        border-bottom: 2px solid #4CAF50;
+        padding-bottom: 10px;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      background-color: #fff;
     }
     th, td {
-      padding: 8px;
-      border: 1px solid #ccc;
+      padding: 12px;
+      border: 1px solid #ddd;
       text-align: left;
     }
     th {
-      background-color: #f2f2f2;
+      background-color: #4CAF50;
+      color: white;
+      font-weight: bold;
+    }
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+    tr:hover {
+        background-color: #e9e9e9;
     }
     select {
       width: 100%;
-      padding: 4px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box; /* Include padding and border in the element's total width and height */
     }
     button {
       margin-top: 10px;
-      padding: 8px 12px;
+      padding: 10px 15px;
       background-color: #4CAF50;
       color: white;
       border: none;
+      border-radius: 4px;
       cursor: pointer;
+      font-size: 1em;
+      transition: background-color 0.3s ease;
     }
     button:hover {
       background-color: #45a049;
@@ -40,6 +65,13 @@
     }
     .refresh-button:hover {
       background-color: #0056b3;
+    }
+    #marketTable {
+        margin-top: 20px;
+    }
+    #marketTable p {
+        font-style: italic;
+        color: #666;
     }
   </style>
 </head>
@@ -51,30 +83,73 @@
   <div id="marketTable"></div>
 
   <script>
-    const backendUrl = 'http://localhost:3000'; // Your backend API URL - CHANGE THIS IF NEEDED
+    // Define your backend API URLs
+    // Make sure these match the endpoints in your backend code
+    const backendBaseUrl = 'http://localhost:3000/api'; // Base URL for your backend API
+    const backendFetchUrl = `${backendBaseUrl}/get-blank-markets`; // Endpoint to fetch data
+    const backendUpdateUrl = `${backendBaseUrl}/update-markets`;   // Endpoint to submit updates
 
     async function fetchBlankMarkets() {
+      document.getElementById('marketTable').innerHTML = '<p>Loading data...</p>'; // Show loading message
       try {
-        const response = await fetch(`${backendUrl}/api/blank-markets`);
+        // Fetch data from the backend endpoint
+        const response = await fetch(backendFetchUrl);
+
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorData = await response.json().catch(() => ({ message: response.statusText }));
+          throw new Error(`HTTP error! status: ${response.status}, Message: ${errorData.message}`);
         }
-        const html = await response.text(); // Get the HTML from the response
+
+        const data = await response.json();
+
+        // The backend should return an object like:
+        // { blankMarkets: [{ originalRow: 2, billToCity: 'CityA' }, ...], marketOptions: ['Option1', 'Option2', ...] }
+        const blankMarkets = data.blankMarkets;
+        const marketOptions = data.marketOptions || []; // Ensure marketOptions is an array
+
+        if (!blankMarkets || !Array.isArray(blankMarkets) || blankMarkets.length === 0) {
+          document.getElementById('marketTable').innerHTML = '<p>No blank market entries found or failed to load data from backend.</p>';
+          return;
+        }
+
+        // Sort the cities alphabetically
+        blankMarkets.sort((a, b) => a.billToCity.localeCompare(b.billToCity));
+
+        let html = '<table>';
+        html += '<thead><tr><th>Bill To City</th><th>New Market</th></tr></thead>';
+        html += '<tbody>';
+        blankMarkets.forEach(entry => {
+          html += `<tr>
+            <td>${entry.billToCity}</td>
+            <td>
+              <select id="market-row-${entry.originalRow}">
+                <option value="">-- Select Market --</option>
+                ${marketOptions.map(option => `<option value="${option}">${option}</option>`).join('')}
+              </select>
+            </td>
+          </tr>`;
+        });
+        html += '</tbody>';
+        html += '</table>';
+
         document.getElementById('marketTable').innerHTML = html;
       } catch (error) {
-        console.error("Error fetching blank markets:", error);
-        alert('Failed to fetch data! Check console for errors.');
+        console.error('Error fetching data from backend:', error);
+        alert('❌ Failed to fetch data! Check console for details.');
+        document.getElementById('marketTable').innerHTML = '<p style="color: red;">Error loading data. Please check console and backend server status.</p>';
       }
     }
 
     async function submitUpdates() {
-      const selects = document.querySelectorAll('select[id^="market-"]');
+      const selects = document.querySelectorAll('select[id^="market-row-"]');
       const updates = [];
 
       selects.forEach(select => {
-        const rowId = select.id.split('-')[1];
+        // Extract the original row number from the ID
+        const rowId = select.id.replace('market-row-', '');
         const marketValue = select.value.trim();
         if (marketValue) {
+          // Send the original row number and the selected market value
           updates.push({ row: parseInt(rowId), market: marketValue });
         }
       });
@@ -84,27 +159,46 @@
         return;
       }
 
+      // Disable buttons and show loading indicator if possible
+      const updateButton = document.querySelector('button[onclick="submitUpdates()"]');
+      const refreshButton = document.querySelector('button[onclick="fetchBlankMarkets()"]');
+      updateButton.disabled = true;
+      refreshButton.disabled = true;
+      const originalButtonText = updateButton.textContent;
+      updateButton.textContent = 'Updating...';
+
+
+      // Send the updates data to the backend update API endpoint
       try {
-        const response = await fetch(`${backendUrl}/api/update-markets`, {
+        const response = await fetch(backendUpdateUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ updates }),
+          body: JSON.stringify({ updates }), // Send the array of updates
         });
 
         if (response.ok) {
+          // Assuming backend returns a success confirmation
           const result = await response.json();
           alert('✔️ Markets updated successfully!');
-          fetchBlankMarkets(); // Optionally refresh the table
+          // Refresh the table to show the changes (updated rows should disappear)
+          fetchBlankMarkets();
         } else {
-          const errorData = await response.json();
+          // Handle errors from the backend update endpoint
+          const errorData = await response.json().catch(() => ({ message: response.statusText }));
           console.error('Failed to update markets:', errorData);
-          alert('❌ Failed to update markets. Please check the console for details.');
+          alert(`❌ Failed to update markets. Error: ${errorData.message}. Please check the console for details.`);
         }
       } catch (error) {
+        // Handle network errors or issues sending the request
         console.error('Error sending update request:', error);
         alert('❌ An error occurred while sending the update request.');
+      } finally {
+          // Re-enable buttons and restore text
+          updateButton.disabled = false;
+          refreshButton.disabled = false;
+          updateButton.textContent = originalButtonText;
       }
     }
 
@@ -113,175 +207,3 @@
   </script>
 </body>
 </html>
-```
-
-**2.  `server.js` (Back-end)**
-
-```javascript
-const express = require('express');
-const bodyParser = require('body-parser');
-const { google } = require('googleapis');
-const { JWT } = require('google-auth-library');
-require('dotenv').config(); // Load environment variables from .env file
-const fetch = require('node-fetch');
-
-const app = express();
-const port = 3000; // You can choose a different port
-
-app.use(bodyParser.json());
-
-// Load service account credentials from environment variables or a file
-const serviceAccountKey = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
-
-// Google Sheets API setup
-const sheets = google.sheets('v4');
-
-// Function to authenticate with Google Sheets API using JWT
-async function authorize() {
-  const client = new JWT({
-    email: serviceAccountKey.client_email,
-    key: serviceAccountKey.private_key,
-    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-  });
-  await client.authorize();
-  return client;
-}
-
-// API endpoint to handle market updates
-app.post('/api/update-markets', async (req, res) => {
-  try {
-    const { updates } = req.body;
-    if (!updates || !Array.isArray(updates) || updates.length === 0) {
-      return res.status(400).json({ error: 'Invalid or empty updates data.' });
-    }
-
-    const authClient = await authorize();
-    const spreadsheetId = process.env.GOOGLE_SHEET_ID; // Load from .env
-    const sheetName = process.env.GOOGLE_SHEET_NAME; // Load from .env
-
-    const updatePromises = updates.map(async (update) => {
-      const range = `${sheetName}!C${update.row}`; // Assuming 'Market' is in column C
-      const values = [[update.market]];
-
-      await sheets.spreadsheets.values.update({
-        auth: authClient,
-        spreadsheetId,
-        range,
-        valueInputOption: 'USER_ENTERED',
-        requestBody: {
-          values,
-        },
-      });
-    });
-
-    await Promise.all(updatePromises);
-
-    res.json({ message: 'Markets updated successfully!' });
-  } catch (error) {
-    console.error('Error updating markets:', error);
-    res.status(500).json({ error: 'Failed to update markets.', details: error.message });
-  }
-});
-
-async function fetchBlankMarkets(req, res) {
-  try {
-    const apiKey = process.env.GOOGLE_API_KEY; // Load API key from .env
-    const urlMapping = `https://sheets.googleapis.com/v4/spreadsheets/${process.env.GOOGLE_SHEET_ID}/values/${process.env.GOOGLE_SHEET_NAME}?key=${apiKey}`;
-    const urlMaster = `https://sheets.googleapis.com/v4/spreadsheets/${process.env.GOOGLE_SHEET_ID}/values/${process.env.GOOGLE_MASTER_SHEET_NAME}?key=${apiKey}`;
-
-    const [mappingResp, masterResp] = await Promise.all([fetch(urlMapping), fetch(urlMaster)]);
-    const mappingData = await mappingResp.json();
-    const masterData = await masterResp.json();
-
-    if (!mappingData.values) {
-      throw new Error('Failed to load Mapping Sheet data.');
-    }
-    if (!masterData.values) {
-      throw new Error('Failed to load Master Sheet data.');
-    }
-
-    const headers = mappingData.values[0];
-    const billToCityIndex = headers.findIndex(h => h.toLowerCase() === 'bill to city');
-    const marketIndex = headers.findIndex(h => h.toLowerCase() === 'market');
-
-    const blankMarkets = [];
-    for (let i = 1; i < mappingData.values.length; i++) {
-      const row = mappingData.values[i];
-      const billToCity = (row[billToCityIndex] || "").trim();
-      const market = (row[marketIndex] || "").trim();
-      if (billToCity && !market) {
-        blankMarkets.push({ row: i + 1, billToCity });
-      }
-    }
-
-    // Sort the cities alphabetically
-    blankMarkets.sort((a, b) => a.billToCity.localeCompare(b.billToCity));
-
-    const marketOptions = (masterData.values || []).map(row => row[0]).filter(option => option);
-
-    if (blankMarkets.length === 0) {
-      res.send('<p>No blank market entries found!</p>'); // Send HTML from the server
-      return;
-    }
-
-    let html = '<table>';
-    html += '<tr><th>Bill To City</th><th>New Market</th></tr>';
-    blankMarkets.forEach(row => {
-      html += `<tr>
-        <td>${row.billToCity}</td>
-        <td>
-          <select id="market-${row.row}">
-            <option value="">-- Select Market --</option>
-            ${marketOptions.map(option => `<option value="${option}">${option}</option>`).join('')}
-          </select>
-        </td>
-      </tr>`;
-    });
-    html += '</table>';
-
-    res.send(html); // Send the HTML table from the server
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('❌ Failed to fetch data!'); // Send error from server
-  }
-}
-
-
-
-app.get('/api/blank-markets', async (req, res) => {
-  await fetchBlankMarkets(req, res);
-});
-
-
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
-});
-```
-
-**3.  `.env` (Configuration File)**
-
-```
-GOOGLE_SERVICE_ACCOUNT_KEY='{
-  "type": "service_account",
-  "project_id": "your-project-id",
-  "private_key_id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY_HERE\n-----END PRIVATE KEY-----\n",
-  "client_email": "your-service-account-email@your-project-id.iam.gserviceaccount.com",
-  "client_id": "xxxxxxxxxxxxxxxxxxxx",
-  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-  "token_uri": "https://oauth2.googleapis.com/token",
-  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/your-service-account-email%40your-project-id.iam.gserviceaccount.com"
-}'
-GOOGLE_SHEET_ID='YOUR_GOOGLE_SHEET_ID'  // Replace with your sheet ID
-GOOGLE_SHEET_NAME='Sheet1'
-GOOGLE_MASTER_SHEET_NAME='Market Master List'
-GOOGLE_API_KEY='YOUR_API_KEY' // Replace with your API key
-```
-
-**Key Points:**
-
-* **Security:** The API key is now in the `.env` file, not in the front-end code.
-* **Backend Logic:** The backend (`server.js`) handles fetching data from Google Sheets and constructing the HTML for the table.  It also handles updating the sheet.
-* **Front-end Interaction:** The front-end (`index.html`) makes requests to the backend to get the table data and send updates.
-* **Configuration:** You must  replace  the placeholder values in the  `.env`  file with your actual Google Sheet ID, sheet names, and API key.
