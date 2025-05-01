@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Update Market for Bill To Cities</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    select {
+      width: 100%;
+      padding: 4px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .refresh-button {
+      background-color: #007BFF;
+    }
+    .refresh-button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h2>Update Market for Bill To Cities</h2>
+
+  <button onclick="submitUpdates()">Update Markets</button>
+  <button class="refresh-button" onclick="fetchBlankMarkets()">Refresh</button>
+  <div id="marketTable"></div>
+
+  <script>
+    const sheetId = '1LeoUoMWhwqGCQnlDN6qAqOQjS-nYhwvZhsLP1reBtPw';
+    const apiKey = 'YOUR_API_KEY_HERE'; // Replace with your API Key
+    const mappingSheetName = 'Sheet1';
+    const masterSheetName = 'Market Master List';
+
+    async function fetchBlankMarkets() {
+      try {
+        const urlMapping = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${mappingSheetName}?key=${apiKey}`;
+        const urlMaster = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${masterSheetName}?key=${apiKey}`;
+
+        const [mappingResp, masterResp] = await Promise.all([
+          fetch(urlMapping),
+          fetch(urlMaster)
+        ]);
+        
+        const mappingData = await mappingResp.json();
+        const masterData = await masterResp.json();
+
+        const headers = mappingData.values[0];
+        const billToCityIndex = headers.findIndex(h => h.toLowerCase() === 'bill to city');
+        const marketIndex = headers.findIndex(h => h.toLowerCase() === 'market');
+
+        const blankMarkets = [];
+        for (let i = 1; i < mappingData.values.length; i++) {
+          const row = mappingData.values[i];
+          const billToCity = (row[billToCityIndex] || "").trim();
+          const market = (row[marketIndex] || "").trim();
+          if (billToCity && !market) {
+            blankMarkets.push({ row: i + 1, billToCity });
+          }
+        }
+
+        const marketOptions = (masterData.values || []).map(row => row[0]).filter(option => option);
+
+        if (blankMarkets.length === 0) {
+          document.getElementById('marketTable').innerHTML = '<p>No blank market entries found!</p>';
+          return;
+        }
+
+        let html = '<table>';
+        html += '<tr><th>Bill To City</th><th>New Market</th></tr>';
+        blankMarkets.forEach(row => {
+          html += `<tr>
+            <td>${row.billToCity}</td>
+            <td>
+              <select id="market-${row.row}">
+                <option value="">-- Select Market --</option>
+                ${marketOptions.map(option => `<option value="${option}">${option}</option>`).join('')}
+              </select>
+            </td>
+          </tr>`;
+        });
+        html += '</table>';
+
+        document.getElementById('marketTable').innerHTML = html;
+      } catch (error) {
+        console.error(error);
+        alert('❌ Failed to fetch data!');
+      }
+    }
+
+    async function submitUpdates() {
+      const selects = document.querySelectorAll('select[id^="market-"]');
+      const updates = [];
+
+      selects.forEach(select => {
+        const rowId = select.id.split('-')[1];
+        const marketValue = select.value.trim();
+        if (marketValue) {
+          updates.push({ row: parseInt(rowId), market: marketValue });
+        }
+      });
+
+      if (updates.length === 0) {
+        alert('Please select at least one market value to update.');
+        return;
+      }
+
+      alert('❌ Direct update to Google Sheets from frontend is NOT allowed due to security restrictions.\nPlease submit updates manually or via approved API backend.');
+    }
+
+    // Auto-load table when page opens
+    fetchBlankMarkets();
+  </script>
+</body>
+</html>
