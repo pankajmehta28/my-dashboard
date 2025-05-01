@@ -49,9 +49,10 @@
 
   <script>
     const sheetId = '1LeoUoMWhwqGCQnlDN6qAqOQjS-nYhwvZhsLP1reBtPw';
-    const apiKey = 'AIzaSyCgKpUu1Bu5o0iQmFQovYQ4XWnRnKQygHI'; // Replace with your API Key
+    const apiKey = 'AIzaSyCgKpUu1Bu5o0iQmFQovYQ4XWnRnKQygHI'; // Replace with your API Key -  KEEP THIS SECURE!
     const mappingSheetName = 'Sheet1';
     const masterSheetName = 'Market Master List';
+    const backendUrl = 'http://localhost:3000/api/update-markets'; // Your backend API URL - CHANGE THIS IF NEEDED
 
     async function fetchBlankMarkets() {
       try {
@@ -59,18 +60,17 @@
         const urlMaster = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${masterSheetName}?key=${apiKey}`;
 
         const [mappingResp, masterResp] = await Promise.all([fetch(urlMapping), fetch(urlMaster)]);
-    
 
-    
+
         const mappingData = await mappingResp.json();
         const masterData = await masterResp.json();
 
-if (!mappingData.values) {
-  throw new Error('Failed to load Mapping Sheet data.');
-}
-if (!masterData.values) {
-  throw new Error('Failed to load Master Sheet data.');
-}
+        if (!mappingData.values) {
+          throw new Error('Failed to load Mapping Sheet data.');
+        }
+        if (!masterData.values) {
+          throw new Error('Failed to load Master Sheet data.');
+        }
 
         const headers = mappingData.values[0];
         const billToCityIndex = headers.findIndex(h => h.toLowerCase() === 'bill to city');
@@ -135,7 +135,28 @@ if (!masterData.values) {
         return;
       }
 
-      alert('❌ Direct update to Google Sheets from frontend is NOT allowed due to security restrictions.\nPlease submit updates manually or via approved API backend.');
+      try {
+        const response = await fetch(backendUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ updates }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          alert('✔️ Markets updated successfully!');
+          fetchBlankMarkets(); // Optionally refresh the table
+        } else {
+          const errorData = await response.json();
+          console.error('Failed to update markets:', errorData);
+          alert('❌ Failed to update markets. Please check the console for details.');
+        }
+      } catch (error) {
+        console.error('Error sending update request:', error);
+        alert('❌ An error occurred while sending the update request.');
+      }
     }
 
     // Auto-load table when page opens
