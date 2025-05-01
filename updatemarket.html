@@ -58,10 +58,7 @@
         const urlMapping = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${mappingSheetName}?key=${apiKey}`;
         const urlMaster = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${masterSheetName}?key=${apiKey}`;
 
-        const [mappingResp, masterResp] = await Promise.all([
-          fetch(urlMapping),
-          fetch(urlMaster)
-        ]);
+        const [mappingResp, masterResp] = await Promise.all([fetch(urlMapping), fetch(urlMaster)]);
         
         const mappingData = await mappingResp.json();
         const masterData = await masterResp.json();
@@ -79,6 +76,9 @@
             blankMarkets.push({ row: i + 1, billToCity });
           }
         }
+
+        // Sort the cities alphabetically
+        blankMarkets.sort((a, b) => a.billToCity.localeCompare(b.billToCity));
 
         const marketOptions = (masterData.values || []).map(row => row[0]).filter(option => option);
 
