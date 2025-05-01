@@ -55,8 +55,8 @@
 
     async function fetchBlankMarkets() {
       try {
-        const urlMapping = https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${mappingSheetName}?key=${apiKey};
-        const urlMaster = https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${masterSheetName}?key=${apiKey};
+        const urlMapping = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${mappingSheetName}?key=${apiKey}`;
+        const urlMaster = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${masterSheetName}?key=${apiKey}`;
 
         const [mappingResp, masterResp] = await Promise.all([
           fetch(urlMapping),
@@ -90,15 +90,15 @@
         let html = '<table>';
         html += '<tr><th>Bill To City</th><th>New Market</th></tr>';
         blankMarkets.forEach(row => {
-          html += <tr>
+          html += `<tr>
             <td>${row.billToCity}</td>
             <td>
               <select id="market-${row.row}">
                 <option value="">-- Select Market --</option>
-                ${marketOptions.map(option => <option value="${option}">${option}</option>).join('')}
+                ${marketOptions.map(option => `<option value="${option}">${option}</option>`).join('')}
               </select>
             </td>
-          </tr>;
+          </tr>`;
         });
         html += '</table>';
 
