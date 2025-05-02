@@ -411,8 +411,12 @@
             <label for="excelFileInput">Choose Excel File:</label>
             <input type="file" id="excelFileInput" accept=".xls,.xlsx">
 <select id="viewSelector" style="margin-left: auto;"> <option value="table">Table View</option>
-           <option value="chart">Chart View</option>
+          
         </select>
+<button onclick="goBack()" 
+        style="background-color: red; color: white; padding: 8px 12px; border: none; border-radius: 4px; float: right; cursor: pointer; font-weight: bold; font-size: 16px; float: right;">
+    ← Home
+</button>
         </div>
 
         <div  <span style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; flex-grow: 1;" id="layoutAndWidthControls">
@@ -1448,6 +1452,10 @@
         // Optional: If you want to reset order on cancel, save a temp copy in showReorderPanel
         // For simplicity now, cancel just closes without resetting
     }
+
+function goBack() {
+            window.location.href = "protected.html";
+        }
 
     function moveColumnInList(columnName, direction) {
         const oldIndex = columnDisplayOrder.indexOf(columnName);
