@@ -1,209 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Update Market for Bill To Cities</title>
-  <style>
-    body {
-        font-family: sans-serif;
-        line-height: 1.6;
-        margin: 20px;
-        background-color: #f8f8f8;
-    }
-    h2 {
-        color: #333;
-        border-bottom: 2px solid #4CAF50;
-        padding-bottom: 10px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      background-color: #fff;
-    }
-    th, td {
-      padding: 12px;
-      border: 1px solid #ddd;
-      text-align: left;
-    }
-    th {
-      background-color: #4CAF50;
-      color: white;
-      font-weight: bold;
-    }
-    tr:nth-child(even) {
-        background-color: #f2f2f2;
-    }
-    tr:hover {
-        background-color: #e9e9e9;
-    }
-    select {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box; /* Include padding and border in the element's total width and height */
-    }
-    button {
-      margin-top: 10px;
-      padding: 10px 15px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 1em;
-      transition: background-color 0.3s ease;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-    .refresh-button {
-      background-color: #007BFF;
-    }
-    .refresh-button:hover {
-      background-color: #0056b3;
-    }
-    #marketTable {
-        margin-top: 20px;
-    }
-    #marketTable p {
-        font-style: italic;
-        color: #666;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Blank Markets Update</title>
 </head>
 <body>
-  <h2>Update Market for Bill To Cities</h2>
+    <h1>Update Blank Markets</h1>
 
-  <button onclick="submitUpdates()">Update Markets</button>
-  <button class="refresh-button" onclick="fetchBlankMarkets()">Refresh</button>
-  <div id="marketTable"></div>
+    <div>
+        <button id="fetchButton">Fetch Blank Markets</button>
+    </div>
 
-  <script>
-    // Define your backend API URLs
-    // Make sure these match the endpoints in your backend code
-    const backendBaseUrl = 'http://localhost:3000/api'; // Base URL for your backend API
-    const backendFetchUrl = `${backendBaseUrl}/get-blank-markets`; // Endpoint to fetch data
-    const backendUpdateUrl = `${backendBaseUrl}/update-markets`;   // Endpoint to submit updates
+    <div id="marketsContainer"></div>
 
-    async function fetchBlankMarkets() {
-      document.getElementById('marketTable').innerHTML = '<p>Loading data...</p>'; // Show loading message
-      try {
-        // Fetch data from the backend endpoint
-        const response = await fetch(backendFetchUrl);
+    <div>
+        <button id="updateButton">Update Markets</button>
+    </div>
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ message: response.statusText }));
-          throw new Error(`HTTP error! status: ${response.status}, Message: ${errorData.message}`);
-        }
+    <script>
+        // Backend API Base URL (safe: use relative path, not localhost or IP)
+        const backendBaseUrl = '/api'; // Assuming you deploy both frontend + backend together
+        const backendFetchUrl = `${backendBaseUrl}/get-blank-markets`;
+        const backendUpdateUrl = `${backendBaseUrl}/update-markets`;
 
-        const data = await response.json();
+        let marketData = [];
 
-        // The backend should return an object like:
-        // { blankMarkets: [{ originalRow: 2, billToCity: 'CityA' }, ...], marketOptions: ['Option1', 'Option2', ...] }
-        const blankMarkets = data.blankMarkets;
-        const marketOptions = data.marketOptions || []; // Ensure marketOptions is an array
-
-        if (!blankMarkets || !Array.isArray(blankMarkets) || blankMarkets.length === 0) {
-          document.getElementById('marketTable').innerHTML = '<p>No blank market entries found or failed to load data from backend.</p>';
-          return;
-        }
-
-        // Sort the cities alphabetically
-        blankMarkets.sort((a, b) => a.billToCity.localeCompare(b.billToCity));
-
-        let html = '<table>';
-        html += '<thead><tr><th>Bill To City</th><th>New Market</th></tr></thead>';
-        html += '<tbody>';
-        blankMarkets.forEach(entry => {
-          html += `<tr>
-            <td>${entry.billToCity}</td>
-            <td>
-              <select id="market-row-${entry.originalRow}">
-                <option value="">-- Select Market --</option>
-                ${marketOptions.map(option => `<option value="${option}">${option}</option>`).join('')}
-              </select>
-            </td>
-          </tr>`;
-        });
-        html += '</tbody>';
-        html += '</table>';
-
-        document.getElementById('marketTable').innerHTML = html;
-      } catch (error) {
-        console.error('Error fetching data from backend:', error);
-        alert('❌ Failed to fetch data! Check console for details.');
-        document.getElementById('marketTable').innerHTML = '<p style="color: red;">Error loading data. Please check console and backend server status.</p>';
-      }
-    }
-
-    async function submitUpdates() {
-      const selects = document.querySelectorAll('select[id^="market-row-"]');
-      const updates = [];
-
-      selects.forEach(select => {
-        // Extract the original row number from the ID
-        const rowId = select.id.replace('market-row-', '');
-        const marketValue = select.value.trim();
-        if (marketValue) {
-          // Send the original row number and the selected market value
-          updates.push({ row: parseInt(rowId), market: marketValue });
-        }
-      });
-
-      if (updates.length === 0) {
-        alert('Please select at least one market value to update.');
-        return;
-      }
-
-      // Disable buttons and show loading indicator if possible
-      const updateButton = document.querySelector('button[onclick="submitUpdates()"]');
-      const refreshButton = document.querySelector('button[onclick="fetchBlankMarkets()"]');
-      updateButton.disabled = true;
-      refreshButton.disabled = true;
-      const originalButtonText = updateButton.textContent;
-      updateButton.textContent = 'Updating...';
-
-
-      // Send the updates data to the backend update API endpoint
-      try {
-        const response = await fetch(backendUpdateUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ updates }), // Send the array of updates
+        document.getElementById('fetchButton').addEventListener('click', async () => {
+            try {
+                const response = await fetch(backendFetchUrl);
+                if (!response.ok) throw new Error('Failed to fetch markets');
+                
+                marketData = await response.json();
+                renderMarkets(marketData);
+            } catch (error) {
+                console.error('Error fetching markets:', error);
+            }
         });
 
-        if (response.ok) {
-          // Assuming backend returns a success confirmation
-          const result = await response.json();
-          alert('✔️ Markets updated successfully!');
-          // Refresh the table to show the changes (updated rows should disappear)
-          fetchBlankMarkets();
-        } else {
-          // Handle errors from the backend update endpoint
-          const errorData = await response.json().catch(() => ({ message: response.statusText }));
-          console.error('Failed to update markets:', errorData);
-          alert(`❌ Failed to update markets. Error: ${errorData.message}. Please check the console for details.`);
-        }
-      } catch (error) {
-        // Handle network errors or issues sending the request
-        console.error('Error sending update request:', error);
-        alert('❌ An error occurred while sending the update request.');
-      } finally {
-          // Re-enable buttons and restore text
-          updateButton.disabled = false;
-          refreshButton.disabled = false;
-          updateButton.textContent = originalButtonText;
-      }
-    }
+        document.getElementById('updateButton').addEventListener('click', async () => {
+            try {
+                const updatedData = marketData.map((market, index) => {
+                    const input = document.getElementById(`market-${index}`);
+                    return { ...market, newMarket: input.value };
+                });
 
-    // Auto-load table when page opens
-    fetchBlankMarkets();
-  </script>
+                const response = await fetch(backendUpdateUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedData),
+                });
+
+                if (!response.ok) throw new Error('Failed to update markets');
+
+                alert('Markets updated successfully!');
+            } catch (error) {
+                console.error('Error updating markets:', error);
+            }
+        });
+
+        function renderMarkets(markets) {
+            const container = document.getElementById('marketsContainer');
+            container.innerHTML = '';
+
+            markets.forEach((market, index) => {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <label>${market.existingMarket}</label>
+                    <input id="market-${index}" type="text" value="${market.newMarket || ''}" />
+                `;
+                container.appendChild(div);
+            });
+        }
+    </script>
 </body>
 </html>
