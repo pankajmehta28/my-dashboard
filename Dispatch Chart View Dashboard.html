@@ -263,7 +263,13 @@
         </select>
         <button id="loadDataButton" style="background-color: steelblue; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 16px;">Load Data</button>
     </div>
-    <select id="viewSelector" style="margin-left: auto; background-color: steelblue; color: white; padding: 8px; border-radius: 4px; border: 1px solid steelblue; font-weight: bold; font-size: 16px;">
+  
+<button onclick="goBack()" 
+        style="background-color: red; color: white; padding: 8px 12px; border: none; border-radius: 4px; float: right; cursor: pointer; font-weight: bold; font-size: 16px; float: right;">
+    ← Home
+</button>
+      
+  <select id="viewSelector" style="margin-left: auto; background-color: steelblue; color: white; padding: 8px; border-radius: 4px; border: 1px solid steelblue; font-weight: bold; font-size: 16px;">
         <option value="chart" selected>Chart View</option>
         </select>
 </div>
@@ -629,6 +635,10 @@ function processExcelData(jsonData) {
              generateCharts(); // Recreate all charts if one is missing
          }
      }
+function goBack() {
+            window.location.href = "protected.html";
+        }
+
 
     // Function to handle the file selection and initial data loading
     function handleFileSelect(event) {
