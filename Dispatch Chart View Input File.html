@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sagar Manufacturers Dashboard - Chart View</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.14/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <style>
+        /* ... Your existing CSS styles ... */
+        body {
+            font-family: sans-serif;
+            margin: 0; /* Remove default body margin */
+            padding: 0; /* Add padding to body */
+            background-color: #FFFFFF; /* Light gray background */
+            width: 100%; /* Ensure body spans the entire width */
+        }
+
+        .container {
+            width: 100vw; /* Full width of the viewport */
+            margin: 0 auto; /* Center the container */
+            background-color: #fff; /* White background for container */
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            border-radius: 8px;
+        }
+
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .dashboard-header img {
+            height: 60px; /* Adjusted logo size */
+            width: auto;
+            margin-right: 15px;
+        }
+
+        .company-name {
+            font-size: 1.8em; /* Larger company name */
+            font-weight: bold;
+            color: #000080;
+            margin: 0;
+        }
+
+        .dashboard-title {
+            font-size: 1.5em; /* Dashboard title size */
+            margin-top: 15px;
+            margin-bottom: 20px;
+            color: #555;
+            text-align: center;
+        }
+
+
+        #controls {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px; /* Space between controls */
+            flex-wrap: wrap; /* Allow controls to wrap on smaller screens */
+        }
+
+        /* Table-specific control styles are removed in Chart View code */
+       /* #layoutAndWidthControls { ... } */
+       /* #layoutControlsContent, #widthControlsContent, #alignmentControlsContent { ... } */
+       /* #layoutControlsContent input, select, button { ... } */
+       /* #widthControlsContent input[type="number"] { ... } */
+
+        #fileInputContainer { /* Still needed for file upload */
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+
+        .filter-container { /* Filter container is still needed */
+            margin-bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px; /* Space between filter dropdowns */
+        }
+        .filter-dropdown { /* Filter dropdowns are still needed */
+            position: relative;
+            display: inline-block;
+            vertical-align: top;
+        }
+        .dropdown-button { /* Filter buttons are still needed */
+            padding: 8px 12px;
+            cursor: pointer;
+            border: 1px solid #007bff; /* Blue border */
+            background-color: #007bff; /* Blue background */
+            color: white; /* White text */
+            border-radius: 4px;
+            min-width: 120px;
+            text-align: left;
+            font-size: 14px;
+        }
+           .dropdown-button .filter-arrow { /* Filter arrow is still needed */
+               float: right;
+               color: white; /* White arrow */
+           }
+           .dropdown-button:hover { /* Hover style is still needed */
+               background-color: #0056b3; /* Darker blue on hover */
+               border-color: #0056b3;
+           }
+
+        .dropdown-content { /* Dropdown content is still needed */
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            min-width: 220px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 10;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            top: 100%; /* Position below the button */
+            left: 0;
+        }
+           .dropdown-content .search-container { /* Search container is still needed */
+               margin-bottom: 8px;
+           }
+        .dropdown-content input[type="text"] { /* Search input is still needed */
+            width: calc(100% - 18px);
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-sizing: border-box;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .dropdown-content .select-all { /* Select all is still needed */
+            font-weight: bold;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+           .dropdown-content .select-all input[type="checkbox"] { /* Select all checkbox is still needed */
+               margin-right: 5px;
+           }
+        .dropdown-content .filter-options { /* Filter options container is still needed */
+            margin-bottom: 5px; /* Reduced bottom margin */
+        }
+        .dropdown-content label { /* Filter option labels are still needed */
+            display: block;
+            margin-bottom: 4px;
+            cursor: pointer;
+            font-weight: normal;
+            font-size: 14px;
+        }
+           .dropdown-actions { /* Actions are not needed in dropdowns */
+               display: none;
+           }
+
+
+
+
+        /* Chart-specific styles */
+         .chart-container { /* Chart container is essential */
+           display: none; 
+           flex-wrap: wrap;
+           gap: 20px;
+           justify-content: space-between;
+           width: 100%;
+           height: 100%; /* Adjust height as needed, maybe remove fixed height */
+         }
+
+         .chart-box { /* Chart box is essential */
+           background: white;
+           border: 1px solid #ccc;
+           padding: 10px;
+           margin: 0; /* Remove margin around each chart box */
+           width: 49%; /* Adjust width for 2 columns */
+           box-sizing: border-box;
+           position: relative;
+           display: flex;
+           flex-direction: column;
+           justify-content: stretch;
+         }
+         /* Make chart boxes take full width on smaller screens */
+          @media (max-width: 768px) {
+               .chart-box {
+                   width: 100%;
+               }
+          }
+
+
+         .chart-box canvas { /* Canvas is essential */
+           width: 100% !important; /* Important to override Chart.js default sizing */
+           height: 100% !important;
+           max-height: 100%; /* Added max-height */
+         }
+
+
+         .chart-toolbar { /* Toolbar is essential */
+           position: absolute;
+           top: 5px;
+           right: 5px;
+         }
+         .chart-toolbar button { /* Toolbar buttons are essential */
+           background: #1e3a8a;
+           color: white;
+           border: none;
+           padding: 5px 8px;
+           cursor: pointer;
+           margin-left: 5px;
+         }
+.fullscreen-chart {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            z-index: 9999;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .fullscreen-exit {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }        
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="dashboard-header">
+        <img src="https://www.sagarmanufacturers.com/assets/web/images/smpl-new-logo.png" alt="Company Logo"
+             style="height: 60px; width: auto; margin-right: 15px;">
+        <h1 class="company-name">Sagar Manufacturers Pvt. Ltd.</h1>
+    </div>
+<h2 class="dashboard-title">Dispatch Dashboard</h2>
+
+    <div id="controls">
+        <div id="fileInputContainer">
+            <label for="excelFileInput">Choose Excel File:</label>
+            <input type="file" id="excelFileInput" accept=".xls,.xlsx">
+            <select id="viewSelector" style="margin-left: auto;">
+         
+                <option value="chart" selected>Chart View</option>
+            </select>
+        </div>
+
+        </div>
+
+    <div id="filtersContainer" class="filter-container" style="display: none;">
+        </div>
+
+  
+   <div id="chartContainer" class="chart-container">
+        <div class="chart-box">
+            <div class="chart-toolbar">
+                <button onclick="downloadChart('monthChart')">Download</button>
+                <button onclick="toggleFullscreen('monthChart')">Fullscreen</button>
+            </div>
+            <canvas id="monthChart"></canvas>
+        </div>
+        <div class="chart-box">
+            <div class="chart-toolbar">
+                <button onclick="downloadChart('unitChart')">Download</button>
+                <button onclick="toggleFullscreen('unitChart')">Fullscreen</button>
+            </div>
+            <canvas id="unitChart"></canvas>
+        </div>
+        <div class="chart-box">
+            <div class="chart-toolbar">
+                <button onclick="downloadChart('smplBlendChart')">Download</button>
+                <button onclick="toggleFullscreen('smplBlendChart')">Fullscreen</button>
+            </div>
+            <canvas id="smplBlendChart"></canvas>
+        </div>
+        <div class="chart-box">
+            <div class="chart-toolbar">
+                <button onclick="downloadChart('exportPie')">Download</button>
+                <button onclick="toggleFullscreen('exportPie')">Fullscreen</button>
+            </div>
+            <canvas id="exportPie"></canvas>
+        </div>
+        <div class="chart-box">
+            <div class="chart-toolbar">
+                <button onclick="downloadChart('marketChart')">Download</button>
+                <button onclick="toggleFullscreen('marketChart')">Fullscreen</button>
+            </div>
+            <canvas id="marketChart"></canvas>
+        </div>
+        <div class="chart-box">
+            <div class="chart-toolbar">
+                <button onclick="downloadChart('customerChart')">Download</button>
+                <button onclick="toggleFullscreen('customerChart')">Fullscreen</button>
+            </div>
+            <canvas id="customerChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+
+// Define which columns should have data filters (alphabetically sorted later)
+    // These are the columns that the filter dropdowns will be created for.
+    const dataFilterableColumnNames = [
+        'YEAR',
+        'Month', // Added month filter
+        'Plant',
+        'Customer_Name',
+        'Lot N0',
+        'Ship to City',
+        'Billing Document',
+        'Delivery',
+        'Sales Document',
+        'SMPL Count',
+        'Market',
+        'Material'
+    ].sort(); // Sort data filterable columns alphabetically
+
+
+    let tableData = []; // Store the original data objects (keys are original headers) - This replaces your rawData
+    let columnNamesFromExcel = []; // Store the exact column names read from the Excel header
+    let currentAppliedDataFilters = {}; // Store the data filters currently applied by the dropdowns
+    // visibleColumns, currentSort, columnWidths, columnDisplayOrder, columnAlignments are removed in Chart View code
+
+    let charts = []; // Array to hold Chart.js instances
+
+    // New global variable to store filters applied by clicking on charts
+    // Structure: { 'Column Name': ['Value1', 'Value2'], ... }
+    let currentChartFilters = {};
+
+    // Mapping from chart label categories (like 'Month wise') to actual data column names
+    // This mapping is used to translate chart clicks into data filters.
+    const chartColumnMapping = {
+         'Month wise': 'Billing Date', // Need to map month name back to date column
+         'Unit wise': 'Plant',
+         'Customer Type': 'Sales Document', // Need logic to map Export/Domestic back to Sales Document
+         'Invoiced Qty (MT)': 'SMPL Count', // Or the column used for blend calculation
+         'Market wise': 'Market',
+         'Top 10 Markets': 'Market',
+         'Top 10 Customers': 'Customer_Name'
+         // Add mappings for other charts if needed
+    };
+
+    // Ensure the DOM is fully loaded before adding event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // Event listener for the File Input
+        document.getElementById('excelFileInput').addEventListener('change', handleFileSelect, false);
+
+        // The Apply Filters button is not displayed in the Chart View code, filters apply automatically
+        // document.getElementById('applyFiltersButton').addEventListener('click', applyFilters, false);
+
+        // Download Buttons are for table data and removed in Chart View code
+        // document.getElementById('downloadExcelButton').addEventListener('click', downloadExcel, false);
+        // document.getElementById('downloadPdfButton').addEventListener('click', downloadPdf, false);
+
+        // Layout, Width, Alignment, Reorder controls are removed in Chart View code
+        // document.getElementById('saveLayoutButton').addEventListener('click', saveLayout, false);
+        // document.getElementById('loadLayoutSelect').addEventListener('change', enableLayoutButtons, false);
+        // document.getElementById('loadLayoutButton').addEventListener('click', loadLayout, false);
+        // document.getElementById('deleteLayoutButton').addEventListener('click', deleteLayout, false);
+        // document.getElementById('applyColumnWidthButton').addEventListener('click', applyColumnWidth, false);
+        // document.getElementById('applyColumnAlignmentButton').addEventListener('click', applyColumnAlignment, false);
+        // document.getElementById('showReorderPanelButton').addEventListener('click', showReorderPanel, false);
+        // document.getElementById('applyReorderButton').addEventListener('click', applyReorder, false);
+        // document.getElementById('cancelReorderButton').addEventListener('click', hideReorderPanel, false);
+
+
+        // Event listener for the View Selector (modified for Chart View)
+        $('#viewSelector').on('change', function() {
+            const view = $(this).val();
+            if(view === 'table'){
+                 // In Chart View code, hide chart elements if 'table' is selected
+                 $('#chartContainer').hide();
+                 $('#clearChartFiltersButton').hide(); // Hide chart-specific button
+
+                 // Optionally, provide feedback or redirect
+                 // In a real application, navigating to a different page or using a framework router would be typical.
+                 // For this exercise, we'll simply hide chart elements if 'table' is selected.
+                 $('#filtersContainer').hide(); // Hide filters container as it's tied to the view
+
+             } else { // Chart view selected in the dropdown
+                // In Chart View code, always show chart-related elements when 'chart' is selected
+                 $('#chartContainer').css('display', 'flex'); // Show chart container as flex
+                 // The clear chart filters button visibility is handled by clearChartFilters and handleChartClick
+
+                 // Show the filters container as it's needed for dropdown filters
+                 $('#filtersContainer').css('display', 'flex');
+
+                 // Re-generate charts with current filters when switching back to chart view
+                 applyFilters(); // applyFilters now triggers chart generation in this codebase
+             }
+        });
+
+
+        // Initial load of saved layouts is removed in Chart View code
+
+    }); // End DOMContentLoaded listener
+
+    // Helper function to convert Excel date serial number (assuming 1900 system) to JavaScript Date
+    function excelDateToJSDate(excelDate) {
+        const excelEpoch = new Date(1900, 0, 1); // Jan 1, 1900
+        const days = excelDate;
+
+        if (days === 0) {
+            return null;
+        }
+
+        let date = new Date(excelEpoch.getTime());
+        date.setDate(date.getDate() + days - 1);
+
+        if (days > 60) {
+            date.setDate(date.getDate() - 1);
+        }
+
+        return date;
+    }
+
+    // Helper function to optimize row data (including blend calculation)
+    function optimizeRow(row) {
+        const newRow = {...row};
+
+        // Safer Date Fix for various date fields
+        ['Billing Date', 'fromdate', 'todate', 'QUERY RECEIVED DATE'].forEach(field => {
+            const cleanedField = Object.keys(newRow).find(key => key.toLowerCase() === field.toLowerCase());
+            if (cleanedField && newRow[cleanedField] !== undefined && newRow[cleanedField] !== null && typeof newRow[cleanedField] === 'number' && newRow[cleanedField] > 0) {
+                try {
+                    const date = excelDateToJSDate(newRow[cleanedField]);
+                    if (date instanceof Date && !isNaN(date) && date !== null) {
+                         const day = date.getDate().toString().padStart(2, '0');
+                         const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                         const year = date.getFullYear().toString().slice(-2);
+                         newRow[cleanedField] = `${day}-${month}-${year}`;
+                       } else {
+                            newRow[cleanedField] = String(newRow[cleanedField]);
+                       }
+                } catch (e) {
+                    console.error(`Error during date conversion for field ${cleanedField}, value: ${newRow[cleanedField]}`, e);
+                    newRow[cleanedField] = String(newRow[cleanedField]);
+                }
+            } else if (cleanedField && newRow[cleanedField] !== undefined && newRow[cleanedField] !== null) {
+                 newRow[cleanedField] = String(newRow[cleanedField]);
+            } else if (cleanedField) {
+                newRow[cleanedField] = '';
+            }
+        });
+
+
+        // Blend Calculation Optimization
+        const smplCountKey = Object.keys(newRow).find(key => key.toLowerCase() === 'smpl count');
+        const itemDescriptionKey = Object.keys(newRow).find(key => key.toLowerCase() === 'item description');
+        const blendKey = Object.keys(newRow).find(key => key.toLowerCase() === 'blend');
+
+
+        if (smplCountKey && itemDescriptionKey && newRow[smplCountKey]?.toString().endsWith('PC') && newRow[itemDescriptionKey]) {
+            const match = newRow[itemDescriptionKey].match(/PC.*?(\d+)/);
+            if (match) {
+                const percent = parseInt(match[1], 10);
+                if (!isNaN(percent)) {
+                     if (blendKey) {
+                           newRow[blendKey] = `${percent}/${100 - percent}`;
+                     } else {
+                           newRow['Blend'] = `${percent}/${100 - percent}`;
+                     }
+                } else {
+                     if (blendKey) {
+                           newRow[blendKey] = '';
+                     } else {
+                           newRow['Blend'] = '';
+                     }
+                }
+            } else {
+                 if (blendKey) {
+                           newRow[blendKey] = '';
+                     } else {
+                           newRow['Blend'] = '';
+                     }
+            }
+        } else {
+  // If SMPL Count does not end with 'PC', just set Blend to empty
+  newRow['Blend'] = '100%'; // Or leave it empty
+}
+
+        // Ensure all values are strings for consistent filtering and display
+        Object.keys(newRow).forEach(key => {
+            newRow[key] = newRow[key] !== undefined && newRow[key] !== null ? String(newRow[key]) : '';
+        });
+
+        return newRow;
+    }
+
+    // Helper function for grouping and summing data for charts
+    function groupSum(data, field, valueField){
+         const map = {};
+         const fieldKey = Object.keys(data[0] || {}).find(key => key.toLowerCase() === field.toLowerCase());
+         const valueFieldKey = Object.keys(data[0] || {}).find(key => key.toLowerCase() === valueField.toLowerCase());
+
+
+         if (!fieldKey || !valueFieldKey) {
+             console.warn(`groupSum: Could not find field '${field}' or valueField '${valueField}' in data.`);
+             return []; // Return empty array if keys are not found
+         }
+
+         data.forEach(row => {
+             const key = row[fieldKey]; // Use the found key
+             map[key] = (map[key] || 0) + (parseFloat(row[valueFieldKey]) || 0); // Use the found key
+         });
+         return Object.entries(map).sort((a,b) => b[1]-a[1]).slice(0,10);
+     }
+
+     // Helper function to update charts (used by generateCharts)
+     function updateChart(chartId, data, labels) {
+         const chart = charts.find(c => c.canvas.id === chartId);
+         if (chart) {
+             chart.data.labels = labels;
+             chart.data.datasets[0].data = data;
+             chart.update();
+         } else {
+             // If chart doesn't exist, generateCharts will recreate all charts
+             console.warn(`Chart with ID ${chartId} not found for update. Generate all charts.`);
+             generateCharts(); // Recreate all charts if one is missing
+         }
+     }
+
+    // Function to handle the file selection and initial data loading
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) {
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+
+            // Convert the worksheet data to an array of arrays, keeping raw values for date conversion
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: true, defval: '' });
+
+            // Assume the first row of jsonData is the header
+            const header = jsonData[0];
+            const dataRows = jsonData.slice(1);
+
+            // Store column names directly from the header, clean them, and ensure uniqueness
+            columnNamesFromExcel = []; // Ensure re-initialization on new file load
+            const seenNames = new Set();
+            if (header) {
+                 header.forEach(colName => {
+                     const cleanedName = colName ? String(colName).trim() : `Unnamed Column_${seenNames.size}`;
+                     let uniqueName = cleanedName;
+                     let counter = 1;
+                     while(seenNames.has(uniqueName)) {
+                         uniqueName = `${cleanedName}_${counter}`;
+                         counter++;
+                     }
+                     columnNamesFromExcel.push(uniqueName);
+                     seenNames.add(uniqueName);
+                 });
+            } else {
+                 console.warn("No header row found in the Excel file.");
+                 const numCols = dataRows[0] ? dataRows[0].length : 0;
+                 for(let i = 0; i < numCols; i++) {
+                      columnNamesFromExcel.push(`Column${i+1}`);
+                 }
+            }
+
+            // Map data rows to objects using the cleaned header names as keys, applying optimization
+            tableData = dataRows.map(row => {
+                 const rowObject = {};
+                 columnNamesFromExcel.forEach((colName, index) => {
+                      rowObject[colName] = row[index]; // Store raw value first
+                 });
+                 return optimizeRow(rowObject);
+            });
+
+            // Initialize data filters (column visibility filter is not needed in Chart View)
+            // Initialize with all columns from the excel file to potentially filter by them
+            initializeFilters(tableData, columnNamesFromExcel);
+
+ // Show the chart container
+        document.getElementById('chartContainer').style.display = 'flex';
+
+            // Initialize applied data filters to empty
+            currentAppliedDataFilters = {};
+            dataFilterableColumnNames.forEach(col => {
+                 // Ensure the filterable column exists in the excel file's columns (case-insensitive)
+                 if (columnNamesFromExcel.some(name => name.toLowerCase() === col.toLowerCase())) {
+                      currentAppliedDataFilters[col] = [];
+                 }
+             });
+
+            // Reset chart filters on new file load
+            currentChartFilters = {};
+            $('#clearChartFiltersButton').hide(); // Hide the clear button
+
+          
+                // Directly apply filters and show chart elements
+                  applyFilters();
+                $('#filtersContainer').css('display', 'flex');
+    $('#chartContainer').css('display', 'flex'); // Ensure chart container is visible
+    // Any other chart-specific elements you might have should also be shown here
+
+    // Table-specific control visibility logic removed
+};
+
+        reader.readAsArrayBuffer(file);
+    }
+
+    // Function to initialize filter dropdowns (only data filters for Chart View)
+    function initializeFilters(data, allColumnNames) { // Accept all column names
+        const filtersContainer = document.getElementById('filtersContainer');
+        filtersContainer.innerHTML = ''; // Clear previous filters
+
+        // Column Visibility Filter is removed in Chart View code
+        // --- Create Column Visibility Filter ---
+        // ... (html for visibility filter) ...
+        // filtersContainer.innerHTML += columnVisibilityDropdownHtml;
+
+
+        // --- Create Data Filters ---
+        dataFilterableColumnNames.forEach(columnName => {
+            // Check if this filterable column exists in the actual Excel columns (case-insensitive match)
+             if (allColumnNames.some(name => name.toLowerCase() === columnName.toLowerCase())) {
+                // Get unique values from the loaded data for this specific column name
+                const exactColumnName = allColumnNames.find(name => name.toLowerCase() === columnName.toLowerCase());
+                let uniqueValues = [...new Set(data.map(row => row[exactColumnName] !== undefined && row[exactColumnName] !== null ? String(row[exactColumnName]) : '').filter(value => value !== ''))];
+
+                 // --- Custom Sorting for Month Columns ---
+                 if (columnName.toLowerCase() === 'month') { // Check against the processed column name list
+                     uniqueValues.sort((a, b) => {
+                          const numA = parseInt(a);
+                          const numB = parseInt(b);
+                          if (isNaN(numA) && isNaN(numB)) return 0;
+                          if (isNaN(numA)) return 1;
+                          if (isNaN(numB)) return -1;
+                          return numA - numB;
+                     });
+                 } else {
+                     // Default to alphabetical sort for other columns
+                     uniqueValues.sort();
+                 }
+                 // --- End Custom Sorting ---
+
+
+                if (uniqueValues.length > 0) {
+                    const filterDropdownHtml = `
+                         <div class="filter-dropdown" data-column="${columnName}" data-filter-type="data">
+                             <button class="dropdown-button">${columnName} <span class="filter-arrow">&#9662;</span></button>
+                             <div class="dropdown-content">
+                                 <div class="search-container">
+                                     <input type="text" class="filter-search" placeholder="Search...">
+                                    </div>
+                                     <label class="select-all">
+                                         <input type="checkbox" class="select-all-checkbox"> Select All
+                                     </label>
+                                     <div class="filter-options">
+                                         ${uniqueValues.map(value => `
+                                             <label>
+                                                  <input type="checkbox" class="filter-checkbox" value="${value}"> ${value}
+                                             </label>
+                                         `).join('')}
+                                     </div>
+                                 </div>
+                             </div>
+                         </div>
+                     `;
+                    filtersContainer.innerHTML += filterDropdownHtml;
+                }
+             }
+        });
+
+        // Add event listeners to the newly created filter elements
+        addFilterEventListeners();
+    }
+
+    // Function to add event listeners to filter dropdowns
+    function addFilterEventListeners() {
+        document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
+            const button = dropdown.querySelector('.dropdown-button');
+            const content = dropdown.querySelector('.dropdown-content');
+            const searchInput = dropdown.querySelector('.filter-search') || dropdown.querySelector('.column-search'); // Get search input for either type
+            const selectAllCheckbox = dropdown.querySelector('.select-all-checkbox') || dropdown.querySelector('.select-all-columns-checkbox'); // Get select all for either type
+            const optionsContainer = dropdown.querySelector('.filter-options'); // Checkboxes container
+
+            const filterType = dropdown.getAttribute('data-filter-type');
+            const columnName = dropdown.getAttribute('data-column'); // For data filters
+
+
+            // Toggle dropdown visibility
+            button.addEventListener('click', (event) => {
+                event.stopPropagation(); // Prevent window click from closing immediately
+                // Close other open dropdowns
+                document.querySelectorAll('.dropdown-content').forEach(openContent => {
+                    if (openContent !== content) {
+                        openContent.style.display = 'none';
+                    }
+                });
+                // Toggle current dropdown
+                content.style.display = content.style.display === 'block' ? 'none' : 'block';
+
+                // When opening, ensure checkboxes reflect current state (applied data filters)
+                 if (content.style.display === 'block' && filterType === 'data') {
+                     let currentStateValues = currentAppliedDataFilters[columnName] || [];
+                     optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                          checkbox.checked = currentStateValues.some(val => val.toLowerCase() === checkbox.value.toLowerCase()); // Case-insensitive check
+                     });
+                     // Update select all checkbox state on opening
+                     updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+                 }
+                 // Column visibility filter logic removed
+            });
+
+            // Prevent clicks inside the dropdown content from closing it
+             content.addEventListener('click', (event) => {
+                 event.stopPropagation();
+             });
+
+            // Search functionality
+            if (searchInput) { // Ensure search input exists
+                 searchInput.addEventListener('input', () => {
+                     const searchTerm = searchInput.value.toLowerCase();
+                     optionsContainer.querySelectorAll('label').forEach(label => {
+                          const text = label.textContent.toLowerCase();
+                          label.style.display = text.includes(searchTerm) ? 'block' : 'none';
+                     });
+                     // After filtering search results, update the "Select All" checkbox state
+                     updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+                 });
+            }
+
+
+            // Select/Unselect All functionality
+             if (selectAllCheckbox) { // Ensure select all checkbox exists
+                 selectAllCheckbox.addEventListener('change', (event) => {
+                      optionsContainer.querySelectorAll('label').forEach(label => {
+                           if(label.style.display !== 'none') {
+                              label.querySelector('input[type="checkbox"]').checked = event.target.checked;
+                           }
+                      });
+                      // Update the state of the Select All checkbox itself (handles indeterminate)
+                      updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+                      // Call applyFilters whenever selection changes in Chart View
+                      applyFilters();
+                 });
+             }
+
+
+             // Individual checkbox change listener
+             optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => { // Iterate over each checkbox
+                 checkbox.addEventListener('change', () => {
+                      updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+                      // Call applyFilters whenever selection changes in Chart View
+                      applyFilters();
+                 });
+             });
+        });
+
+        // Close dropdowns when clicking outside the dropdown container
+         window.addEventListener('click', (event) => {
+             document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
+                 const content = dropdown.querySelector('.dropdown-content');
+                 if (!dropdown.contains(event.target)) {
+                     content.style.display = 'none';
+                      // When closing by clicking outside, reset checkboxes in open dropdowns
+                      // to the currently applied filter state before closing.
+                      const filterType = dropdown.getAttribute('data-filter-type');
+                      if (filterType === 'data') {
+                           const columnName = dropdown.getAttribute('data-column');
+                           const optionsContainer = dropdown.querySelector('.filter-options');
+                           const selectAllCheckbox = dropdown.querySelector('.select-all-checkbox');
+                           let currentStateValues = currentAppliedDataFilters[columnName] || [];
+                           optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                                checkbox.checked = currentStateValues.some(val => val.toLowerCase() === checkbox.value.toLowerCase()); // Case-insensitive check
+                           });
+                           updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+                      }
+                      // Column visibility filter logic removed
+                 }
+             });
+         });
+    }
+
+    // Helper to update the state of the "Select All" checkbox (Handles indeterminate state)
+    function updateSelectAllCheckbox(optionsContainer, selectAllCheckbox) {
+        if (!selectAllCheckbox) return;
+
+        const visibleCheckboxes = Array.from(optionsContainer.querySelectorAll('label'))
+                                           .filter(label => label.style.display !== 'none')
+                                           .map(label => label.querySelector('input[type="checkbox"]'));
+
+        const checkedVisibleCheckboxes = visibleCheckboxes.filter(cb => cb.checked);
+
+         if (visibleCheckboxes.length === 0) {
+              selectAllCheckbox.checked = false;
+              selectAllCheckbox.indeterminate = false;
+         } else if (checkedVisibleCheckboxes.length === visibleCheckboxes.length) {
+              selectAllCheckbox.checked = true;
+              selectAllCheckbox.indeterminate = false;
+         } else if (checkedVisibleCheckboxes.length > 0) {
+              selectAllCheckbox.checked = false;
+              selectAllCheckbox.indeterminate = true;
+         }
+          else { // No visible checkboxes are checked
+              selectAllCheckbox.checked = false;
+              selectAllCheckbox.indeterminate = false;
+          }
+    }
+
+// Function to apply filters based on current selections in all dropdowns (Modified for Chart View)
+    function applyFilters() {
+        // --- Collect Data Filter Selections from Dropdowns ---
+        dataFilterableColumnNames.forEach(columnName => {
+            const dropdown = document.querySelector(`.filter-dropdown[data-column="${columnName}"][data-filter-type="data"]`);
+            if (dropdown) {
+                 const selectedValues = [];
+                 dropdown.querySelectorAll('.filter-options .filter-checkbox:checked').forEach(checkbox => {
+                      selectedValues.push(checkbox.value);
+                 });
+                 currentAppliedDataFilters[columnName] = selectedValues; // Update the globally applied data filters
+            } else {
+                 currentAppliedDataFilters[columnName] = [];
+            }
+        });
+
+        // Column Visibility selections are ignored in Chart View
+
+        // --- Filter Data using currentAppliedDataFilters ---
+        let filteredDataForCharts = tableData; // Start with all loaded data
+
+        Object.keys(currentAppliedDataFilters).forEach(columnName => {
+            const selectedValues = currentAppliedDataFilters[columnName];
+            if (selectedValues && selectedValues.length > 0) {
+                filteredDataForCharts = filteredDataForCharts.filter(row => {
+                     const rowKey = Object.keys(row).find(key => key.toLowerCase() === columnName.toLowerCase());
+                     if (rowKey) {
+                           const rowValue = row[rowKey] !== undefined && row[rowKey] !== null ? String(row[rowKey]) : '';
+                           return selectedValues.includes(rowValue);
+                     }
+                     return false;
+                 });
+            }
+        });
+
+
+
+         console.log("Filtered data before generateCharts:", filteredDataForCharts); // Keep this log
+
+    // --- Modified Part: Destroy and then Re-generate with a Delay ---
+    charts.forEach(c => c.destroy());
+    charts = [];
+    setTimeout(() => {
+        generateCharts(filteredDataForCharts);
+    }, 100);
+}
+
+    // Function to update the visual state of filter dropdowns to match currentAppliedDataFilters
+    function updateFilterDropdownsVisuals() {
+        // Update Data Filter dropdowns
+        document.querySelectorAll('.filter-dropdown[data-filter-type="data"]').forEach(dropdown => {
+            const columnName = dropdown.getAttribute('data-column');
+            const selectedValues = currentAppliedDataFilters[columnName] || [];
+            const optionsContainer = dropdown.querySelector('.filter-options');
+            const selectAllCheckbox = dropdown.querySelector('.select-all-checkbox');
+
+            optionsContainer.querySelectorAll('.filter-checkbox').forEach(checkbox => {
+                checkbox.checked = selectedValues.some(val => val.toLowerCase() === checkbox.value.toLowerCase()); // Case-insensitive check
+            });
+            updateSelectAllCheckbox(optionsContainer, selectAllCheckbox); // Update select all state
+        });
+
+        // Column Visibility dropdown update logic removed
+    }
+
+// Table-specific functions like displayTable, addSortEventListeners, column width/alignment/reorder functions, layout functions, downloadExcel, downloadPdf are removed in Chart View code.
+
+
+// Function to generate charts using the loaded data (Modified for Chart View)
+    // This function now accepts data that has already been filtered by the dropdowns.
+   function generateCharts(dataForCharts) {
+ console.log("generateCharts function called"); // Add this line to confirm it's running
+    console.log("Generating charts with:", dataForCharts); // Add this line to inspect the data being used
+    charts.forEach(c => {
+        if (c && c.canvas) {
+            // Try removing all listeners of type 'click'
+            c.canvas.removeEventListener('click', c._eventHandler); // Assuming _eventHandler is Chart.js's internal handler - might need adjustment
+            // Or try removing all listeners
+            // Object.keys(c.attachedEvents).forEach(type => {
+            //     c.canvas.removeEventListener(type, c.attachedEvents[type]);
+            // });
+        }
+        c.destroy();
+    });
+    charts = [];
+    Chart.register(ChartDataLabels); // Re-register plugins
+
+        // If no data is loaded or filtered, clear chart container and return
+        if (!Array.isArray(dataForCharts) || dataForCharts.length === 0) {
+            $('#chartContainer').html("<p>No data available to display charts. Please upload a file and/or adjust filters.</p>");
+             $('#clearChartFiltersButton').hide(); // Hide the clear button if no data
+            return;
+        } else {
+             // Ensure the chart container is ready if hidden (handled by view selector now)
+             // Ensure canvas elements exist - this was in the initial HTML, so they should be there.
+             // If they were dynamically removed, you might need to recreate them here or ensure they aren't removed elsewhere.
+             // Assuming they persist in the HTML structure.
+             if ($('#chartContainer canvas').length === 0) {
+                 console.error("Chart canvas elements not found in the container. Please ensure the HTML structure is correct.");
+                 $('#chartContainer').html("<p>Error: Chart canvas elements not found.</p>");
+                 return;
+             }
+        }
+
+        // --- Apply Chart Interaction Filters ---
+        // This filter is applied *after* the dropdown filters have been applied
+        let finalChartData = dataForCharts;
+
+        Object.keys(currentChartFilters).forEach(columnName => {
+            const selectedValues = currentChartFilters[columnName];
+            if (selectedValues && selectedValues.length > 0) {
+                 const filterColumnKey = Object.keys(finalChartData[0] || {}).find(key => key.toLowerCase() === columnName.toLowerCase());
+
+                 if (filterColumnKey) {
+                      finalChartData = finalChartData.filter(row => {
+                           const rowValue = row[filterColumnKey] !== undefined && row[filterColumnKey] !== null ? String(row[filterColumnKey]) : '';
+
+                           // Special handling for date-based filters like 'Month wise'
+                           if (columnName.toLowerCase() === 'billing date') { // Check against the actual column name
+                                // Map the selected month name back to the month number for filtering
+                                const selectedMonthNumbers = selectedValues.map(monthName => {
+                                     const monthIndex = new Date(Date.parse(monthName + " 1, 2000")).getMonth(); // Get 0-indexed month
+                                     return (monthIndex + 1).toString().padStart(2, '0'); // Convert to 1-indexed string '01', '02', etc.
+                                });
+                                const rowMonth = rowValue.split('-')[1]; // Assuming dd-mm-yy format
+                                return selectedMonthNumbers.includes(rowMonth);
+                           }
+                           // Special handling for 'Customer Type' (Export/Domestic)
+                            else if (columnName.toLowerCase() === 'sales document') { // Check against the actual column name
+                                 const doc = rowValue || '';
+                                 return selectedValues.some(filterValue => {
+                                     if (filterValue === 'Export') return doc[2]==='2' && doc[3]==='0';
+                                     if (filterValue === 'Domestic') return doc[2]==='1' && doc[3]==='0';
+                                     return false;
+                                 });
+                            }
+                            // Special handling for Unit Chart (Plant)
+                            else if (columnName.toLowerCase() === 'plant') {
+                                 return selectedValues.some(filterValue => {
+                                     const unitDigit = filterValue.replace('U', '');
+                                     const plantLastDigit = String(rowValue).slice(-1);
+                                     return unitDigit === plantLastDigit;
+                                 });
+                            }
+                             // Special handling for SMPL Blend Chart
+                             else if (columnName.toLowerCase() === 'smpl count') { // Filter using the column mapped to the Blend chart label
+                                  const smplCountKey = Object.keys(row || {}).find(key => key.toLowerCase() === 'smpl count');
+                                  const blendColumnKey = Object.keys(row || {}).find(key => key.toLowerCase() === 'blend'); // Key for the 'Blend' column generated by optimizeRow
+
+                                  if (smplCountKey && blendColumnKey) {
+                                      const rowBlendLabel = `${row[smplCountKey]} (${row[blendColumnKey]})`;
+                                      return selectedValues.includes(rowBlendLabel);
+                                  }
+                                  return false;
+                              }
+                            // Default filtering for all other columns
+                            else {
+                                return selectedValues.includes(rowValue);
+                            }
+                      });
+                 } else {
+                      console.warn(`Chart filter column '${columnName}' not found in data when applying interactive filter. Skipping filter.`);
+                 }
+            }
+        });
+        // --- End Apply Chart Interaction Filters ---
+
+
+        // Filter out rows containing '#' in 'Plant' and also 'U#' entries before charting certain data
+        // This filter is now applied *after* both dropdown and chart interaction filters, but only for specific charts
+        const chartDataForSpecificCharts = finalChartData.filter(row => row !== null && !(/U#/.test(row['Plant']) || row['Plant']?.includes('#')));
+
+
+        // Prepare and render the charts
+
+        // Month Chart
+        const ctxMonth = document.getElementById('monthChart').getContext('2d');
+        const monthData = {};
+         const billingDateKey = Object.keys(finalChartData[0] || {}).find(key => key.toLowerCase() === 'billing date'); // Use finalChartData
+         const invoicedQtyKey = Object.keys(finalChartData[0] || {}).find(key => key.toLowerCase() === 'invoiced quantity'); // Use finalChartData
+
+         if(billingDateKey && invoicedQtyKey) {
+             finalChartData.forEach(r => { // Use finalChartData
+                 const dateValue = r[billingDateKey];
+                 if(dateValue && typeof dateValue === 'string') {
+                     const parts = dateValue.split('-');
+                     if(parts.length === 3) {
+                         const month = parts[1];
+                         const fullYear = parseInt(parts[2], 10) + 2000;
+                         const monthName = new Date(fullYear, parseInt(month, 10) - 1).toLocaleString('default', {month: 'short'});
+                         monthData[monthName] = (monthData[monthName] || 0) + (parseFloat(r[invoicedQtyKey])/1000 || 0);
+                     } else {
+                          console.warn(`Skipping row due to unexpected date format in '${billingDateKey}': ${dateValue}`);
+                     }
+                 }
+             });
+
+             charts.push(new Chart(ctxMonth, {
+                 type: 'bar',
+                 data: {labels: Object.keys(monthData), datasets: [{label:'Month wise', data:Object.values(monthData), backgroundColor:'steelblue'}]},
+                 options: { 
+ plugins: {
+        datalabels: {
+          anchor: 'end',
+          align: 'top',
+          formatter: Math.round,
+          font: {
+            weight: 'bold'
+          }
+        },
+        legend: {
+          display: true
+        },
+        tooltip: {
+          enabled: true
+        }
+      },
+// Add options for interactivity
+                      onClick: handleChartClick,
+                      scales: { // Adjust scales for better display if needed
+                          y: {
+                              beginAtZero: true
+                          }
+                      }
+                 }
+             }));
+         } else {
+              console.warn(`Skipping Month Chart: Could not find '${billingDateKey}' or '${invoicedQtyKey}' column in filtered data.`);
+         }
+
+
+        // Unit Chart
+        const ctxUnit = document.getElementById('unitChart').getContext('2d');
+        const unitData = {};
+         const plantKey = Object.keys(chartDataForSpecificCharts[0] || {}).find(key => key.toLowerCase() === 'plant'); // Use chartDataForSpecificCharts
+         // invoicedQtyKey is already found from finalChartData
+
+
+         if(plantKey && invoicedQtyKey) {
+             chartDataForSpecificCharts.forEach(r => { // Use chartDataForSpecificCharts
+                 if (r[plantKey]) {
+                     const plantNumber = r[plantKey].toString();
+                     const lastDigit = plantNumber.slice(-1);
+                     const unit = 'U' + lastDigit;
+                     unitData[unit] = (unitData[unit] || 0) + (parseFloat(r[invoicedQtyKey]) / 1000 || 0);
+                 }
+             });
+
+             const sortedLabels = Object.keys(unitData).sort((a, b) => {
+                 const numA = parseInt(a.slice(1), 10);
+                 const numB = parseInt(b.slice(1), 10);
+                 return numA - numB;
+             });
+
+             const sortedUnitData = sortedLabels.map(label => unitData[label]);
+
+             charts.push(new Chart(ctxUnit, {
+                 type: 'bar',
+                 data: {
+                     labels: sortedLabels,
+                     datasets: [{
+                         label: 'Unit wise',
+                         data: sortedUnitData,
+                         backgroundColor: 'teal'
+                     }]
+                 },
+                  options: { 
+plugins: {
+        datalabels: {
+          anchor: 'end',
+          align: 'top',
+          formatter: Math.round,
+          font: {
+            weight: 'bold'
+          }
+        },
+        legend: {
+          display: true
+        },
+        tooltip: {
+          enabled: true
+        }
+      },
+// Add options for interactivity
+                       onClick: (event, elements, chart) => {
+            if (elements.length > 0) {
+                handleChartClick(event, elements, chart);
+            } else {
+                console.warn('No chart element clicked.');
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+}));
+         } else {
+              console.warn(`Skipping Unit Chart: Could not find '${plantKey}' or '${invoicedQtyKey}' column in data for specific charts.`);
+         }
+
+
+        // Export/Domestic Chart (Bar Chart)
+        const ctxPie = document.getElementById('exportPie').getContext('2d');
+        const exportDomestic = {Export:0, Domestic:0};
+         const salesDocumentKey = Object.keys(finalChartData[0] || {}).find(key => key.toLowerCase() === 'sales document'); // Use finalChartData
+
+         if (salesDocumentKey && invoicedQtyKey) {
+             finalChartData.forEach(r => { // Use finalChartData
+                 const doc = r[salesDocumentKey] || '';
+                 if(doc[2]==='2' && doc[3]==='0') exportDomestic.Export += parseFloat(r[invoicedQtyKey])/1000 || 0;
+                 else if(doc[2]==='1' && doc[3]==='0') exportDomestic.Domestic += parseFloat(r[invoicedQtyKey])/1000 || 0;
+             });
+
+             charts.push(new Chart(ctxPie, {
+                 type: 'bar', // Changed to bar chart as per your original code
+                 data: {labels: ['Export', 'Domestic'], datasets: [{label:'Customer Type', data: Object.values(exportDomestic), backgroundColor:['blue','green']}]},
+                  options: { 
+plugins: {
+        datalabels: {
+          anchor: 'end',
+          align: 'top',
+          formatter: Math.round,
+          font: {
+            weight: 'bold'
+          }
+        },
+        legend: {
+          display: true
+        },
+        tooltip: {
+          enabled: true
+        }
+      },
+// Add options for interactivity
+                       onClick: handleChartClick,
+                       scales: {
+                           y: {
+                               beginAtZero: true
+                           }
+                       }
+                  }
+             }));
+         } else {
+              console.warn(`Skipping Export/Domestic Chart: Could not find '${salesDocumentKey}' or '${invoicedQtyKey}' column in filtered data.`);
+         }
+
+
+        // SMPL Blend Chart
+        const ctxBlend = document.getElementById('smplBlendChart').getContext('2d');
+        const blendData = {};
+         const smplCountKey = Object.keys(finalChartData[0] || {}).find(key => key.toLowerCase() === 'smpl count'); // Use finalChartData
+         const blendColumnKey = Object.keys(finalChartData[0] || {}).find(key => key.toLowerCase() === 'blend'); // Key for the 'Blend' column generated by optimizeRow
+
+
+         if(smplCountKey && blendColumnKey && invoicedQtyKey) {
+              // Step 1: Aggregate the data for SMPL Count and Blend
+              finalChartData.forEach(r => { // Use finalChartData
+                  if (r[smplCountKey] && r[blendColumnKey]) { // Use the correct keys
+                       let label = `${r[smplCountKey]} (${r[blendColumnKey]})`;
+                       // Step 2: Check if 'SMPL Count' is 'PC' or not, keep it as is if it doesn't include 'PC'
+                       // This logic seems intended for display, but the label format is consistent
+                       // if (!r[smplCountKey].includes("PC")) {
+                       //      label = `${r[smplCountKey]} (${r[blendColumnKey]})`;  // Keep it as it is
+                       // }
+                       blendData[label] = (blendData[label] || 0) + (parseFloat(r[invoicedQtyKey]) / 1000 || 0);
+                  }
+              });
+
+              // Step 2: Sort the data in descending order by the value and take top 10
+              const sortedBlendData = Object.entries(blendData)
+                  .sort((a, b) => b[1] - a[1])
+                  .slice(0, 10);
+
+              // Step 3: Prepare the data for the chart
+              const topLabels = sortedBlendData.map(item => item[0]);
+              const topValues = sortedBlendData.map(item => item[1]);
+
+              // Step 4: Create the chart
+              charts.push(new Chart(ctxBlend, {
+                  type: 'bar',
+                  data: {
+                      labels: topLabels,
+                      datasets: [{
+                          label: 'Invoiced Qty (MT)',
+                          data: topValues,
+                          backgroundColor: 'purple'
+                      }]
+                  },
+                   options: { 
+ plugins: {
+        datalabels: {
+          anchor: 'end',
+          align: 'top',
+          formatter: Math.round,
+          font: {
+            weight: 'bold'
+          }
+        },
+        legend: {
+          display: true
+        },
+        tooltip: {
+          enabled: true
+        }
+      },
+// Add options for interactivity
+                        onClick: handleChartClick,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                   }
+               }));
+          } else {
+               console.warn(`Skipping Blend Chart: Could not find '${smplCountKey}', '${blendColumnKey}', or '${invoicedQtyKey}' column in filtered data.`);
+          }
+
+
+ // Customer-wise chart - Top 10 Customers
+    const ctxCustomer = document.getElementById('customerChart').getContext('2d');
+const customerData = {};
+const originalToShortNameMap = {}; // Declare and initialize the map here
+const customerNameKey = Object.keys(chartDataForSpecificCharts[0] || {}).find(key => key.toLowerCase() === 'customer_name');
+
+if (customerNameKey && invoicedQtyKey) {
+    chartDataForSpecificCharts.forEach(r => {
+        const customer = r[customerNameKey];
+        if (customer) {
+            // Shorten the customer name to a maximum of 10 characters
+            const shortName = customer.length > 10 ? customer.substring(0, 10) + '...' : customer;
+            originalToShortNameMap[shortName] = customer; // Map short name to original name
+            customerData[shortName] = (customerData[shortName] || 0) + (parseFloat(r[invoicedQtyKey]) / 1000 || 0);
+        }
+    });
+             const sortedCustomerData = Object.entries(customerData)
+        .sort(([, valueA], [, valueB]) => valueB - valueA)
+        .slice(0, 10);
+
+    const top10CustomerLabels = sortedCustomerData.map(entry => entry[0]);
+    const top10CustomerData = sortedCustomerData.map(entry => entry[1]);
+
+    charts.push(new Chart(ctxCustomer, {
+        type: 'bar',
+        data: {
+            labels: top10CustomerLabels,
+            datasets: [{
+                label: 'Top 10 Customers',
+                data: top10CustomerData,
+                backgroundColor: 'blue'
+            }]
+        },
+        options: {
+            plugins: {
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    formatter: Math.round,
+                    font: {
+                        weight: 'bold'
+                    }
+                },
+                legend: {
+                    display: true
+                },
+                tooltip: {
+                    enabled: true
+                }
+            },
+            onClick: (event, elements, chart) => {
+                if (elements.length > 0) {
+                    const clickedElement = elements[0];
+                    const index = clickedElement.index;
+                    const shortName = chart.data.labels[index];
+                    const originalName = originalToShortNameMap[shortName]; // Get the original name
+                    handleChartClick(event, elements, chart, originalName); // Pass the original name
+                } else {
+                    console.warn('No chart element clicked.');
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    }));
+} else {
+    console.warn(`Skipping Customer Chart: Could not find '${customerNameKey}' or '${invoicedQtyKey}' column in data.`);
+}
+
+// Market chart - Top 10 Market
+        const ctxMarket = document.getElementById('marketChart').getContext('2d');
+        const marketData = {};
+         const marketNameKey = Object.keys(chartDataForSpecificCharts[0] || {}).find(key => key.toLowerCase() === 'market'); // Use chartDataForSpecificCharts
+         // plantKey and invoicedQtyKey already found
+
+
+         if (marketNameKey && plantKey && invoicedQtyKey) {
+              chartDataForSpecificCharts.forEach(r => { // Use chartDataForSpecificCharts to exclude '#' plants
+                  const market = r[marketNameKey];
+                  marketData[market] = (marketData[market] || 0) + (parseFloat(r[invoicedQtyKey]) / 1000 || 0);
+              });
+
+              const sortedMarketData = Object.entries(marketData)
+                  .sort(([, valueA], [, valueB]) => valueB - valueA)
+                  .slice(0, 10);
+
+              const top10MarketLabels = sortedMarketData.map(entry => entry[0]);
+              const top10MarketData = sortedMarketData.map(entry => entry[1]);
+
+               charts.push(new Chart(ctxMarket, {
+                   type: 'bar',
+                   data: {
+                       labels: top10MarketLabels,
+                       datasets: [{
+                           label: 'Top 10 Markets',
+                           data: top10MarketData,
+                           backgroundColor: 'orange'
+                       }]
+                   },
+                    options: { plugins: {
+        datalabels: {
+          anchor: 'end',
+          align: 'top',
+          formatter: Math.round,
+          font: {
+            weight: 'bold'
+          }
+        },
+        legend: {
+          display: true
+        },
+        tooltip: {
+          enabled: true
+        }
+      },
+
+// Add options for interactivity
+                          onClick: function(event, elements) {
+    handleChartClick(event, elements, this); 
+},
+
+                         scales: {
+                             y: {
+                                 beginAtZero: true
+                             }
+                         }
+                    }
+                }));
+
+           } else {
+               console.warn(`Skipping Market Chart: Could not find '${marketNameKey}', '${plantKey}', or '${invoicedQtyKey}' column in data for specific charts.`);
+           }
+
+
+     
+
+
+        // Add a "Clear Chart Filters" button if it doesn't exist
+         if ($('#clearChartFiltersButton').length === 0) {
+             $('#chartContainer').before('<button id="clearChartFiltersButton" style="margin-bottom: 10px; background: #dc3545; color: white; padding: 8px 12px; float: right; border: none; cursor: pointer;">Clear Chart Filters</button>');
+             $('#clearChartFiltersButton').on('click', clearChartFilters);
+         }
+         // Show/hide the clear button based on if filters are active
+         if (Object.keys(currentChartFilters).length > 0) {
+             $('#clearChartFiltersButton').show();
+         } else {
+             $('#clearChartFiltersButton').hide();
+         }
+    }
+
+// --- Chart Interactivity Functions ---
+
+    // Function to handle clicks on chart elements (Corrected Logic)
+    function handleChartClick(event, elements, chart, originalName = null) {
+    if (elements.length === 0) {
+        console.warn('No elements clicked.');
+        return;
+    }
+
+    const clickedElement = elements[0];
+    const datasetIndex = clickedElement.datasetIndex;
+    const index = clickedElement.index;
+
+    if (!chart || !chart.data || !chart.data.labels || !chart.data.datasets) {
+        console.error('Chart data is undefined or invalid.');
+        return;
+    }
+
+    const label = originalName || chart.data.labels[index]; // Use original name if provided
+    const chartLabel = chart.data.datasets[datasetIndex].label;
+    const columnName = chartColumnMapping[chartLabel];
+
+    if (columnName) {
+        if (!currentChartFilters[columnName]) {
+            currentChartFilters[columnName] = [];
+        }
+        const valueIndex = currentChartFilters[columnName].indexOf(label);
+        if (valueIndex > -1) {
+            currentChartFilters[columnName].splice(valueIndex, 1);
+            if (currentChartFilters[columnName].length === 0) {
+                delete currentChartFilters[columnName];
+            }
+        } else {
+            currentChartFilters[columnName].push(label);
+        }
+
+        console.log(`Chart clicked: Updated interactive filter for column ${columnName} (from chart ${chartLabel}). Current filter values: ${JSON.stringify(currentChartFilters[columnName])}`);
+        applyFilters();
+        $('#clearChartFiltersButton').show();
+    } else {
+        console.warn(`No column mapping found for chart label: ${chartLabel}`);
+    }
+}
+
+ function clearChartFilters() {
+    console.log("clearChartFilters function called");
+    console.log("Value of tableData:", tableData);
+    currentChartFilters = {}; // Reset the chart filters
+    generateCharts(tableData); // Re-render all charts with the original data
+    $('#clearChartFiltersButton').hide();
+}
+
+function toggleFullscreen(chartId) {
+    const chartBox = document.getElementById(chartId).parentElement;
+    const canvas = document.getElementById(chartId);
+
+    if (!chartBox.classList.contains('fullscreen-chart')) {
+        // Expand the chart to full width
+        chartBox.classList.add('fullscreen-chart');
+        chartBox.style.width = '100vw'; // Full width of the viewport
+        chartBox.style.height = '100vh'; // Full height of the viewport
+        chartBox.style.position = 'fixed';
+        chartBox.style.top = '0';
+        chartBox.style.left = '0';
+        chartBox.style.background = 'white';
+        chartBox.style.zIndex = '9999';
+        chartBox.style.padding = '20px';
+
+        // Resize the canvas to fit the new dimensions
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+
+        // Add exit button
+        const exitButton = document.createElement('button');
+        exitButton.textContent = 'Exit Fullscreen';
+        exitButton.classList.add('fullscreen-exit');
+        exitButton.style.position = 'absolute';
+        exitButton.style.top = '10px';
+        exitButton.style.right = '10px';
+        exitButton.style.background = '#dc3545';
+        exitButton.style.color = 'white';
+        exitButton.style.border = 'none';
+        exitButton.style.padding = '5px 10px';
+        exitButton.style.cursor = 'pointer';
+        exitButton.onclick = () => toggleFullscreen(chartId);
+        chartBox.appendChild(exitButton);
+    } else {
+        // Exit fullscreen
+        chartBox.classList.remove('fullscreen-chart');
+        chartBox.style.width = ''; // Revert to original width
+        chartBox.style.height = ''; // Revert to original height
+        chartBox.style.position = '';
+        chartBox.style.top = '';
+        chartBox.style.left = '';
+        chartBox.style.background = '';
+        chartBox.style.zIndex = '';
+        chartBox.style.padding = '';
+
+        // Reset canvas size
+        canvas.style.width = '';
+        canvas.style.height = '';
+
+        // Remove the exit button
+        const exitButton = chartBox.querySelector('.fullscreen-exit');
+        if (exitButton) chartBox.removeChild(exitButton);
+    }
+}
+
+    // downloadChart function (Keep this as is)
+    function downloadChart(chartId){
+         const canvas = document.getElementById(chartId);
+         if (canvas) {
+             const link = document.createElement('a');
+             link.download = chartId + ".png";
+             link.href = canvas.toDataURL('image/png');
+             document.body.appendChild(link);
+             link.click();
+             document.body.removeChild(link);
+         } else {
+             console.error(`Chart canvas with ID ${chartId} not found.`);
+         }
+    }
+
+</script>
+
+</body>
+</html>
