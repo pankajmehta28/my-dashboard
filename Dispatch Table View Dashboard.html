@@ -1,0 +1,1820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sagar Manufacturers Dashboard</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.14/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <style>
+        /* Basic body styling */
+       body {
+            font-family: sans-serif;
+            margin: 0; /* Remove default body margin */
+            padding: 0; /* Add padding to body */
+            background-color: #FFFFFF; /* Light gray background */
+            width: 100%; /* Ensure body spans the entire width */
+        }
+
+        .container {
+            width: 100vw; /* Full width of the viewport */
+            margin: 0 auto; /* Center the container */
+            background-color: #fff; /* White background for container */
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            border-radius: 8px;
+        }
+
+        /* Dashboard Header (Logo and Company Name) */
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .dashboard-header img {
+            height: 60px;
+            width: auto;
+            margin-right: 15px;
+        }
+
+        .company-name {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #000080; /* Dark blue */
+            margin: 0;
+        }
+
+        /* Dashboard Title */
+        .dashboard-title {
+            font-size: 1.5em;
+            margin-top: 15px;
+            margin-bottom: 20px;
+            color: #555;
+            text-align: center;
+        }
+
+        /* Controls Container (Flexbox for layout) */
+        #controls {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px; /* Space between control groups */
+            flex-wrap: wrap; /* Allow controls to wrap on smaller screens */
+        }
+
+        /* Group for Load Data controls */
+        #loadDataContainer {
+             display: flex;
+             align-items: center;
+             gap: 10px;
+             border: 1px solid #ccc;
+             padding: 8px;
+             border-radius: 4px;
+             background-color: #f9f9f9;
+        }
+         #loadDataContainer label,
+         #loadDataContainer select,
+         #loadDataContainer button {
+              font-size: 14px;
+         }
+
+        /* Group for Layout, Width, Alignment Controls */
+       #layoutAndWidthControls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            flex-grow: 1; /* Allows this section to take up available space */
+       }
+
+        /* Styles for labels within control groups */
+       #layoutControlsContent > span:first-child,
+       #widthControlsContent > span:first-child,
+       #pdfRemarksInputContainer label,
+       #alignmentControlsContent > span:first-child {
+           font-weight: bold;
+           color: #0056b3; /* Dark blue */
+       }
+
+        /* Styling for individual control content spans */
+       #layoutControlsContent, #widthControlsContent, #alignmentControlsContent {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #ccc;
+            padding: 8px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        #layoutControlsContent input[type="text"],
+        #layoutControlsContent select,
+        #layoutControlsContent button,
+        #widthControlsContent select,
+        #widthControlsContent input[type="number"],
+        #widthControlsContent button,
+        #alignmentControlsContent select,
+        #alignmentControlsContent button {
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+        #layoutControlsContent button, #widthControlsContent button, #alignmentControlsContent button {
+            cursor: pointer;
+            background-color: #e0e0e0; /* Light gray */
+        }
+         #layoutControlsContent button:hover, #widthControlsContent button:hover, #alignmentControlsContent button:hover {
+              background-color: #d5d5d5; /* Slightly darker */
+           }
+        #widthControlsContent input[type="number"] {
+            width: 60px;
+        }
+
+        /* Styling for specific button containers */
+        #applyButtonContainer, #downloadButtons, #reorderControls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+         #applyButtonContainer button {
+              padding: 8px 15px;
+              background-color: #007bff; /* Blue */
+              color: white;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+              font-size: 14px;
+           }
+         #applyButtonContainer button:hover {
+            background-color: #0056b3;
+           }
+         #downloadButtons button {
+              padding: 8px 15px;
+              background-color: #28a745; /* Green */
+              color: white;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+              font-size: 14px;
+           }
+          #downloadButtons button.pdf {
+              background-color: #dc3545; /* Red */
+           }
+         #downloadButtons button:hover {
+              opacity: 0.9;
+           }
+        #reorderControls button {
+              padding: 8px 15px;
+              background-color: #ffc107; /* Yellow */
+              color: #333;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+              font-size: 14px;
+           }
+         #reorderControls button:hover {
+              background-color: #e0a800;
+           }
+
+        /* PDF Remarks Input */
+        #pdfRemarksInputContainer {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+        #pdfRemarksInputContainer label {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        #pdfRemarksInputContainer input[type="text"] {
+             flex-grow: 1;
+             padding: 5px;
+             border: 1px solid #ccc;
+             border-radius: 3px;
+             font-size: 14px;
+         }
+
+        /* Container for horizontal scrolling of the table */
+        #tableScrollContainer {
+    overflow-x: auto; /* Enable horizontal scrolling */
+    overflow-y: auto; /* Enable vertical scrolling */
+    max-height: 500px; /* Set a fixed height for the container */
+    border: 1px solid #ccc; /* Optional: Add a border for better visibility */
+    margin-top: 20px; /* Space above the table */
+    position: relative; /* Ensure proper positioning */
+}
+
+        /* Table styles */
+        table {
+            border-collapse: collapse;
+            font-size: 14px;
+            table-layout: fixed; /* Fixed layout for column widths */
+            border: 1px solid black;
+            min-width: 100%;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left; /* Default alignment */
+            vertical-align: top;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+         th {
+              background-color: #e0f7fa; /* Light blue */
+              font-weight: bold;
+              position: relative;
+              cursor: pointer;
+           }
+         th:hover {
+              background-color: #b2ebf2;
+           }
+         th .sort-arrow {
+              margin-left: 5px;
+              font-size: 10px;
+           }
+
+/* Make the table header sticky */
+table thead th {
+    position: sticky;
+    top: 0; /* Stick to the top of the container */
+    z-index: 2; /* Ensure it stays above the table rows */
+    background-color: #e0f7fa; /* Match the header background color */
+    border: 1px solid black; /* Match the border style */
+}
+
+        /* Filter dropdown container */
+        .filter-container {
+            margin-bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .filter-dropdown {
+            position: relative;
+            display: inline-block;
+            vertical-align: top;
+        }
+        .dropdown-button {
+            padding: 8px 12px;
+            cursor: pointer;
+            border: 1px solid #007bff;
+            background-color: #007bff;
+            color: white;
+            border-radius: 4px;
+            min-width: 120px;
+            text-align: left;
+            font-size: 14px;
+        }
+         .dropdown-button .filter-arrow {
+              float: right;
+              color: white;
+           }
+          .dropdown-button:hover {
+              background-color: #0056b3;
+              border-color: #0056b3;
+           }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            min-width: 220px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 10;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            top: 100%;
+            left: 0;
+        }
+         .dropdown-content .search-container {
+              margin-bottom: 8px;
+           }
+        .dropdown-content input[type="text"] {
+            width: calc(100% - 18px);
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-sizing: border-box;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .dropdown-content .select-all {
+            font-weight: bold;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+         .dropdown-content .select-all input[type="checkbox"] {
+              margin-right: 5px;
+           }
+        .dropdown-content .filter-options {
+            margin-bottom: 5px;
+        }
+        .dropdown-content label {
+            display: block;
+            margin-bottom: 4px;
+            cursor: pointer;
+            font-weight: normal;
+            font-size: 14px;
+        }
+         .dropdown-actions {
+              display: none;
+           }
+
+        /* Reorder Panel Styles */
+         #reorderPanel {
+              position: fixed;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              background-color: #fff;
+              padding: 20px;
+              border: 1px solid #ccc;
+              box-shadow: 0 0 10px rgba(0,0,0,0.5);
+              z-index: 100;
+              max-height: 80vh;
+              overflow-y: auto;
+              display: none; /* Initially hidden */
+           }
+         #columnOrderList {
+              list-style: none;
+              padding: 0;
+              margin: 0 0 15px 0;
+           }
+         #columnOrderList li {
+              margin-bottom: 5px;
+              padding: 8px;
+              border: 1px solid #eee;
+              background-color: #f9f9f9;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              font-size: 14px;
+           }
+         #columnOrderList li button {
+              padding: 3px 8px;
+              margin-left: 5px;
+              cursor: pointer;
+           }
+
+        /* Chart-specific styles (kept for layout consistency but display: none) */
+         .chart-container { display: none; }
+         .chart-box { display: none; }
+         .chart-box canvas { display: none; }
+         .chart-toolbar { display: none; }
+         .chart-toolbar button { display: none; }
+
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="dashboard-header">
+        <img src="https://www.sagarmanufacturers.com/assets/web/images/smpl-new-logo.png" alt="Company Logo"
+             style="height: 60px; width: auto; margin-right: 15px;">
+        <h1 class="company-name">Sagar Manufacturers Pvt. Ltd.</h1>
+    </div>
+   <div id="controls" style="display: flex; justify-content: space-between; align-items: center;">
+    <div id="loadDataContainer" style="display: flex; align-items: center; gap: 10px;">
+        <label for="yearSelector" style="background-color: steelblue; color: white; padding: 8px; border-radius: 4px; font-weight: bold;">Select Year:</label>
+        <select id="yearSelector" style="background-color: white; color: black; padding: 8px; border-radius: 4px; border: 1px solid steelblue; font-weight: bold;">
+            <option value="2023">2023</option>
+            <option value="2024">2024</option>
+            <option value="Current Year">Current Year</option>
+        </select>
+        <button id="loadDataButton" style="background-color: steelblue; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 16px;">Load Data</button>
+    </div>
+    <button onclick="goBack()" style="background-color: red; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 16px;">← Home</button>
+</div>
+        <span id="layoutAndWidthControls" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; flex-grow: 1;">
+            <span id="layoutControlsContent" style="display: flex; align-items: center; gap: 10px; border: 1px solid #ccc; padding: 8px; border-radius: 4px; background-color: #f9f9f9; display: none;">
+                <span>Layout:</span>
+                <input type="text" id="layoutNameInput" placeholder="Layout Name">
+                <button id="saveLayoutButton">Save</button>
+                <select id="loadLayoutSelect">
+                    <option value="">- Load Layout -</option>
+                </select>
+                <button id="loadLayoutButton" disabled>Load</button>
+                <button id="deleteLayoutButton" disabled>Delete</button>
+            </span>
+
+            <div id="applyButtonContainer">
+                <button id="applyFiltersButton" style="display: none;">Apply Filters</button>
+            </div>
+
+            <div id="downloadButtons" style="display: none;">
+                <span>Download:</span>
+                <button id="downloadExcelButton">Excel</button>
+                <button id="downloadPdfButton" class="pdf">PDF</button>
+            </div>
+
+            <div id="reorderControls" style="display: none;">
+                <button id="showReorderPanelButton">Reorder Columns</button>
+            </div>
+
+            <span id="widthControlsContent" style="display: flex; align-items: center; gap: 5px; border: 1px solid #ccc; padding: 8px; border-radius: 4px; background-color: #f9f9f9; display: none;">
+                <span>Adjust Width:</span>
+                <select id="columnSelectForWidth">
+                    <option value="">- Select Column -</option>
+                </select>
+                <input type="number" id="columnWidthValue" value="150" min="10" style="width: 60px;">
+                <select id="columnWidthUnit">
+                    <option value="px">px</option>
+                    <option value="%">%</option>
+                    <option value="em">em</option>
+                    <option value="cm">cm</option>
+                    <option value="mm">mm</option>
+                </select>
+                <button id="applyColumnWidthButton">Apply</button>
+            </span>
+
+            <span id="alignmentControlsContent" style="display: flex; align-items: center; gap: 5px; border: 1px solid #ccc; padding: 8px; border-radius: 4px; background-color: #f9f9f9; display: none;">
+                <span>Align Data:</span>
+                <select id="columnSelectForAlignment">
+                    <option value="">- Select Column -</option>
+                </select>
+                <select id="columnAlignmentValue">
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                </select>
+                <button id="applyColumnAlignmentButton">Apply</button>
+            </span>
+        </span>
+
+        <div id="pdfRemarksInputContainer" style="display: none; margin-top: 10px; width: 100%;">
+            <label for="pdfRemarksInput">Remarks/Title for PDF:</label>
+            <input type="text" id="pdfRemarksInput" placeholder="Enter remarks or title for PDF..." style="flex-grow: 1; padding: 5px;">
+        </div>
+
+        
+    </div>
+
+    <div id="filtersContainer" class="filter-container">
+    </div>
+
+   <div id="tableScrollContainer">
+    <div id="tableContainer">
+        <!-- Table will be dynamically inserted here -->
+    </div>
+</div>
+</div> <div id="reorderPanel" style="display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 20px;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    z-index: 100;
+    max-height: 80vh;
+    overflow-y: auto;">
+    <h3>Reorder Columns</h3>
+    <ul id="columnOrderList" style="list-style: none; padding: 0;">
+    </ul>
+    <button id="applyReorderButton">Apply Order</button>
+    <button id="cancelReorderButton">Cancel</button>
+</div>
+
+<script>
+    // --- Global Variables ---
+
+    // Define which columns should have data filters (alphabetically sorted later)
+    const dataFilterableColumnNames = [
+        'YEAR',
+        'Month',
+        'Plant',
+        'Customer_Name',
+        'Lot N0',
+        'Ship to City',
+        'Billing Document',
+        'Delivery',
+        'Sales Document',
+        'SMPL Count',
+        'Market',
+        'Material'
+    ].sort(); // Sort data filterable columns alphabetically
+
+
+    let tableData = []; // Store the original data objects (keys are original headers)
+    let columnNamesFromExcel = []; // Store the exact column names read from the Excel header
+    let currentAppliedDataFilters = {}; // Store the data filters currently applied to the table
+    let visibleColumns = []; // Store which columns are currently visible (subset of columnNamesFromExcel)
+    let currentSort = { column: null, direction: 'none' }; // State for current sorting
+    let columnWidths = {}; // Store custom column widths (using cleaned column names as keys, storing strings like "500px")
+    let columnDisplayOrder = []; // Store the desired order of ALL columns
+    let columnAlignments = {}; // Store custom column alignments (using cleaned column names as keys, storing strings like "center")
+
+    // Supabase File URLs
+    const supabaseFileUrls = {
+        "2023": "https://jdajahcjljvnkopfdrpi.supabase.co/storage/v1/object/public/dispatch//Dispatch_2023.xlsx",
+        "2024": "https://jdajahcjljvnkopfdrpi.supabase.co/storage/v1/object/public/dispatch//Dispatch_2024.xlsx",
+        "Current Year": "https://jdajahcjljvnkopfdrpi.supabase.co/storage/v1/object/public/dispatch//Dispatch_Current%20Year.xlsx"
+    };
+
+
+    // --- Helper Functions ---
+
+    // Function to convert Excel date serial number to JavaScript Date
+    function excelDateToJSDate(excelDate) {
+        const excelEpoch = new Date(1900, 0, 1);
+        const days = excelDate;
+
+        if (days === 0) {
+            return null;
+        }
+
+        let date = new Date(excelEpoch.getTime());
+        date.setDate(date.getDate() + days - 1);
+
+        if (days > 60) {
+            date.setDate(date.getDate() - 1);
+        }
+
+        return date;
+    }
+
+    // Function to optimize row data (date formatting, blend calculation)
+    function optimizeRow(row) {
+        const newRow = {...row};
+
+        // Safer Date Fix for various date fields
+        ['Billing Date', 'fromdate', 'todate', 'QUERY RECEIVED DATE'].forEach(field => {
+            const cleanedField = Object.keys(newRow).find(key => key.toLowerCase() === field.toLowerCase());
+            if (cleanedField && newRow[cleanedField] !== undefined && newRow[cleanedField] !== null && typeof newRow[cleanedField] === 'number' && newRow[cleanedField] > 0) {
+                try {
+                    const date = excelDateToJSDate(newRow[cleanedField]);
+                    if (date instanceof Date && !isNaN(date) && date !== null) {
+                        const day = date.getDate().toString().padStart(2, '0');
+                        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                        const year = date.getFullYear().toString().slice(-2);
+                        newRow[cleanedField] = `${day}-${month}-${year}`;
+                    } else {
+                        newRow[cleanedField] = String(newRow[cleanedField]);
+                    }
+                } catch (e) {
+                    console.error(`Error during date conversion for field ${cleanedField}, value: ${newRow[cleanedField]}`, e);
+                    newRow[cleanedField] = String(newRow[cleanedField]);
+                }
+            } else if (cleanedField && newRow[cleanedField] !== undefined && newRow[cleanedField] !== null) {
+                newRow[cleanedField] = String(newRow[cleanedField]);
+            } else if (cleanedField) {
+                newRow[cleanedField] = '';
+            }
+        });
+
+        // Blend Calculation Optimization
+        const smplCountKey = Object.keys(newRow).find(key => key.toLowerCase() === 'smpl count');
+        const itemDescriptionKey = Object.keys(newRow).find(key => key.toLowerCase() === 'item description');
+        const blendKey = Object.keys(newRow).find(key => key.toLowerCase() === 'blend');
+
+        if (smplCountKey && itemDescriptionKey && newRow[smplCountKey]?.toString().endsWith('PC') && newRow[itemDescriptionKey]) {
+            const match = newRow[itemDescriptionKey].match(/PC.*?(\d+)/);
+            if (match) {
+                const percent = parseInt(match[1], 10);
+                if (!isNaN(percent)) {
+                    if (blendKey) {
+                        newRow[blendKey] = `${percent}/${100 - percent}`;
+                    } else {
+                        newRow['Blend'] = `${percent}/${100 - percent}`;
+                    }
+                } else {
+                    if (blendKey) { newRow[blendKey] = ''; } else { newRow['Blend'] = ''; }
+                }
+            } else {
+                if (blendKey) { newRow[blendKey] = ''; } else { newRow['Blend'] = ''; }
+            }
+        } else {
+            if (blendKey) { newRow[blendKey] = ''; } else { newRow['Blend'] = ''; }
+        }
+
+        // Ensure all values are strings for consistent filtering and display
+        Object.keys(newRow).forEach(key => {
+            newRow[key] = newRow[key] !== undefined && newRow[key] !== null ? String(newRow[key]) : '';
+        });
+
+        return newRow;
+    }
+
+    // --- Data Loading Function ---
+
+// Function to fetch file from Supabase and process it
+    async function fetchSupabaseFile(fileUrl) {
+        // console.log("fetchSupabaseFile called with URL:", fileUrl); // Keep this log for initial check
+        try {
+            // Show a temporary loading message or spinner (optional)
+            // document.getElementById('loadingMessage').textContent = 'Loading data...';
+
+            const response = await fetch(fileUrl);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch file from Supabase: ${response.statusText}`);
+            }
+
+            const arrayBuffer = await response.arrayBuffer();
+            const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
+
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+
+            // Read data as array of arrays, keeping raw values for date conversion
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: true, defval: '' });
+
+            // --- Data Processing and Table Initialization ---
+
+            const header = jsonData[0];
+            const dataRows = jsonData.slice(1);
+
+            columnNamesFromExcel = [];
+            const seenNames = new Set();
+            if (header) {
+                header.forEach(colName => {
+                    const cleanedName = colName ? String(colName).trim() : `Unnamed Column_${seenNames.size}`;
+                    let uniqueName = cleanedName;
+                    let counter = 1;
+                    while(seenNames.has(uniqueName)) {
+                        uniqueName = `${cleanedName}_${counter}`;
+                        counter++;
+                    }
+                    columnNamesFromExcel.push(uniqueName);
+                    seenNames.add(uniqueName);
+                });
+            } else {
+                console.warn("No header row found in the Excel file.");
+                const numCols = dataRows[0] ? dataRows[0].length : 0;
+                for(let i = 0; i < numCols; i++) {
+                    columnNamesFromExcel.push(`Column${i+1}`);
+                }
+            }
+
+            tableData = dataRows.map(row => {
+console.log("Table Data:", tableData);
+                const rowObject = {};
+                columnNamesFromExcel.forEach((colName, index) => {
+                    rowObject[colName] = row[index];
+                });
+                return optimizeRow(rowObject);
+            });
+
+            // console.log("Processed tableData:", tableData); // Keep debug logs for data content
+            // console.log("Column Names from Excel:", columnNamesFromExcel); // Keep debug logs
+
+
+            // Initialize filters
+            initializeFilters(tableData, columnNamesFromExcel); // Initialize dropdowns
+
+            // Initialize applied data filters and visible columns
+            currentAppliedDataFilters = {}; // Reset filters
+            dataFilterableColumnNames.forEach(col => {
+                if (columnNamesFromExcel.some(name => name.toLowerCase() === col.toLowerCase())) {
+                    currentAppliedDataFilters[col] = [];
+                }
+            });
+            visibleColumns = [...columnNamesFromExcel]; // Set initial visible columns
+            currentSort = { column: null, direction: 'none' }; // Reset sort state
+            columnWidths = {}; // Reset column widths
+            columnDisplayOrder = [...columnNamesFromExcel]; // Reset display order
+            columnAlignments = {}; // Reset column alignments
+           console.log("Visible Columns:", visibleColumns);
+
+
+            // Display the initial table and make controls visible immediately after applying filters
+            applyFilters(); // Calls displayTable
+
+
+            // --- Visibility Code (Moved Here) ---
+            // console.log("Attempting to show table elements now."); // Keep this log
+            document.getElementById('tableScrollContainer').style.display = 'block'; // Or 'auto'
+            document.getElementById('filtersContainer').style.display = 'flex';
+            document.getElementById('applyFiltersButton').style.display = 'inline-block';
+            document.getElementById('downloadButtons').style.display = 'flex';
+            document.getElementById('layoutControlsContent').style.display = 'flex';
+            document.getElementById('widthControlsContent').style.display = 'flex';
+            document.getElementById('alignmentControlsContent').style.display = 'flex';
+            document.getElementById('reorderControls').style.display = 'block';
+            document.getElementById('pdfRemarksInputContainer').style.display = 'flex';
+            // --- End Moved Visibility Code ---
+
+
+            // Load saved layouts for the new data (These functions don't hide the table)
+            loadSavedLayoutNames();
+            populateColumnWidthSelect();
+            populateColumnAlignmentSelect();
+
+
+        } catch (error) {
+            console.error("Error fetching or processing file:", error);
+            alert("Error loading data. Please check the console for details.");
+            // Hide loading indicator on error
+            // document.getElementById('loadingMessage').textContent = 'Failed to load data.';
+        } finally {
+            // Hide loading indicator (optional)
+            // document.getElementById('loadingMessage').style.display = 'none';
+        }
+    }
+
+    // --- Core Table Rendering and Filtering ---
+
+   function applyFilters() {
+    console.log("Applying Filters...");
+    console.log("Current Applied Filters:", currentAppliedDataFilters);
+
+    // Collect Data Filters
+    dataFilterableColumnNames.forEach(columnName => {
+        const dropdown = document.querySelector(`.filter-dropdown[data-column="${columnName}"][data-filter-type="data"]`);
+        if (dropdown) {
+            const selectedValues = [];
+            dropdown.querySelectorAll('.filter-options .filter-checkbox:checked').forEach(checkbox => {
+                selectedValues.push(checkbox.value);
+            });
+            currentAppliedDataFilters[columnName] = selectedValues;
+        } else {
+            currentAppliedDataFilters[columnName] = [];
+        }
+    });
+
+    // Collect Visible Columns
+    const selectedVisibleColumns = [];
+    const visibilityDropdown = document.querySelector('.filter-dropdown[data-filter-type="visibility"]');
+    if (visibilityDropdown) {
+        visibilityDropdown.querySelectorAll('.column-options .column-checkbox:checked').forEach(checkbox => {
+            selectedVisibleColumns.push(checkbox.value);
+        });
+    }
+    visibleColumns = selectedVisibleColumns;
+
+    // Default to all columns if none are selected
+    if (visibleColumns.length === 0 && columnNamesFromExcel.length > 0) {
+        visibleColumns = [...columnNamesFromExcel];
+        console.warn("No visible columns selected. Defaulting to all columns.");
+    }
+
+    // Apply Data Filters
+    let filteredData = tableData;
+    dataFilterableColumnNames.forEach(columnName => {
+        const selectedValues = currentAppliedDataFilters[columnName];
+        if (selectedValues && selectedValues.length > 0) {
+            filteredData = filteredData.filter(row => {
+                const rowKey = Object.keys(row).find(key => key.toLowerCase() === columnName.toLowerCase());
+                if (rowKey) {
+                    const rowValue = row[rowKey] !== undefined && row[rowKey] !== null ? String(row[rowKey]) : '';
+                    return selectedValues.includes(rowValue);
+                }
+                return false;
+            });
+        }
+    });
+
+    console.log("Filtered Data:", filteredData);
+    console.log("Visible Columns:", visibleColumns);
+
+    // Display the Table
+    displayTable(filteredData, visibleColumns);
+
+        // Update the column select dropdowns for width and alignment after displaying
+        populateColumnWidthSelect();
+        populateColumnAlignmentSelect();
+    }
+
+
+  function displayTable(data, columnsToDisplay) {
+    console.log("displayTable called with data:", data, "and columns:", columnsToDisplay);
+
+    // Check if there is data to display and columns selected
+    const columnsToRender = columnDisplayOrder.filter(col =>
+        visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())
+    );
+
+    console.log("Columns to Render:", columnsToRender); // Log the columns to render
+    console.log("Data length:", data.length); // Log the length of the data
+
+    const tableContainer = document.getElementById('tableContainer');
+    tableContainer.innerHTML = ''; // Clear previous table
+
+    if (data.length > 0 && columnsToRender.length > 0) {
+        let html = '<table>';
+
+        // Add colgroup for fixed column widths
+        html += '<colgroup>';
+        columnDisplayOrder.forEach(col => {
+            if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
+                const actualColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === col.toLowerCase());
+                if (actualColumnName) {
+                    let colWidth = columnWidths[actualColumnName];
+
+                    if (!colWidth) {
+                        // Apply default widths based on the actual column name (case-insensitive check)
+                        if (actualColumnName.toLowerCase() === 'analysis and outcome' || actualColumnName.toLowerCase() === 'action taken') {
+                            colWidth = '700px';
+                        } else if (actualColumnName.toLowerCase() === 'query received date' || actualColumnName.toLowerCase() === 'billing date') {
+                            colWidth = '120px';
+                        } else if (actualColumnName.toLowerCase() === 'unit no' || actualColumnName.toLowerCase() === 'status' || actualColumnName.toLowerCase() === 'cotton' || actualColumnName.toLowerCase() === 'count' || actualColumnName.toLowerCase() === 'mfg year' || actualColumnName.toLowerCase() === 'year' || actualColumnName.toLowerCase() === 'month') {
+                            colWidth = '80px';
+                        } else {
+                            colWidth = '150px';
+                        }
+                    }
+                    html += `<col data-column-name="${col}" style="width: ${colWidth};">`;
+                }
+            }
+        });
+        html += '</colgroup>';
+
+        html += '<thead><tr>';
+        columnDisplayOrder.forEach(col => {
+            if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
+                const actualColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === col.toLowerCase());
+                if (actualColumnName) {
+                    let sortArrow = '';
+                    if (currentSort.column && currentSort.column.toLowerCase() === col.toLowerCase()) {
+                        sortArrow = currentSort.direction === 'asc' ? ' &#9650;' : ' &#9660;';
+                    }
+                    const headerAlignment = actualColumnName ? columnAlignments[actualColumnName] : 'left';
+                    html += `<th data-column-name="${col}" style="text-align: ${headerAlignment};">${col}<span class="sort-arrow">${sortArrow}</span></th>`;
+                }
+            }
+        });
+        html += '</tr></thead><tbody>';
+
+        data.forEach(row => {
+            html += '<tr>';
+            columnDisplayOrder.forEach(col => {
+                if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
+                    const rowKey = Object.keys(row).find(key => key.toLowerCase() === col.toLowerCase());
+                    const cellValue = rowKey ? row[rowKey] : '';
+                    const actualColName = columnNamesFromExcel.find(name => name.toLowerCase() === col.toLowerCase());
+                    const cellAlignment = actualColName ? columnAlignments[actualColName] : 'left';
+
+                    html += `<td style="text-align: ${cellAlignment};">${cellValue}</td>`;
+                }
+            });
+            html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+        tableContainer.innerHTML = html;
+
+        addSortEventListeners();
+
+    } else if (columnsToRender.length === 0) {
+        tableContainer.innerHTML = '<p>No columns selected to display.</p>';
+    } else {
+        tableContainer.innerHTML = '<p>No data matches the current filter criteria.</p>';
+    }
+    populateColumnWidthSelect();
+    populateColumnAlignmentSelect();
+}
+    // Function to add event listeners to table headers for sorting
+    function addSortEventListeners() {
+        document.querySelectorAll('#tableContainer th').forEach(header => {
+            // Remove existing listeners to prevent duplicates
+            if (header.dataset.sortHandlerRef) {
+                header.removeEventListener('click', header.dataset.sortHandlerRef);
+                delete header.dataset.sortHandlerRef;
+            }
+
+            const clickHandler = () => {
+                const columnName = header.getAttribute('data-column-name');
+                let newDirection = 'asc';
+
+                if (currentSort.column === columnName) {
+                    if (currentSort.direction === 'asc') {
+                        newDirection = 'desc';
+                    } else if (currentSort.direction === 'desc') {
+                        newDirection = 'none';
+                    } else {
+                        newDirection = 'asc';
+                    }
+                }
+
+                if (newDirection === 'none') {
+                    currentSort = { column: null, direction: 'none' };
+                } else {
+                    currentSort = { column: columnName, direction: newDirection };
+                }
+
+                applyFilters();
+            };
+
+            header.dataset.sortHandlerRef = clickHandler;
+            header.addEventListener('click', clickHandler);
+        });
+    }
+
+    // --- Filter UI Initialization and Logic ---
+
+    // Function to initialize filter dropdowns (data and visibility)
+    function initializeFilters(data, allColumnNames) {
+        const filtersContainer = document.getElementById('filtersContainer');
+        filtersContainer.innerHTML = ''; // Clear previous filters
+
+        // --- Create Column Visibility Filter ---
+        const columnVisibilityDropdownHtml = `
+            <div class="filter-dropdown" data-filter-type="visibility">
+                <button class="dropdown-button">Show/Hide Columns <span class="filter-arrow">&#9662;</span></button>
+                <div class="dropdown-content">
+                    <div class="search-container">
+                        <input type="text" class="column-search" placeholder="Search...">
+                    </div>
+                    <label class="select-all">
+                        <input type="checkbox" class="select-all-columns-checkbox" checked> Select All
+                    </label>
+                    <div class="column-options filter-options">
+                        ${allColumnNames.map(colName => `
+                            <label>
+                                <input type="checkbox" class="column-checkbox" value="${colName}" checked> ${colName}
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+        filtersContainer.innerHTML += columnVisibilityDropdownHtml;
+
+
+        // --- Create Data Filters ---
+        dataFilterableColumnNames.forEach(columnName => {
+            // Check if this filterable column exists in the actual Excel columns (case-insensitive match)
+            if (allColumnNames.some(name => name.toLowerCase() === columnName.toLowerCase())) {
+                // Find the exact casing from the loaded columns to get data correctly
+                const exactColumnName = allColumnNames.find(name => name.toLowerCase() === columnName.toLowerCase());
+                let uniqueValues = [...new Set(data.map(row => row[exactColumnName] !== undefined && row[exactColumnName] !== null ? String(row[exactColumnName]) : '').filter(value => value !== ''))];
+
+                // --- Custom Sorting for Month Columns ---
+                if (exactColumnName && exactColumnName.toLowerCase() === 'month') { // Assuming 'Month' is the exact column name
+                    uniqueValues.sort((a, b) => {
+                        const numA = parseInt(a);
+                        const numB = parseInt(b);
+                        if (isNaN(numA) && isNaN(numB)) return 0;
+                        if (isNaN(numA)) return 1;
+                        if (isNaN(numB)) return -1;
+                        return numA - numB;
+                    });
+                } else {
+                    // Default to alphabetical sort for other columns
+                    uniqueValues.sort();
+                }
+                // --- End Custom Sorting ---
+
+                if (uniqueValues.length > 0) {
+                    const filterDropdownHtml = `
+                        <div class="filter-dropdown" data-column="${columnName}" data-filter-type="data">
+                            <button class="dropdown-button">${columnName} <span class="filter-arrow">&#9662;</span></button>
+                            <div class="dropdown-content">
+                                <div class="search-container">
+                                    <input type="text" class="filter-search" placeholder="Search...">
+                                </div>
+                                <label class="select-all">
+                                    <input type="checkbox" class="select-all-checkbox"> Select All
+                                </label>
+                                <div class="filter-options">
+                                    ${uniqueValues.map(value => `
+                                        <label>
+                                            <input type="checkbox" class="filter-checkbox" value="${value}"> ${value}
+                                        </label>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    filtersContainer.innerHTML += filterDropdownHtml;
+                }
+            }
+        });
+
+        // Add event listeners to the newly created filter elements
+        addFilterEventListeners();
+    }
+
+    // Function to add event listeners to filter dropdowns
+    function addFilterEventListeners() {
+        document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
+            const button = dropdown.querySelector('.dropdown-button');
+            const content = dropdown.querySelector('.dropdown-content');
+            const searchInput = dropdown.querySelector('.filter-search') || dropdown.querySelector('.column-search');
+            const selectAllCheckbox = dropdown.querySelector('.select-all-checkbox') || dropdown.querySelector('.select-all-columns-checkbox');
+            const optionsContainer = dropdown.querySelector('.filter-options');
+
+            const filterType = dropdown.getAttribute('data-filter-type');
+            const columnName = dropdown.getAttribute('data-column');
+
+            // Toggle dropdown visibility
+            button.addEventListener('click', (event) => {
+                event.stopPropagation();
+                document.querySelectorAll('.dropdown-content').forEach(openContent => {
+                    if (openContent !== content) {
+                        openContent.style.display = 'none';
+                    }
+                });
+                content.style.display = content.style.display === 'block' ? 'none' : 'block';
+
+                if (content.style.display === 'block') {
+                    let currentStateValues = [];
+                    if (filterType === 'data') {
+                        currentStateValues = currentAppliedDataFilters[columnName] || [];
+                    } else if (filterType === 'visibility') {
+                        currentStateValues = visibleColumns;
+                    }
+
+                    optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                        checkbox.checked = currentStateValues.some(val => val.toLowerCase() === checkbox.value.toLowerCase());
+                    });
+                    updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+                }
+            });
+
+            // Prevent clicks inside the dropdown content from closing it
+            content.addEventListener('click', (event) => {
+                event.stopPropagation();
+            });
+
+            // Search functionality
+            if (searchInput) {
+                searchInput.addEventListener('input', () => {
+                    const searchTerm = searchInput.value.toLowerCase();
+                    optionsContainer.querySelectorAll('label').forEach(label => {
+                        const text = label.textContent.toLowerCase();
+                        label.style.display = text.includes(searchTerm) ? 'block' : 'none';
+                    });
+                    updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+                });
+            }
+
+            // Select/Unselect All functionality
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', (event) => {
+                    optionsContainer.querySelectorAll('label').forEach(label => {
+                        if(label.style.display !== 'none') {
+                            label.querySelector('input[type="checkbox"]').checked = event.target.checked;
+                        }
+                    });
+                    updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+                });
+            }
+
+            // Individual checkbox change listener
+            optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+                });
+            });
+        });
+
+        // Close dropdowns when clicking outside the dropdown container
+        window.addEventListener('click', (event) => {
+            document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
+                const content = dropdown.querySelector('.dropdown-content');
+                if (!dropdown.contains(event.target)) {
+                    content.style.display = 'none';
+                    const filterType = dropdown.getAttribute('data-filter-type');
+                    const optionsContainer = dropdown.querySelector('.filter-options');
+                    const selectAllCheckbox = dropdown.querySelector('.select-all-checkbox') || dropdown.querySelector('.select-all-columns-checkbox');
+
+                    let currentStateValues = [];
+                    if (filterType === 'data') {
+                        const columnName = dropdown.getAttribute('data-column');
+                        currentStateValues = currentAppliedDataFilters[columnName] || [];
+                    } else if (filterType === 'visibility') {
+                        currentStateValues = visibleColumns;
+                    }
+
+                    optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                        checkbox.checked = currentStateValues.some(val => val.toLowerCase() === checkbox.value.toLowerCase());
+                    });
+                    updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+                }
+            });
+        });
+    }
+
+    // Helper to update the state of the "Select All" checkbox (Handles indeterminate state)
+    function updateSelectAllCheckbox(optionsContainer, selectAllCheckbox) {
+        if (!selectAllCheckbox) return;
+
+        const visibleCheckboxes = Array.from(optionsContainer.querySelectorAll('label'))
+            .filter(label => label.style.display !== 'none')
+            .map(label => label.querySelector('input[type="checkbox"]'));
+
+        const checkedVisibleCheckboxes = visibleCheckboxes.filter(cb => cb.checked);
+
+        if (visibleCheckboxes.length === 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        } else if (checkedVisibleCheckboxes.length === visibleCheckboxes.length) {
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.indeterminate = false;
+        } else if (checkedVisibleCheckboxes.length > 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = true;
+        } else {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        }
+    }
+
+
+    // --- Column Property and Reordering Logic ---
+
+    // Function to populate the column select dropdown for width adjustment
+    function populateColumnWidthSelect() {
+        const selectElement = document.getElementById('columnSelectForWidth');
+        selectElement.innerHTML = '<option value="">- Select Column -</option>';
+
+        columnNamesFromExcel.forEach(colName => {
+            const option = document.createElement('option');
+            option.value = colName;
+            option.textContent = colName;
+            selectElement.appendChild(option);
+        });
+
+        document.getElementById('columnWidthValue').value = 150;
+        document.getElementById('columnWidthUnit').value = 'px';
+    }
+
+    // Function to apply the manually entered column width
+    function applyColumnWidth() {
+        const selectElement = document.getElementById('columnSelectForWidth');
+        const columnName = selectElement.value;
+        const widthValueInput = document.getElementById('columnWidthValue');
+        const widthValue = parseFloat(widthValueInput.value);
+        const widthUnit = document.getElementById('columnWidthUnit').value;
+
+        if (!columnName) {
+            alert("Please select a column first.");
+            return;
+        }
+        if (isNaN(widthValue) || widthValue <= 0) {
+            alert("Please enter a valid positive number for the width.");
+            widthValueInput.focus();
+            return;
+        }
+        const actualColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === columnName.toLowerCase());
+
+        if (actualColumnName) {
+            const widthString = `${widthValue}${widthUnit}`;
+            columnWidths[actualColumnName] = widthString;
+
+            applyFilters();
+            alert(`Width of column "${actualColumnName}" set to ${widthString}.`);
+        } else {
+            alert(`Error: Could not find column "${columnName}" from Excel headers.`);
+        }
+    }
+
+    // Function to populate the column select dropdown for alignment adjustment
+    function populateColumnAlignmentSelect() {
+        const selectElement = document.getElementById('columnSelectForAlignment');
+        selectElement.innerHTML = '<option value="">- Select Column -</option>';
+
+        columnNamesFromExcel.forEach(colName => {
+            const option = document.createElement('option');
+            option.value = colName;
+            option.textContent = colName;
+            selectElement.appendChild(option);
+        });
+
+        document.getElementById('columnAlignmentValue').value = 'left';
+    }
+
+    // Function to apply the manually selected column alignment
+    function applyColumnAlignment() {
+        const selectElement = document.getElementById('columnSelectForAlignment');
+        const columnName = selectElement.value;
+        const alignmentValue = document.getElementById('columnAlignmentValue').value;
+
+        if (!columnName) {
+            alert("Please select a column first.");
+            return;
+        }
+
+        const actualColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === columnName.toLowerCase());
+
+        if (actualColumnName) {
+            columnAlignments[actualColumnName] = alignmentValue;
+            applyFilters();
+            alert(`Alignment of column "${actualColumnName}" set to "${alignmentValue}".`);
+        } else {
+            alert(`Error: Could not find column "${columnName}" from Excel headers.`);
+        }
+    }
+
+    // --- Column Reordering Functionality ---
+
+    function showReorderPanel() {
+        if (columnNamesFromExcel.length === 0) {
+            alert("Please load data first to reorder columns.");
+            return;
+        }
+        const list = document.getElementById('columnOrderList');
+        list.innerHTML = '';
+
+        columnDisplayOrder.forEach(colName => {
+            const listItem = document.createElement('li');
+            listItem.setAttribute('data-column-name', colName);
+            listItem.style.marginBottom = '5px';
+            listItem.style.padding = '8px';
+            listItem.style.border = '1px solid #eee';
+            listItem.style.backgroundColor = '#f9f9f9';
+            listItem.style.display = 'flex';
+            listItem.style.justifyContent = 'space-between';
+            listItem.style.alignItems = 'center';
+            listItem.style.cursor = 'grab';
+
+            const colNameSpan = document.createElement('span');
+            colNameSpan.textContent = colName;
+            listItem.appendChild(colNameSpan);
+
+            const buttonsDiv = document.createElement('div');
+            const upButton = document.createElement('button');
+            upButton.textContent = '▲';
+            upButton.style.marginLeft = '10px';
+            upButton.style.cursor = 'pointer';
+            upButton.onclick = () => moveColumnInList(colName, 'up');
+            buttonsDiv.appendChild(upButton);
+
+            const downButton = document.createElement('button');
+            downButton.textContent = '▼';
+            downButton.style.marginLeft = '5px';
+            downButton.style.cursor = 'pointer';
+            downButton.onclick = () => moveColumnInList(colName, 'down');
+            buttonsDiv.appendChild(downButton);
+
+            listItem.appendChild(buttonsDiv);
+            list.appendChild(listItem);
+        });
+
+        document.getElementById('reorderPanel').style.display = 'block';
+    }
+
+    function hideReorderPanel() {
+        document.getElementById('reorderPanel').style.display = 'none';
+    }
+
+    function goBack() {
+        window.location.href = "protected.html";
+    }
+
+    function moveColumnInList(columnName, direction) {
+        const oldIndex = columnDisplayOrder.indexOf(columnName);
+        if (oldIndex === -1) return;
+
+        let newIndex = oldIndex;
+        if (direction === 'up' && oldIndex > 0) {
+            newIndex = oldIndex - 1;
+        } else if (direction === 'down' && oldIndex < columnDisplayOrder.length - 1) {
+            newIndex = oldIndex + 1;
+        } else {
+            return;
+        }
+
+        const temp = columnDisplayOrder[oldIndex];
+        columnDisplayOrder[oldIndex] = columnDisplayOrder[newIndex];
+        columnDisplayOrder[newIndex] = temp;
+
+        const list = document.getElementById('columnOrderList');
+        const items = Array.from(list.children);
+
+        const movedItem = items[oldIndex];
+        const targetItem = items[newIndex];
+
+        if (direction === 'up') {
+            list.insertBefore(movedItem, targetItem);
+        } else {
+            list.insertBefore(movedItem, targetItem.nextSibling);
+        }
+    }
+
+    function applyReorder() {
+        hideReorderPanel();
+        applyFilters();
+    }
+
+    // --- Layout Saving/Loading ---
+    const LAYOUT_STORAGE_KEY = 'excelTableLayouts';
+
+    function getSavedLayouts() {
+        const layouts = localStorage.getItem(LAYOUT_STORAGE_KEY);
+        return layouts ? JSON.parse(layouts) : {};
+    }
+
+    function saveLayout() {
+        const layoutNameInput = document.getElementById('layoutNameInput');
+        const layoutName = layoutNameInput.value.trim();
+        if (!layoutName) {
+            alert("Please enter a name for the layout.");
+            return;
+        }
+
+        const savedLayouts = getSavedLayouts();
+
+        const currentLayoutState = {
+            dataFilters: currentAppliedDataFilters,
+            visibleColumns: visibleColumns,
+            columnWidths: { ...columnWidths },
+            columnDisplayOrder: [...columnDisplayOrder],
+            columnAlignments: { ...columnAlignments }
+        };
+
+        savedLayouts[layoutName] = currentLayoutState;
+        localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(savedLayouts));
+
+        alert(`Layout "${layoutName}" saved.`);
+        layoutNameInput.value = '';
+        loadSavedLayoutNames();
+        enableLayoutButtons();
+    }
+
+    function loadLayout() {
+        const selectElement = document.getElementById('loadLayoutSelect');
+        const layoutName = selectElement.value;
+
+        if (!layoutName) {
+            alert("Please select a layout to load.");
+            return;
+        }
+
+        const savedLayouts = getSavedLayouts();
+        const layoutToLoad = savedLayouts[layoutName];
+
+        if (layoutToLoad) {
+            if (tableData.length === 0) {
+                alert("Please load data first before loading a layout.");
+                selectElement.value = "";
+                enableLayoutButtons();
+                return;
+            }
+
+            const savedColumnNames = new Set();
+            if (layoutToLoad.dataFilters) {
+                Object.keys(layoutToLoad.dataFilters).forEach(col => savedColumnNames.add(col.toLowerCase()));
+            }
+            if (layoutToLoad.visibleColumns) {
+                layoutToLoad.visibleColumns.forEach(col => savedColumnNames.add(col.toLowerCase()));
+            }
+            if (layoutToLoad.columnWidths) {
+                Object.keys(layoutToLoad.columnWidths).forEach(col => savedColumnNames.add(col.toLowerCase()));
+            }
+            if (layoutToLoad.columnDisplayOrder) {
+                layoutToLoad.columnDisplayOrder.forEach(col => savedColumnNames.add(col.toLowerCase()));
+            }
+            if (layoutToLoad.columnAlignments) {
+                Object.keys(layoutToLoad.columnAlignments).forEach(col => savedColumnNames.add(col.toLowerCase()));
+            }
+
+            const currentFileColumnNamesLower = new Set(columnNamesFromExcel.map(name => name.toLowerCase()));
+
+            const allSavedColumnsExist = Array.from(savedColumnNames).every(col => currentFileColumnNamesLower.has(col));
+
+            if (!allSavedColumnsExist) {
+                alert(`Warning: The columns referenced in the saved layout "${layoutName}" do not fully match the columns in the current data. Loading may result in unexpected filtering, column visibility, or widths/alignments for mismatched columns.`);
+            }
+
+            currentAppliedDataFilters = layoutToLoad.dataFilters || {};
+            visibleColumns = layoutToLoad.visibleColumns || [...columnNamesFromExcel];
+            columnWidths = layoutToLoad.columnWidths || {};
+            columnDisplayOrder = layoutToLoad.columnDisplayOrder || [...columnNamesFromExcel];
+            columnAlignments = layoutToLoad.columnAlignments || {};
+
+            visibleColumns = visibleColumns.filter(col => columnNamesFromExcel.some(name => name.toLowerCase() === col.toLowerCase()));
+            if (visibleColumns.length === 0 && columnNamesFromExcel.length > 0) {
+                visibleColumns = [...columnNamesFromExcel];
+            }
+
+            const currentFileColumnNamesExact = new Set(columnNamesFromExcel);
+            columnDisplayOrder = columnDisplayOrder.filter(col => currentFileColumnNamesExact.has(col));
+            currentFileColumnNamesExact.forEach(col => {
+                if (!columnDisplayOrder.includes(col)) {
+                    columnDisplayOrder.push(col);
+                }
+            });
+            if (columnDisplayOrder.length === 0 && columnNamesFromExcel.length > 0) {
+                columnDisplayOrder = [...columnNamesFromExcel];
+            }
+
+            const loadedAlignments = layoutToLoad.columnAlignments || {};
+            columnAlignments = {};
+            columnNamesFromExcel.forEach(col => {
+                const loadedKey = Object.keys(loadedAlignments).find(key => key.toLowerCase() === col.toLowerCase());
+                if (loadedKey && ['left', 'center', 'right'].includes(loadedAlignments[loadedKey])) {
+                    columnAlignments[col] = loadedAlignments[loadedKey];
+                }
+            });
+
+            updateFilterDropdownsVisuals();
+            applyFilters();
+            alert(`Layout "${layoutName}" loaded.`);
+        } else {
+            alert(`Layout "${layoutName}" not found.`);
+        }
+    }
+
+    function deleteLayout() {
+        const selectElement = document.getElementById('loadLayoutSelect');
+        const layoutName = selectElement.value;
+
+        if (!layoutName) {
+            alert("Please select a layout to delete.");
+            return;
+        }
+
+        if (confirm(`Are you sure you want to delete the layout "${layoutName}"?`)) {
+            const savedLayouts = getSavedLayouts();
+            delete savedLayouts[layoutName];
+            localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(savedLayouts));
+            alert(`Layout "${layoutName}" deleted.`);
+            loadSavedLayoutNames();
+            enableLayoutButtons();
+        }
+    }
+
+    function loadSavedLayoutNames() {
+        const selectElement = document.getElementById('loadLayoutSelect');
+        selectElement.innerHTML = '<option value="">- Load Layout -</option>';
+
+        const savedLayouts = getSavedLayouts();
+        for (const name in savedLayouts) {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            selectElement.appendChild(option);
+        }
+        enableLayoutButtons();
+    }
+
+    function enableLayoutButtons() {
+        const selectElement = document.getElementById('loadLayoutSelect');
+        const loadButton = document.getElementById('loadLayoutButton');
+        const deleteButton = document.getElementById('deleteLayoutButton');
+        const layoutNameInput = document.getElementById('layoutNameInput');
+        const saveButton = document.getElementById('saveLayoutButton');
+
+        const isLayoutSelected = selectElement.value !== "";
+        loadButton.disabled = !isLayoutSelected;
+        deleteButton.disabled = !isLayoutSelected;
+
+        saveButton.disabled = layoutNameInput.value.trim() === "" || tableData.length === 0;
+        layoutNameInput.removeEventListener('input', handleLayoutNameInput);
+        layoutNameInput.addEventListener('input', handleLayoutNameInput);
+    }
+
+    function handleLayoutNameInput() {
+        const layoutNameInput = document.getElementById('layoutNameInput');
+        const saveButton = document.getElementById('saveLayoutButton');
+        saveButton.disabled = layoutNameInput.value.trim() === "" || tableData.length === 0;
+    }
+
+    // Function to update the visual state of filter dropdowns to match currentAppliedDataFilters and visibleColumns
+    function updateFilterDropdownsVisuals() {
+        document.querySelectorAll('.filter-dropdown[data-filter-type="data"]').forEach(dropdown => {
+            const columnName = dropdown.getAttribute('data-column');
+            const selectedValues = currentAppliedDataFilters[columnName] || [];
+            const optionsContainer = dropdown.querySelector('.filter-options');
+            const selectAllCheckbox = dropdown.querySelector('.select-all-checkbox');
+
+            optionsContainer.querySelectorAll('.filter-checkbox').forEach(checkbox => {
+                checkbox.checked = selectedValues.some(val => val.toLowerCase() === checkbox.value.toLowerCase());
+            });
+            updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+        });
+
+        const visibilityDropdown = document.querySelector('.filter-dropdown[data-filter-type="visibility"]');
+        if (visibilityDropdown) {
+            const optionsContainer = visibilityDropdown.querySelector('.filter-options');
+            const selectAllCheckbox = visibilityDropdown.querySelector('.select-all-columns-checkbox');
+
+            optionsContainer.querySelectorAll('.column-checkbox').forEach(checkbox => {
+                checkbox.checked = visibleColumns.some(val => val.toLowerCase() === checkbox.value.toLowerCase());
+            });
+            updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+        }
+    }
+
+    // --- Download Functionality ---
+
+    function downloadExcel() {
+        if (tableData.length === 0) {
+            alert("No data to download.");
+            return;
+        }
+        let filteredData = tableData;
+
+        dataFilterableColumnNames.forEach(columnName => {
+            const selectedValues = currentAppliedDataFilters[columnName];
+            if (selectedValues && selectedValues.length > 0) {
+                filteredData = filteredData.filter(row => {
+                    const rowKey = Object.keys(row).find(key => key.toLowerCase() === columnName.toLowerCase());
+                    if (rowKey) {
+                        const rowValue = row[rowKey] !== undefined && row[rowKey] !== null ? String(row[rowKey]) : '';
+                        return selectedValues.includes(rowValue);
+                    }
+                    return false;
+                });
+            }
+        });
+
+        if (currentSort.column) {
+            const sortColumnName = currentSort.column;
+            const sortDirection = currentSort.direction;
+            const actualSortColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === sortColumnName.toLowerCase());
+            if (actualSortColumnName) {
+                filteredData.sort((a, b) => {
+                    const aValue = a[actualSortColumnName] !== undefined && a[actualSortColumnName] !== null ? String(a[actualSortColumnName]) : '';
+                    const bValue = b[actualSortColumnName] !== undefined && b[actualSortColumnName] !== null ? String(b[actualSortColumnName]) : '';
+                     if (actualSortColumnName.toLowerCase() === 'month') { // Assuming 'Month' is the exact column name
+                         const numA = parseInt(aValue);
+                         const numB = parseInt(bValue);
+                         if (isNaN(numA) && isNaN(numB)) return 0;
+                         if (isNaN(numA)) return 1;
+                         if (isNaN(numB)) return -1;
+                         return sortDirection === 'asc' ? numA - numB : numB - numA;
+                     }
+                    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+                    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            }
+        }
+
+        const dataToDownload = [];
+        const headersToDownload = [];
+        columnDisplayOrder.forEach(col => {
+            if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
+                const actualColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === col.toLowerCase());
+                headersToDownload.push(actualColumnName || col);
+            }
+        });
+        dataToDownload.push(headersToDownload);
+
+        filteredData.forEach(row => {
+            const rowArray = [];
+            columnDisplayOrder.forEach(col => {
+                if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
+                    const rowKey = Object.keys(row).find(key => key.toLowerCase() === col.toLowerCase());
+                    rowArray.push(rowKey ? row[rowKey] : '');
+                }
+            });
+            dataToDownload.push(rowArray);
+        });
+
+        if (dataToDownload.length <= 1) {
+            alert("No data to download based on current filters and column selections.");
+            return;
+        }
+
+        const ws = XLSX.utils.aoa_to_sheet(dataToDownload);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "FilteredTable");
+        wb.Props = {
+            Title: "Filtered Table Data",
+            Subject: "Table Data Download",
+            Author: "Web Page Script",
+            CreatedDate: new Date()
+        };
+
+        XLSX.writeFile(wb, "table_data.xlsx");
+    }
+
+    function downloadPdf() {
+        if (tableData.length === 0) {
+             alert("No data to download.");
+             return;
+        }
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('l', 'pt', 'a4');
+
+        let filteredData = tableData;
+        dataFilterableColumnNames.forEach(columnName => {
+            const selectedValues = currentAppliedDataFilters[columnName];
+            if (selectedValues && selectedValues.length > 0) {
+                filteredData = filteredData.filter(row => {
+                    const rowKey = Object.keys(row).find(key => key.toLowerCase() === columnName.toLowerCase());
+                    if (rowKey) {
+                        const rowValue = row[rowKey] !== undefined && row[rowKey] !== null ? String(row[rowKey]) : '';
+                        return selectedValues.includes(rowValue);
+                    }
+                    return false;
+                });
+            }
+        });
+        if (currentSort.column) {
+            const sortColumnName = currentSort.column;
+            const sortDirection = currentSort.direction;
+            const actualSortColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === sortColumnName.toLowerCase());
+            if (actualSortColumnName) {
+                filteredData.sort((a, b) => {
+                    const aValue = a[actualSortColumnName] !== undefined && a[actualSortColumnName] !== null ? String(a[actualSortColumnName]) : '';
+                    const bValue = b[actualSortColumnName] !== undefined && b[actualSortColumnName] !== null ? String(b[actualSortColumnName]) : '';
+                    if (actualSortColumnName.toLowerCase() === 'month') { // Assuming 'Month' is the exact column name
+                         const numA = parseInt(aValue);
+                         const numB = parseInt(bValue);
+                         if (isNaN(numA) && isNaN(numB)) return 0;
+                         if (isNaN(numA)) return 1;
+                         if (isNaN(numB)) return -1;
+                         return sortDirection === 'asc' ? numA - numB : numB - numA;
+                     }
+                    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+                    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            }
+        }
+
+        const pdfHeaders = [];
+        const pdfRows = [];
+        const columnStyles = {};
+
+        let colIndex = 0;
+        columnDisplayOrder.forEach(col => {
+            if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
+                pdfHeaders.push(col);
+
+                const actualColName = columnNamesFromExcel.find(name => name.toLowerCase() === col.toLowerCase());
+                const alignment = actualColName ? columnAlignments[actualColName] : 'left';
+                columnStyles[colIndex] = { halign: alignment, valign: 'top' };
+
+                if (actualColName && columnWidths[actualColName]) {
+                    const widthStr = columnWidths[actualColName];
+                    if (widthStr.endsWith('px')) {
+                        const widthInPoints = parseFloat(widthStr) * 0.75;
+                        columnStyles[colIndex].cellWidth = widthInPoints;
+                    }
+                }
+                colIndex++;
+            }
+        });
+
+        filteredData.forEach(rowData => {
+            const rowArray = [];
+            columnDisplayOrder.forEach(col => {
+                if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
+                    const rowKey = Object.keys(rowData).find(key => key.toLowerCase() === col.toLowerCase());
+                    rowArray.push(rowKey ? rowData[rowKey] : '');
+                }
+            });
+            pdfRows.push(rowArray);
+        });
+
+        if (pdfHeaders.length === 0 || pdfRows.length === 0) {
+            alert("No data or visible columns to download as PDF.");
+            return;
+        }
+
+        const remarks = document.getElementById('pdfRemarksInput').value.trim();
+
+        const margin = 40;
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const companyNameHeightEst = 16 * 1.2;
+        const remarksLineHeightEst = 14 * 1.2;
+        let remarksBlockHeight = 0;
+        if (remarks) {
+            const splitRemarks = pdf.splitTextToSize(remarks, pdfWidth - 2 * margin);
+            remarksBlockHeight = splitRemarks.length * remarksLineHeightEst;
+        }
+        const paddingAfterCompanyName = 15;
+        const paddingAfterRemarks = 20;
+        let headerHeightPt = margin + companyNameHeightEst + paddingAfterCompanyName + remarksBlockHeight + paddingAfterRemarks;
+        if (!remarks) {
+            headerHeightPt = margin + companyNameHeightEst + paddingAfterCompanyName + paddingAfterRemarks;
+        }
+        headerHeightPt += 10;
+
+        pdf.autoTable({
+            head: [pdfHeaders],
+            body: pdfRows,
+            startY: headerHeightPt,
+            theme: 'grid',
+            headStyles: {
+                fillColor: '#e0f7fa',
+                textColor: '#333',
+                fontStyle: 'bold',
+                valign: 'top'
+            },
+            bodyStyles: {
+                textColor: '#333',
+                valign: 'top'
+            },
+            alternateRowStyles: {
+                fillColor: '#f5f5f5'
+            },
+            columnStyles: columnStyles,
+            tableWidth: 'auto',
+            margin: { top: headerHeightPt, bottom: 40, left: 40, right: 40 },
+            didDrawPage: function(data) {
+                const pageMargin = 40;
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+
+                pdf.setFontSize(16);
+                pdf.setTextColor('#000080');
+                const companyNameY = pageMargin + 15;
+                pdf.text('Sagar Manufacturers Pvt. Ltd.', pageMargin, companyNameY);
+
+                if (remarks) {
+                    const companyNameBottom = companyNameY + (16 * 1.2);
+                    const remarksYPos = companyNameBottom + 10;
+                    pdf.setFontSize(14);
+                    pdf.setTextColor('#333');
+                    const splitRemarks = pdf.splitTextToSize(remarks, pdfWidth - 2 * pageMargin);
+                    const remarksTextWidth = pdf.getTextWidth(splitRemarks[0] || '');
+                    const centerX = (pdfWidth - remarksTextWidth) / 2;
+                    pdf.text(splitRemarks, centerX, remarksYPos);
+                }
+
+                pdf.setFontSize(10);
+                pdf.setTextColor(150);
+                pdf.text('Page ' + data.pageNumber, pdfWidth - pageMargin, pdfHeight - pageMargin, { align: 'right' });
+            }
+        });
+
+        pdf.save("Dispatch_dashboard.pdf");
+    }
+
+    // --- Initialization ---
+
+    // Ensure the DOM is fully loaded before adding event listeners and setting initial state
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // --- Initial Display State ---
+        // Hide table-related controls and containers until data is loaded
+        document.getElementById('tableScrollContainer').style.display = 'none';
+        document.getElementById('filtersContainer').style.display = 'none';
+        document.getElementById('applyFiltersButton').style.display = 'none';
+        document.getElementById('downloadButtons').style.display = 'none';
+        document.getElementById('layoutControlsContent').style.display = 'none';
+        document.getElementById('widthControlsContent').style.display = 'none';
+        document.getElementById('alignmentControlsContent').style.display = 'none';
+        document.getElementById('reorderControls').style.display = 'none';
+        document.getElementById('pdfRemarksInputContainer').style.display = 'none';
+
+        // Ensure Load Data container is visible (it should be by default based on HTML structure)
+
+
+        // --- Add Event Listeners ---
+
+        // Event listener for the Load Data Button
+        document.getElementById('loadDataButton').addEventListener('click', () => {
+            const selectedYear = document.getElementById('yearSelector').value;
+            const fileUrl = supabaseFileUrls[selectedYear];
+            if (fileUrl) {
+                fetchSupabaseFile(fileUrl);
+            } else {
+                console.error("Invalid year selected.");
+                alert("Invalid year selected for data loading.");
+            }
+        });
+
+        // Event listener for the Apply Filters Button
+        document.getElementById('applyFiltersButton').addEventListener('click', applyFilters, false);
+
+        // Event listeners for Download Buttons
+        document.getElementById('downloadExcelButton').addEventListener('click', downloadExcel, false);
+        document.getElementById('downloadPdfButton').addEventListener('click', downloadPdf, false);
+
+        // Layout Control Event Listeners
+        document.getElementById('saveLayoutButton').addEventListener('click', saveLayout, false);
+        document.getElementById('loadLayoutSelect').addEventListener('change', enableLayoutButtons, false);
+        document.getElementById('loadLayoutButton').addEventListener('click', loadLayout, false);
+        document.getElementById('deleteLayoutButton').addEventListener('click', deleteLayout, false);
+
+        // Column Width Adjustment Event Listener
+        document.getElementById('applyColumnWidthButton').addEventListener('click', applyColumnWidth, false);
+
+        // Column Alignment Adjustment Event Listener
+        document.getElementById('applyColumnAlignmentButton').addEventListener('click', applyColumnAlignment, false);
+
+        // Column Reordering Event Listeners
+        document.getElementById('showReorderPanelButton').addEventListener('click', showReorderPanel, false);
+        document.getElementById('applyReorderButton').addEventListener('click', applyReorder, false);
+        document.getElementById('cancelReorderButton').addEventListener('click', hideReorderPanel, false);
+
+        // Initial load of saved layouts on page load
+        loadSavedLayoutNames();
+        enableLayoutButtons(); // Set initial button states (handles save button based on file load)
+
+    }); // End DOMContentLoaded listener
+
+</script>
+
+</body>
+</html>
