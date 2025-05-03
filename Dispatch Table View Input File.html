@@ -4,33 +4,24 @@
     <meta charset="UTF-8">
     <title>Sagar Manufacturers Dashboard</title>
 
-    <!-- Existing Script Tags (ordered as provided) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.14/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 
-    <!-- DataTables.net CSS -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css"/>
-
-    <!-- DataTables.net and its dependency (jQuery) -->
-    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- jQuery MUST be loaded before DataTables JS -->
-    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script> <!-- DataTables JS -->
-
-    <!-- Style block (usually after CDNs or at the end of head) -->
-    <style>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <style>
         /* ... Your existing CSS styles ... */
         body {
             font-family: sans-serif;
             margin: 0; /* Remove default body margin */
             padding: 0; /* Add padding to body */
             background-color: #FFFFFF; /* Light gray background */
+            width: 100%; /* Ensure body spans the entire width */
         }
 
         .container {
-            max-width: 1200px; /* Max width for content */
+            width: 100vw; /* Full width of the viewport */
             margin: 0 auto; /* Center the container */
             background-color: #fff; /* White background for container */
             padding: 20px;
@@ -96,7 +87,7 @@
     }
 
        /* Style for individual control groups (Layout, Width, Alignment) */
-        #layoutControlsContent, #widthControlsContent, #alignmentControlsContent { /* Target the new span IDs */
+       #layoutControlsContent, #widthControlsContent, #alignmentControlsContent { /* Target the new span IDs */
             display: flex;
             align-items: center;
             gap: 10px;
@@ -123,8 +114,8 @@
             background-color: #e0e0e0;
         }
          #layoutControlsContent button:hover, #widthControlsContent button:hover, #alignmentControlsContent button:hover { /* Added hover */
-             background-color: #d5d5d5;
-         }
+              background-color: #d5d5d5;
+           }
         #widthControlsContent input[type="number"] {
             width: 60px; /* Adjust width as needed */
         }
@@ -135,44 +126,44 @@
             gap: 10px;
         }
          #applyButtonContainer button {
-             padding: 8px 15px;
-             background-color: #007bff;
-             color: white;
-             border: none;
-             border-radius: 4px;
-             cursor: pointer;
-             font-size: 14px;
-         }
+              padding: 8px 15px;
+              background-color: #007bff;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+              font-size: 14px;
+           }
          #applyButtonContainer button:hover {
-           background-color: #0056b3;
-         }
+            background-color: #0056b3;
+           }
          #downloadButtons button {
-             padding: 8px 15px;
-             background-color: #28a745;
-             color: white;
-             border: none;
-             border-radius: 4px;
-             cursor: pointer;
-             font-size: 14px;
-         }
+              padding: 8px 15px;
+              background-color: #28a745;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+              font-size: 14px;
+           }
           #downloadButtons button.pdf {
               background-color: #dc3545;
-          }
+           }
          #downloadButtons button:hover {
-             opacity: 0.9;
-         }
+              opacity: 0.9;
+           }
         #reorderControls button { /* Style for reorder button */
-             padding: 8px 15px;
-             background-color: #ffc107; /* Yellowish */
-             color: #333;
-             border: none;
-             border-radius: 4px;
-             cursor: pointer;
-             font-size: 14px;
-        }
+              padding: 8px 15px;
+              background-color: #ffc107; /* Yellowish */
+              color: #333;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+              font-size: 14px;
+           }
          #reorderControls button:hover {
-             background-color: #e0a800;
-         }
+              background-color: #e0a800;
+           }
 
         #pdfRemarksInputContainer { /* Style for remarks input */
             display: flex;
@@ -192,48 +183,59 @@
              border: 1px solid #ccc;
              border-radius: 3px;
              font-size: 14px;
-        }
+         }
 
 
-        /* Container for horizontal scrolling */
+       /* Container for horizontal scrolling of the table */
         #tableScrollContainer {
-            overflow-x: auto;
-            margin-top: 20px;
-        }
+    overflow-x: auto; /* Enable horizontal scrolling */
+    overflow-y: auto; /* Enable vertical scrolling */
+    max-height: 500px; /* Set a fixed height for the container */
+    border: 1px solid #ccc; /* Optional: Add a border for better visibility */
+    margin-top: 20px; /* Space above the table */
+    position: relative; /* Ensure proper positioning */
+}
 
+        /* Table styles */
         table {
             border-collapse: collapse;
-            /* Remove width: 100%; here to allow table to exceed container width */
             font-size: 14px;
-            table-layout: fixed; /* Keep fixed layout for controlled column widths */
-            border: 1px solid black; /* Black border around the table */
-            min-width: 100%; /* Ensure table takes at least 100% width if content is less */
+            table-layout: fixed; /* Fixed layout for column widths */
+            border: 1px solid black;
+            width: 100%;
         }
         th, td {
-            border: 1px solid black; /* Black borders between columns and rows */
+            border: 1px solid black;
             padding: 8px;
             text-align: left; /* Default alignment */
-            vertical-align: top; /* Align content to the top in cells */
-            word-wrap: break-word; /* Allow long words to break */
-            white-space: pre-wrap; /* Preserve whitespace and wrap text */
-            overflow: hidden; /* Hide overflowing content within the cell */
-            text-overflow: ellipsis; /* Add ellipsis for overflowing text */
+            vertical-align: top;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            
+            text-overflow: ellipsis;
         }
          th {
-             background-color: #e0f7fa; /* Light blue background for headers */
-             font-weight: bold;
-             position: relative; /* Needed for sort arrows */
-             cursor: pointer; /* Indicate sortable */
-         }
+              background-color: #e0f7fa; /* Light blue */
+              font-weight: bold;
+              position: relative;
+              cursor: pointer;
+           }
          th:hover {
-             background-color: #b2ebf2; /* Slightly darker blue on hover */
-         }
+              background-color: #b2ebf2;
+           }
          th .sort-arrow {
-             margin-left: 5px;
-             font-size: 10px;
-         }
+              margin-left: 5px;
+              font-size: 10px;
+           }
 
-
+/* Make the table header sticky */
+table thead th {
+    position: sticky;
+    top: 0; /* Stick to the top of the container */
+    z-index: 2; /* Ensure it stays above the table rows */
+    background-color: #e0f7fa; /* Match the header background color */
+    border: 1px solid black; /* Match the border style */
+}
         .filter-container {
             margin-bottom: 10px;
             display: flex;
@@ -257,13 +259,13 @@
             font-size: 14px;
         }
          .dropdown-button .filter-arrow {
-             float: right;
-             color: white; /* White arrow */
-         }
+              float: right;
+              color: white; /* White arrow */
+           }
           .dropdown-button:hover {
               background-color: #0056b3; /* Darker blue on hover */
               border-color: #0056b3;
-          }
+           }
 
         .dropdown-content {
             display: none;
@@ -281,8 +283,8 @@
             left: 0;
         }
          .dropdown-content .search-container {
-             margin-bottom: 8px;
-         }
+              margin-bottom: 8px;
+           }
         .dropdown-content input[type="text"] {
             width: calc(100% - 18px);
             padding: 5px;
@@ -301,8 +303,8 @@
             font-size: 14px;
         }
          .dropdown-content .select-all input[type="checkbox"] {
-             margin-right: 5px;
-         }
+              margin-right: 5px;
+           }
         .dropdown-content .filter-options {
             margin-bottom: 5px; /* Reduced bottom margin */
         }
@@ -314,94 +316,95 @@
             font-size: 14px;
         }
          .dropdown-actions {
-             display: none; /* Hide action buttons within dropdowns */
-         }
+              display: none; /* Hide action buttons within dropdowns */
+           }
 
         /* Styles for the Reorder Panel */
          #reorderPanel {
-             position: fixed; /* or absolute */
-             top: 50%;
-             left: 50%;
-             transform: translate(-50%, -50%);
-             background-color: #fff;
-             padding: 20px;
-             border: 1px solid #ccc;
-             box-shadow: 0 0 10px rgba(0,0,0,0.5);
-             z-index: 100;
-             max-height: 80vh;
-             overflow-y: auto;
-             display: none; /* Initially hidden */
-         }
+              position: fixed; /* or absolute */
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              background-color: #fff;
+              padding: 20px;
+              border: 1px solid #ccc;
+              box-shadow: 0 0 10px rgba(0,0,0,0.5);
+              z-index: 100;
+              max-height: 80vh;
+              overflow-y: auto;
+              display: none; /* Initially hidden */
+           }
          #columnOrderList {
-             list-style: none;
-             padding: 0;
-             margin: 0 0 15px 0;
-         }
+              list-style: none;
+              padding: 0;
+              margin: 0 0 15px 0;
+           }
          #columnOrderList li {
-             margin-bottom: 5px;
-             padding: 8px;
-             border: 1px solid #eee;
-             background-color: #f9f9f9;
-             display: flex;
-             justify-content: space-between;
-             align-items: center;
-             font-size: 14px;
-         }
+              margin-bottom: 5px;
+              padding: 8px;
+              border: 1px solid #eee;
+              background-color: #f9f9f9;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              font-size: 14px;
+           }
          #columnOrderList li button {
-             padding: 3px 8px;
-             margin-left: 5px;
-             cursor: pointer;
+              padding: 3px 8px;
+              margin-left: 5px;
+              cursor: pointer;
+           }
+
+        /* Chart-specific styles from the second code - Keeping for layout consistency */
+        .chart-container { /* This container is now permanently hidden */
+           display: flex;
+           flex-wrap: wrap;
+           gap: 20px;
+           justify-content: space-between;
+           width: 100%;
+           height: 100%;
          }
 
-        /* Chart-specific styles from the second code */
-        .chart-container {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 20px;
-          justify-content: space-between;
-          width: 100%;
-          height: 100%;
-        }
-
-        .chart-box {
-          background: white;
-          border: 1px solid #ccc;
-          padding: 10px;
-          width: 48%;
-          box-sizing: border-box;
-          position: relative;
-          display: flex;
-          flex-direction: column;
-          justify-content: stretch;
-        }
+         .chart-box { /* These boxes are now permanently hidden */
+           background: white;
+           border: 1px solid #ccc;
+           padding: 10px;
+           width: 48%;
+           box-sizing: border-box;
+           position: relative;
+           display: flex;
+           flex-direction: column;
+           justify-content: stretch;
+         }
 
 
-        .chart-box canvas {
-          width: 100% !important;
-          height: 100% !important;
-          max-height: 100%;
-        }
+         .chart-box canvas { /* These canvases are now permanently hidden */
+           width: 100% !important;
+           height: 100% !important;
+           max-height: 100%;
+         }
 
 
-        .chart-toolbar {
-          position: absolute;
-          top: 5px;
-          right: 5px;
-        }
-        .chart-toolbar button {
-          background: #1e3a8a;
-          color: white;
-          border: none;
-          padding: 5px 8px;
-          cursor: pointer;
-          margin-left: 5px;
-        }
+         .chart-toolbar { /* This toolbar is now permanently hidden */
+           position: absolute;
+           top: 5px;
+           right: 5px;
+         }
+         .chart-toolbar button { /* These buttons are now permanently hidden */
+           background: #1e3a8a;
+           color: white;
+           border: none;
+           padding: 5px 8px;
+           cursor: pointer;
+           margin-left: 5px;
+         }
 
-    </style>
+    </style>
 </head>
 <body>
 
-<div class="container"> <div class="dashboard-header">
+<div class="container">
+    <div class="dashboard-header">
         <img src="https://www.sagarmanufacturers.com/assets/web/images/smpl-new-logo.png" alt="Company Logo"
              style="height: 60px; width: auto; margin-right: 15px;">
         <h1 class="company-name">Sagar Manufacturers Pvt. Ltd.</h1>
@@ -410,135 +413,82 @@
         <div id="fileInputContainer">
             <label for="excelFileInput">Choose Excel File:</label>
             <input type="file" id="excelFileInput" accept=".xls,.xlsx">
-<select id="viewSelector" style="margin-left: auto;"> <option value="table">Table View</option>
-          
-        </select>
-<button onclick="goBack()" 
-        style="background-color: red; color: white; padding: 8px 12px; border: none; border-radius: 4px; float: right; cursor: pointer; font-weight: bold; font-size: 16px; float: right;">
-    ← Home
-</button>
+            <button onclick="goBack()"
+                    style="background-color: red; color: white; padding: 8px 12px; border: none; border-radius: 4px; float: right; cursor: pointer; font-weight: bold; font-size: 16px; margin-left: auto;">
+                ← Home
+            </button>
         </div>
 
-        <div  <span style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; flex-grow: 1;" id="layoutAndWidthControls">
-             <span style="display: flex; align-items: center; gap: 10px; border: 1px solid #ccc; padding: 8px; border-radius: 4px; background-color: #f9f9f9; display: none;" id="layoutControlsContent">
-                 <span>Layout:</span>
-                 <input type="text" id="layoutNameInput" placeholder="Layout Name">
-                 <button id="saveLayoutButton">Save</button>
-                 <select id="loadLayoutSelect">
-                     <option value="">- Load Layout -</option>
-                 </select>
-                 <button id="loadLayoutButton" disabled>Load</button>
-                 <button id="deleteLayoutButton" disabled>Delete</button>
+        <div id="layoutAndWidthControls" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; flex-grow: 1;">
+            <span id="layoutControlsContent" style="display: flex; align-items: center; gap: 10px; border: 1px solid #ccc; padding: 8px; border-radius: 4px; background-color: #f9f9f9; display: none;">
+                <span>Layout:</span>
+                <input type="text" id="layoutNameInput" placeholder="Layout Name">
+                <button id="saveLayoutButton">Save</button>
+                <select id="loadLayoutSelect">
+                    <option value="">- Load Layout -</option>
+                </select>
+                <button id="loadLayoutButton" disabled>Load</button>
+                <button id="deleteLayoutButton" disabled>Delete</button>
+            </span>
 
-          <div id="applyButtonContainer">
-            <button id="applyFiltersButton" style="display: none;">Apply Filters</button>
+            <div id="applyButtonContainer">
+                <button id="applyFiltersButton" style="display: none;">Apply Filters</button>
+            </div>
+
+            <div id="downloadButtons" style="display: none;">
+                <span>Download:</span>
+                <button id="downloadExcelButton">Excel</button>
+                <button id="downloadPdfButton" class="pdf">PDF</button>
+            </div>
+
+            <div id="reorderControls" style="display: none;">
+                <button id="showReorderPanelButton">Reorder Columns</button>
+            </div>
+
+            <span id="widthControlsContent" style="display: flex; align-items: center; gap: 5px; border: 1px solid #ccc; padding: 8px; border-radius: 4px; background-color: #f9f9f9; display: none;">
+                <span>Adjust Width:</span>
+                <select id="columnSelectForWidth">
+                    <option value="">- Select Column -</option>
+                </select>
+                <input type="number" id="columnWidthValue" value="150" min="10" style="width: 60px;">
+                <select id="columnWidthUnit">
+                    <option value="px">px</option>
+                    <option value="%">%</option>
+                    <option value="em">em</option>
+                    <option value="cm">cm</option>
+                    <option value="mm">mm</option>
+                </select>
+                <button id="applyColumnWidthButton">Apply</button>
+            </span>
+
+            <span id="alignmentControlsContent" style="display: flex; align-items: center; gap: 5px; border: 1px solid #ccc; padding: 8px; border-radius: 4px; background-color: #f9f9f9; display: none;">
+                <span>Align Data:</span>
+                <select id="columnSelectForAlignment">
+                    <option value="">- Select Column -</option>
+                </select>
+                <select id="columnAlignmentValue">
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                </select>
+                <button id="applyColumnAlignmentButton">Apply</button>
+            </span>
         </div>
 
-        <div id="downloadButtons" style="display: none;">
-            <span>Download:</span>
-            <button id="downloadExcelButton">Excel</button>
-            <button id="downloadPdfButton" class="pdf">PDF</button>
+        <div id="pdfRemarksInputContainer" style="display: none; margin-top: 10px; width: 100%;">
+            <label for="pdfRemarksInput">Remarks/Title for PDF:</label>
+            <input type="text" id="pdfRemarksInput" placeholder="Enter remarks or title for PDF..." style="flex-grow: 1; padding: 5px;">
         </div>
-
-        <div id="reorderControls" style="display: none;">
-           <button id="showReorderPanelButton">Reorder Columns</button>
-        </div>
-
-             </span>
-</div>
-
-           <div    <span style="display: flex; align-items: center; gap: 5px; border: 1px solid #ccc; padding: 8px; border-radius: 4px; background-color: #f9f9f9; display: none;" id="widthControlsContent">
-                 <span>Adjust Width:</span>
-                 <select id="columnSelectForWidth">
-                     <option value="">- Select Column -</option>
-                 </select>
-                 <input type="number" id="columnWidthValue" value="150" min="10" style="width: 60px;">
-                 <select id="columnWidthUnit">
-                     <option value="px">px</option>
-                     <option value="%">%</option>
-                     <option value="em">em</option>
-                     <option value="cm">cm</option>
-                     <option value="mm">mm</option>
-                 </select>
-                 <button id="applyColumnWidthButton">Apply</button>
-             </span> 
-
-              <span style="display: flex; align-items: center; gap: 5px; border: 1px solid #ccc; padding: 8px; border-radius: 4px; background-color: #f9f9f9; display: none;" id="alignmentControlsContent">
-                  <span>Align Data:</span>
-                  <select id="columnSelectForAlignment">
-                      <option value="">- Select Column -</option>
-                  </select>
-                  <select id="columnAlignmentValue">
-                      <option value="left">Left</option>
-                      <option value="center">Center</option>
-                      <option value="right">Right</option>
-                  </select>
-                  <button id="applyColumnAlignmentButton">Apply</button>
-              </span></div>
-
-
-        </span>
-         <div id="pdfRemarksInputContainer" style="display: none; margin-top: 10px; width: 100%;">
-              <label for="pdfRemarksInput">Remarks/Title for PDF:</label>
-              <input type="text" id="pdfRemarksInput" placeholder="Enter remarks or title for PDF..." style="flex-grow: 1; padding: 5px;">
-         </div>
-        
     </div>
 
     <div id="filtersContainer" class="filter-container">
-        </div>
+    </div>
 
     <div id="tableScrollContainer">
         <div id="tableContainer">
-            </div>
+        </div>
     </div>
-
-</div> <div id="chartContainer" class="chart-container" style="display:none;">
-  <div class="chart-box">
-    <div class="chart-toolbar">
-      <button onclick="downloadChart('monthChart')">Download</button>
-      </div>
-    <canvas id="monthChart"></canvas>
-  </div>
-  <div class="chart-box">
-    <div class="chart-toolbar">
-      <button onclick="downloadChart('unitChart')">Download</button>
-      </div>
-    <canvas id="unitChart"></canvas>
-  </div>
-
-  <div class="chart-box">
-    <div class="chart-toolbar">
-      <button onclick="downloadChart('smplBlendChart')">Download</button>
-
-    </div>
-    <canvas id="smplBlendChart"></canvas>
-  </div>
- <div class="chart-box">
-    <div class="chart-toolbar">
-      <button onclick="downloadChart('exportPie')">Download</button>
-
-    </div>
-    <div class="chart-container"><canvas id="exportPie"></canvas></div>
-  </div>
-  <div class="chart-box">
-    <div class="chart-toolbar">
-      <button onclick="downloadChart('marketChart')">Download</button>
-
-    </div>
-    <canvas id="marketChart"></canvas>
-  </div>
-<div class="chart-box">
-    <div class="chart-toolbar">
-      <button onclick="downloadChart('customerChart')">Download</button>
-    </div>
-    <canvas id="customerChart"></canvas>
-  </div>
-
-</div>
-
-
-<div id="reorderPanel" style="display: none;
+</div> <div id="reorderPanel" style="display: none;
     position: fixed; /* or absolute */
     top: 50%;
     left: 50%;
@@ -552,16 +502,15 @@
     overflow-y: auto;">
     <h3>Reorder Columns</h3>
     <ul id="columnOrderList" style="list-style: none; padding: 0;">
-        </ul>
+    </ul>
     <button id="applyReorderButton">Apply Order</button>
     <button id="cancelReorderButton">Cancel</button>
 </div>
 
 <script>
-
-// Define which columns should have data filters (alphabetically sorted later)
+    // Define which columns should have data filters (alphabetically sorted later)
     const dataFilterableColumnNames = [
-        'YEAR',
+        'Year',
         'Month', // Added month filter
         'Plant',
         'Customer_Name',
@@ -584,25 +533,9 @@
     let columnWidths = {}; // Store custom column widths (using cleaned column names as keys, storing strings like "500px")
     let columnDisplayOrder = []; // Store the desired order of ALL columns
     let columnAlignments = {}; // Store custom column alignments (using cleaned column names as keys, storing strings like "center")
-    let charts = []; // Array to hold Chart.js instances
+    // Removed chart variables
 
-
-    let dataTableInstance = null; // Variable to hold the DataTables instance
-
-    // New global variable to store filters applied by clicking on charts
-    // Structure: { 'Column Name': ['Value1', 'Value2'], ... }
-    let currentChartFilters = {};
-
-    // Mapping from chart label categories (like 'Month wise') to actual data column names
-    const chartColumnMapping = {
-         'Month wise': 'Billing Date', // Need to map month name back to date column
-         'Unit wise': 'Plant',
-         'Customer Type': 'Sales Document', // Need logic to map Export/Domestic back to Sales Document
-         'Invoiced Qty (MT)': 'SMPL Count', // Or the column used for blend calculation
-         'Market wise': 'Market',
-         'Top 10 Customers': 'Customer_Name'
-         // Add mappings for other charts if needed
-    };
+    // Removed chart interaction filter variables and mapping
 
 
     // Ensure the DOM is fully loaded before adding event listeners
@@ -635,35 +568,8 @@
         document.getElementById('applyReorderButton').addEventListener('click', applyReorder, false);
         document.getElementById('cancelReorderButton').addEventListener('click', hideReorderPanel, false);
 
-        // Event listener for the View Selector (from second code)
-        document.getElementById('viewSelector').addEventListener('change', function() {
-             const view = this.value;
-             if(view === 'table'){
-                 document.getElementById('tableScrollContainer').style.display = ''; // Show table container (wrapped for scroll)
-                 document.getElementById('chartContainer').style.display = 'none'; // Hide chart container
-                 // Show relevant table controls - these are managed by file load, but ensure visibility state matches view
-                 document.getElementById('applyFiltersButton').style.display = tableData.length > 0 ? 'inline-block' : 'none';
-                 document.getElementById('downloadButtons').style.display = tableData.length > 0 ? 'flex' : 'none';
-                 document.getElementById('layoutControlsContent').style.display = tableData.length > 0 ? 'flex' : 'none';
-                 document.getElementById('widthControlsContent').style.display = tableData.length > 0 ? 'flex' : 'none';
-                 document.getElementById('alignmentControlsContent').style.display = tableData.length > 0 ? 'flex' : 'none';
-                 document.getElementById('reorderControls').style.display = tableData.length > 0 ? 'block' : 'none';
-                 document.getElementById('pdfRemarksInputContainer').style.display = tableData.length > 0 ? 'flex' : 'none';
-                 document.getElementById('filtersContainer').style.display = tableData.length > 0 ? 'flex' : 'none'; // Also show filters container
-             } else { // Chart view
-                 document.getElementById('tableScrollContainer').style.display = 'none'; // Hide table container
-                 document.getElementById('chartContainer').style.display = 'flex'; // Show chart container
-                 // Hide table controls
-                 document.getElementById('applyFiltersButton').style.display = 'none';
-                 document.getElementById('downloadButtons').style.display = 'none';
-                 document.getElementById('layoutControlsContent').style.display = 'none';
-                 document.getElementById('widthControlsContent').style.display = 'none';
-                 document.getElementById('alignmentControlsContent').style.display = 'none';
-                 document.getElementById('reorderControls').style.display = 'none';
-                 document.getElementById('pdfRemarksInputContainer').style.display = 'none';
-                 document.getElementById('filtersContainer').style.display = 'none'; // Also hide filters container
-             }
-        });
+        // Removed View Selector event listener
+
 
         // Initial load of saved layouts on page load (from first code)
         loadSavedLayoutNames();
@@ -703,36 +609,36 @@
 
     // Helper function to optimize row data (merged from second code's optimizeRow and processRow)
     function optimizeRow(row) {
-         const newRow = {...row};
+        const newRow = {...row};
 
-         // Safer Date Fix for various date fields
-         ['Billing Date', 'fromdate', 'todate', 'QUERY RECEIVED DATE'].forEach(field => { // Added QUERY RECEIVED DATE
-             const cleanedField = Object.keys(newRow).find(key => key.toLowerCase() === field.toLowerCase());
-             if (cleanedField && newRow[cleanedField] !== undefined && newRow[cleanedField] !== null && typeof newRow[cleanedField] === 'number' && newRow[cleanedField] > 0) {
-                 try {
-                      // Use the custom helper function for conversion
-                      const date = excelDateToJSDate(newRow[cleanedField]);
-                      if (date instanceof Date && !isNaN(date) && date !== null) { // Check if it's a valid and non-null Date object
-                           // Format date to dd-mm-yy (or desired format)
-                           const day = date.getDate().toString().padStart(2, '0');
-                           const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
-                           const year = date.getFullYear().toString().slice(-2); // Get last two digits of year
-                           newRow[cleanedField] = `${day}-${month}-${year}`; // Store formatted date
-                       } else {
-                            newRow[cleanedField] = String(newRow[cleanedField]); // Fallback to original value string
-                       }
-                 } catch (e) {
-                      console.error(`Error during date conversion for field ${cleanedField}, value: ${newRow[cleanedField]}`, e);
-                      newRow[cleanedField] = String(newRow[cleanedField]); // Fallback to original value string
-                 }
-             } else if (cleanedField && newRow[cleanedField] !== undefined && newRow[cleanedField] !== null) {
-                 // Ensure non-numeric date-like values are also strings
-                  newRow[cleanedField] = String(newRow[cleanedField]);
-             } else if (cleanedField) {
-                 // Ensure null/undefined values in target date fields are empty strings
-                 newRow[cleanedField] = '';
-             }
-         });
+        // Safer Date Fix for various date fields
+        ['Billing Date', 'fromdate', 'todate', 'QUERY RECEIVED DATE'].forEach(field => { // Added QUERY RECEIVED DATE
+            const cleanedField = Object.keys(newRow).find(key => key.toLowerCase() === field.toLowerCase());
+            if (cleanedField && newRow[cleanedField] !== undefined && newRow[cleanedField] !== null && typeof newRow[cleanedField] === 'number' && newRow[cleanedField] > 0) {
+                try {
+                    // Use the custom helper function for conversion
+                    const date = excelDateToJSDate(newRow[cleanedField]);
+                    if (date instanceof Date && !isNaN(date) && date !== null) { // Check if it's a valid and non-null Date object
+                        // Format date to dd-mm-yy (or desired format)
+                        const day = date.getDate().toString().padStart(2, '0');
+                        const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
+                        const year = date.getFullYear().toString().slice(-2); // Get last two digits of year
+                        newRow[cleanedField] = `${day}-${month}-${year}`; // Store formatted date
+                    } else {
+                        newRow[cleanedField] = String(newRow[cleanedField]); // Fallback to original value string
+                    }
+                } catch (e) {
+                    console.error(`Error during date conversion for field ${cleanedField}, value: ${newRow[cleanedField]}`, e);
+                    newRow[cleanedField] = String(newRow[cleanedField]); // Fallback to original value string
+                }
+            } else if (cleanedField && newRow[cleanedField] !== undefined && newRow[cleanedField] !== null) {
+                // Ensure non-numeric date-like values are also strings
+                newRow[cleanedField] = String(newRow[cleanedField]);
+            } else if (cleanedField) {
+                // Ensure null/undefined values in target date fields are empty strings
+                newRow[cleanedField] = '';
+            }
+        });
 
 
         // Blend Calculation Optimization (from second code)
@@ -748,80 +654,48 @@
                 const percent = parseInt(match[1], 10);  // Ensure parsing as base 10
                 if (!isNaN(percent)) {
                     // Set Blend to percentage split, using the correct key if found, otherwise add 'Blend'
-                     if (blendKey) {
-                          newRow[blendKey] = `${percent}/${100 - percent}`;
-                     } else {
-                          newRow['Blend'] = `${percent}/${100 - percent}`; // Add 'Blend' if it wasn't a header
-                     }
+                    if (blendKey) {
+                        newRow[blendKey] = `${percent}/${100 - percent}`;
+                    } else {
+                        newRow['Blend'] = `${percent}/${100 - percent}`; // Add 'Blend' if it wasn't a header
+                    }
                 } else {
                     // Fallback if parsing percent failed, use the correct key or add 'Blend'
-                     if (blendKey) {
-                          newRow[blendKey] = '';
-                     } else {
-                          newRow['Blend'] = ''; // Add 'Blend' if it wasn't a header
-                     }
+                    if (blendKey) {
+                        newRow[blendKey] = '';
+                    } else {
+                        newRow['Blend'] = ''; // Add 'Blend' if it wasn't a header
+                    }
                 }
             } else {
                 // If Item Description doesn't match expected pattern, leave Blend empty, use the correct key or add 'Blend'
-                 if (blendKey) {
-                      newRow[blendKey] = '';
-                 } else {
-                      newRow['Blend'] = ''; // Add 'Blend' if it wasn't a header
-                 }
+                if (blendKey) {
+                    newRow[blendKey] = '';
+                } else {
+                    newRow['Blend'] = ''; // Add 'Blend' if it wasn't a header
+                }
             }
         } else {
             // If SMPL Count does not end with 'PC', just set Blend to empty, use the correct key or add 'Blend'
-             if (blendKey) {
-                  newRow[blendKey] = ''; // Or '100%' based on your logic, defaulted to ''
-             } else {
-                   newRow['Blend'] = ''; // Add 'Blend' if it wasn't a header, defaulted to ''
-             }
+            if (blendKey) {
+                newRow[blendKey] = ''; // Or '100%' based on your logic, defaulted to ''
+            } else {
+                newRow['Blend'] = ''; // Add 'Blend' if it wasn't a header, defaulted to ''
+            }
         }
 
         // Ensure all values are strings for consistent filtering and display
-         Object.keys(newRow).forEach(key => {
-             newRow[key] = newRow[key] !== undefined && newRow[key] !== null ? String(newRow[key]) : '';
-         });
+        Object.keys(newRow).forEach(key => {
+            newRow[key] = newRow[key] !== undefined && newRow[key] !== null ? String(newRow[key]) : '';
+        });
 
 
         return newRow;
     }
 
-    // Helper function for grouping and summing data for charts (from second code)
-    function groupSum(data, field, valueField){
-         const map = {};
-         const fieldKey = Object.keys(data[0] || {}).find(key => key.toLowerCase() === field.toLowerCase());
-         const valueFieldKey = Object.keys(data[0] || {}).find(key => key.toLowerCase() === valueField.toLowerCase());
 
 
-         if (!fieldKey || !valueFieldKey) {
-             console.warn(`groupSum: Could not find field '${field}' or valueField '${valueField}' in data.`);
-             return []; // Return empty array if keys are not found
-         }
-
-         data.forEach(row => {
-             const key = row[fieldKey]; // Use the found key
-             map[key] = (map[key] || 0) + (parseFloat(row[valueFieldKey]) || 0); // Use the found key
-         });
-         return Object.entries(map).sort((a,b) => b[1]-a[1]).slice(0,10);
-     }
-
-     // Helper function to update charts (from second code)
-     function updateChart(chartId, data, labels) {
-         const chart = charts.find(c => c.canvas.id === chartId);
-         if (chart) {
-             chart.data.labels = labels;
-             chart.data.datasets[0].data = data;
-             chart.update();
-         } else {
-             // If chart doesn't exist, generateCharts will recreate all charts
-             // For simplicity in this integration, we'll rely on generateCharts to handle creation/recreation
-             console.warn(`Chart with ID ${chartId} not found for update. Generate all charts.`);
-             generateCharts(); // Recreate all charts if one is missing
-         }
-     }
-
-// Function to handle the file selection and initial data loading (from first code, modified)
+    // Function to handle the file selection and initial data loading (from first code, modified)
     function handleFileSelect(event) {
         const file = event.target.files[0];
         if (!file) {
@@ -863,22 +737,22 @@
                 });
             } else {
                 console.warn("No header row found in the Excel file.");
-                 // Generate some default column names if no header
-                 const numCols = dataRows[0] ? dataRows[0].length : 0;
-                 for(let i = 0; i < numCols; i++) {
-                      columnNamesFromExcel.push(`Column${i+1}`);
-                 }
+                // Generate some default column names if no header
+                const numCols = dataRows[0] ? dataRows[0].length : 0;
+                for(let i = 0; i < numCols; i++) {
+                    columnNamesFromExcel.push(`Column${i+1}`);
+                }
             }
 
 
             // Map data rows to objects using the cleaned header names as keys, applying optimization (from first code, modified)
             tableData = dataRows.map(row => {
-                 const rowObject = {};
-                 columnNamesFromExcel.forEach((colName, index) => { // Use cleaned header names as keys
-                      rowObject[colName] = row[index]; // Store raw value first
-                 });
-                 // Apply optimization and date formatting to the row object
-                 return optimizeRow(rowObject); // Use the optimizeRow function here
+                const rowObject = {};
+                columnNamesFromExcel.forEach((colName, index) => { // Use cleaned header names as keys
+                    rowObject[colName] = row[index]; // Store raw value first
+                });
+                // Apply optimization and date formatting to the row object
+                return optimizeRow(rowObject); // Use the optimizeRow function here
             });
 
 
@@ -887,11 +761,11 @@
 
             // Initialize applied data filters to empty, and visible columns to all excel columns (from first code)
             dataFilterableColumnNames.forEach(col => {
-                 // Ensure the filterable column exists in the excel file's columns (case-insensitive)
-                 if (columnNamesFromExcel.some(name => name.toLowerCase() === col.toLowerCase())) {
-                      currentAppliedDataFilters[col] = [];
-                 }
-             });
+                // Ensure the filterable column exists in the excel file's columns (case-insensitive)
+                if (columnNamesFromExcel.some(name => name.toLowerCase() === col.toLowerCase())) {
+                    currentAppliedDataFilters[col] = [];
+                }
+            });
             visibleColumns = [...columnNamesFromExcel];
             currentSort = { column: null, direction: 'none' }; // Reset sort state on new file
             columnWidths = {}; // Reset column widths on new file unless loading layout
@@ -899,9 +773,9 @@
             columnAlignments = {}; // Initialize column alignments to empty (defaults to left)
 
 
-            // Display the initial table and generate charts
+            // Display the initial table
             applyFilters(); // This function now handles data filtering, column visibility, and sorting
-            generateCharts(); // Generate charts using the loaded data (using tableData globally)
+            // Removed generateCharts call
 
 
             // Show controls (from first code, modified)
@@ -937,14 +811,15 @@
                 <button class="dropdown-button">Show/Hide Columns <span class="filter-arrow">&#9662;</span></button>
                 <div class="dropdown-content">
                     <div class="search-container">
-                         <input type="text" class="column-search" placeholder="Search...">
+                        <input type="text" class="column-search" placeholder="Search...">
                     </div>
                     <label class="select-all">
-                         <input type="checkbox" class="select-all-columns-checkbox" checked> Select All
+                        <input type="checkbox" class="select-all-columns-checkbox" checked> Select All
                     </label>
-                    <div class="column-options filter-options"> ${allColumnNames.map(colName => `
+                    <div class="column-options filter-options">
+                        ${allColumnNames.map(colName => `
                             <label>
-                                 <input type="checkbox" class="column-checkbox" value="${colName}" checked> ${colName}
+                                <input type="checkbox" class="column-checkbox" value="${colName}" checked> ${colName}
                             </label>
                         `).join('')}
                     </div>
@@ -957,61 +832,61 @@
         // --- Create Data Filters --- (from first code)
         dataFilterableColumnNames.forEach(columnName => {
             // Check if this filterable column exists in the actual Excel columns (case-insensitive match)
-             if (allColumnNames.some(name => name.toLowerCase() === columnName.toLowerCase())) {
+            if (allColumnNames.some(name => name.toLowerCase() === columnName.toLowerCase())) {
                 // Get unique values from the loaded data for this specific column name
                 // Need to find the exact casing from the loaded columns to get data correctly
                 const exactColumnName = allColumnNames.find(name => name.toLowerCase() === columnName.toLowerCase());
                 let uniqueValues = [...new Set(data.map(row => row[exactColumnName] !== undefined && row[exactColumnName] !== null ? String(row[exactColumnName]) : '').filter(value => value !== ''))];
 
-                 // --- Custom Sorting for Month Columns --- (from first code)
-                 if (columnName.toLowerCase() === 'month' || columnName.toLowerCase() === 'month') {
-                      uniqueValues.sort((a, b) => {
-                           const numA = parseInt(a);
-                           const numB = parseInt(b);
-                           // Handle cases where conversion to number fails or is NaN
-                           if (isNaN(numA) && isNaN(numB)) return 0;
-                           if (isNaN(numA)) return 1; // Put non-numeric at the end
-                           if (isNaN(numB)) return -1; // Put non-numeric at the end
-                           return numA - numB; // Numeric sort
-                      });
-                 } else {
-                     // Default to alphabetical sort for other columns
-                     uniqueValues.sort();
-                 }
-                 // --- End Custom Sorting ---
+                // --- Custom Sorting for Month Columns --- (from first code)
+                if (exactColumnName && (exactColumnName.toLowerCase() === 'month' || exactColumnName.toLowerCase() === 'month')) {
+                    uniqueValues.sort((a, b) => {
+                        const numA = parseInt(a);
+                        const numB = parseInt(b);
+                        // Handle cases where conversion to number fails or is NaN
+                        if (isNaN(numA) && isNaN(numB)) return 0;
+                        if (isNaN(numA)) return 1; // Put non-numeric at the end
+                        if (isNaN(numB)) return -1; // Put non-numeric at the end
+                        return numA - numB; // Numeric sort
+                    });
+                } else {
+                    // Default to alphabetical sort for other columns
+                    uniqueValues.sort();
+                }
+                // --- End Custom Sorting ---
 
 
                 if (uniqueValues.length > 0) {
                     const filterDropdownHtml = `
-                         <div class="filter-dropdown" data-column="${columnName}" data-filter-type="data">
-                             <button class="dropdown-button">${columnName} <span class="filter-arrow">&#9662;</span></button>
-                             <div class="dropdown-content">
-                                 <div class="search-container">
-                                     <input type="text" class="filter-search" placeholder="Search...">
-                                    </div>
-                                    <label class="select-all">
-                                        <input type="checkbox" class="select-all-checkbox"> Select All
-                                    </label>
-                                    <div class="filter-options">
-                                        ${uniqueValues.map(value => `
-                                            <label>
-                                                 <input type="checkbox" class="filter-checkbox" value="${value}"> ${value}
-                                            </label>
-                                        `).join('')}
-                                    </div>
+                        <div class="filter-dropdown" data-column="${columnName}" data-filter-type="data">
+                            <button class="dropdown-button">${columnName} <span class="filter-arrow">&#9662;</span></button>
+                            <div class="dropdown-content">
+                                <div class="search-container">
+                                    <input type="text" class="filter-search" placeholder="Search...">
                                 </div>
-                             </div>
-                         </div>
-                     `;
+                                <label class="select-all">
+                                    <input type="checkbox" class="select-all-checkbox"> Select All
+                                </label>
+                                <div class="filter-options">
+                                    ${uniqueValues.map(value => `
+                                        <label>
+                                            <input type="checkbox" class="filter-checkbox" value="${value}"> ${value}
+                                        </label>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    `;
                     filtersContainer.innerHTML += filterDropdownHtml;
                 }
-             }
+            }
         });
 
 
         // Add event listeners to the newly created filter elements (from first code)
         addFilterEventListeners();
     }
+
 
     // Function to add event listeners to filter dropdowns (from first code)
     function addFilterEventListeners() {
@@ -1038,97 +913,97 @@
                 // Toggle current dropdown
                 content.style.display = content.style.display === 'block' ? 'none' : 'block';
 
-                 // When opening, ensure checkboxes reflect current state (applied data filters or visible columns)
-                 if (content.style.display === 'block') {
-                     let currentStateValues = [];
-                     if (filterType === 'data') {
-                          currentStateValues = currentAppliedDataFilters[columnName] || [];
-                     } else if (filterType === 'visibility') {
-                          currentStateValues = visibleColumns;
-                     }
+                // When opening, ensure checkboxes reflect current state (applied data filters or visible columns)
+                if (content.style.display === 'block') {
+                    let currentStateValues = [];
+                    if (filterType === 'data') {
+                        currentStateValues = currentAppliedDataFilters[columnName] || [];
+                    } else if (filterType === 'visibility') {
+                        currentStateValues = visibleColumns;
+                    }
 
-                     optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                          // Find the corresponding value in currentStateValues (case-insensitive for matching)
-                          // But set checked state based on exact value in the checkbox
-                          checkbox.checked = currentStateValues.some(val => val.toLowerCase() === checkbox.value.toLowerCase());
-                     });
-                      // Update select all checkbox state on opening
-                      updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
-                 }
+                    optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                        // Find the corresponding value in currentStateValues (case-insensitive for matching)
+                        // But set checked state based on exact value in the checkbox
+                        checkbox.checked = currentStateValues.some(val => val.toLowerCase() === checkbox.value.toLowerCase());
+                    });
+                    // Update select all checkbox state on opening
+                    updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+                }
             });
 
             // Prevent clicks inside the dropdown content from closing it
-             content.addEventListener('click', (event) => {
-                 event.stopPropagation();
-             });
+            content.addEventListener('click', (event) => {
+                event.stopPropagation();
+            });
 
             // Search functionality
             if (searchInput) { // Ensure search input exists
-                 searchInput.addEventListener('input', () => {
-                     const searchTerm = searchInput.value.toLowerCase();
-                     optionsContainer.querySelectorAll('label').forEach(label => {
-                         const text = label.textContent.toLowerCase();
-                         label.style.display = text.includes(searchTerm) ? 'block' : 'none';
-                     });
-                      // After filtering search results, update the "Select All" checkbox state
-                      updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
-                 });
+                searchInput.addEventListener('input', () => {
+                    const searchTerm = searchInput.value.toLowerCase();
+                    optionsContainer.querySelectorAll('label').forEach(label => {
+                        const text = label.textContent.toLowerCase();
+                        label.style.display = text.includes(searchTerm) ? 'block' : 'none';
+                    });
+                    // After filtering search results, update the "Select All" checkbox state
+                    updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+                });
             }
 
 
             // Select/Unselect All functionality
-             if (selectAllCheckbox) { // Ensure select all checkbox exists
-                 selectAllCheckbox.addEventListener('change', (event) => {
-                      optionsContainer.querySelectorAll('label').forEach(label => {
-                           // Only affect checkboxes of currently visible labels after search
-                           if(label.style.display !== 'none') {
-                              label.querySelector('input[type="checkbox"]').checked = event.target.checked;
-                           }
-                      });
-                      // Update the state of the Select All checkbox itself (handles indeterminate)
-                      updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
-                      // Note: Filters are applied ONLY on clicking the main Apply button now.
-                 });
-             }
+            if (selectAllCheckbox) { // Ensure select all checkbox exists
+                selectAllCheckbox.addEventListener('change', (event) => {
+                    optionsContainer.querySelectorAll('label').forEach(label => {
+                        // Only affect checkboxes of currently visible labels after search
+                        if(label.style.display !== 'none') {
+                            label.querySelector('input[type="checkbox"]').checked = event.target.checked;
+                        }
+                    });
+                    // Update the state of the Select All checkbox itself (handles indeterminate)
+                    updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+                    // Note: Filters are applied ONLY on clicking the main Apply button now.
+                });
+            }
 
 
-             // Individual checkbox change listener
-             optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => { // Iterate over each checkbox
-                 checkbox.addEventListener('change', () => {
-                      updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
-                      // Note: Filters are applied ONLY on clicking the main Apply button now.
-                 });
-             });
+            // Individual checkbox change listener
+            optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => { // Iterate over each checkbox
+                checkbox.addEventListener('change', () => {
+                    updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+                    // Note: Filters are applied ONLY on clicking the main Apply button now.
+                });
+            });
         });
 
         // Close dropdowns when clicking outside the dropdown container (from first code)
-         window.addEventListener('click', (event) => {
-             document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
-                 const content = dropdown.querySelector('.dropdown-content');
-                 // Use !dropdown.contains(event.target) which is simpler and safer
-                 if (!dropdown.contains(event.target)) {
-                     content.style.display = 'none';
-                      // When closing by clicking outside, reset checkboxes in open dropdowns
-                      // to the currently applied filter state before closing.
-                      const filterType = dropdown.getAttribute('data-filter-type');
-                      const optionsContainer = dropdown.querySelector('.filter-options');
-                      const selectAllCheckbox = dropdown.querySelector('.select-all-checkbox') || dropdown.querySelector('.select-all-columns-checkbox');
+        window.addEventListener('click', (event) => {
+            document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
+                const content = dropdown.querySelector('.dropdown-content');
+                // Use !dropdown.contains(event.target) which is simpler and safer
+                if (!dropdown.contains(event.target)) {
+                    content.style.display = 'none';
+                    // When closing by clicking outside, reset checkboxes in open dropdowns
+                    // to the currently applied filter state before closing.
+                    const filterType = dropdown.getAttribute('data-filter-type');
+                    const optionsContainer = dropdown.querySelector('.filter-options');
+                    const selectAllCheckbox = dropdown.querySelector('.select-all-checkbox') || dropdown.querySelector('.select-all-columns-checkbox');
 
-                      let currentStateValues = [];
-                      if (filterType === 'data') {
-                           const columnName = dropdown.getAttribute('data-column');
-                           currentStateValues = currentAppliedDataFilters[columnName] || [];
-                      } else if (filterType === 'visibility') {
-                           currentStateValues = visibleColumns;
-                      }
+                    let currentStateValues = [];
+                    if (filterType === 'data') {
+                        const columnName = dropdown.getAttribute('data-column');
+                        currentStateValues = currentAppliedDataFilters[columnName] || [];
+                    } else if (filterType === 'visibility') {
+                        currentStateValues = visibleColumns;
+                    }
 
-                      optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                           checkbox.checked = currentStateValues.some(val => val.toLowerCase() === checkbox.value.toLowerCase()); // Case-insensitive check
-                      });
-                      updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
-                 }
-             });
-         });
+                    optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                        checkbox.checked = currentStateValues.some(val => val.toLowerCase() === checkbox.value.toLowerCase()); // Case-insensitive check
+                    });
+                    updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+                }
+            });
+        });
     }
 
     // Helper to update the state of the "Select All" checkbox (Handles indeterminate state) (from first code)
@@ -1136,55 +1011,54 @@
         if (!selectAllCheckbox) return; // Handle cases where select all might not exist
 
         const visibleCheckboxes = Array.from(optionsContainer.querySelectorAll('label'))
-                                     .filter(label => label.style.display !== 'none')
-                                     .map(label => label.querySelector('input[type="checkbox"]'));
+            .filter(label => label.style.display !== 'none')
+            .map(label => label.querySelector('input[type="checkbox"]'));
 
         const checkedVisibleCheckboxes = visibleCheckboxes.filter(cb => cb.checked);
 
-         if (visibleCheckboxes.length === 0) {
-              selectAllCheckbox.checked = false;
-              selectAllCheckbox.indeterminate = false;
-         } else if (checkedVisibleCheckboxes.length === visibleCheckboxes.length) {
-             selectAllCheckbox.checked = true;
-             selectAllCheckbox.indeterminate = false;
-         } else if (checkedVisibleCheckboxes.length > 0) {
-             selectAllCheckbox.checked = false; // It's not 'all' if some are unchecked
-             selectAllCheckbox.indeterminate = true; // But some are checked
-         }
-          else { // No visible checkboxes are checked
-             selectAllCheckbox.checked = false;
-             selectAllCheckbox.indeterminate = false;
-          }
+        if (visibleCheckboxes.length === 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        } else if (checkedVisibleCheckboxes.length === visibleCheckboxes.length) {
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.indeterminate = false;
+        } else if (checkedVisibleCheckboxes.length > 0) {
+            selectAllCheckbox.checked = false; // It's not 'all' if some are unchecked
+            selectAllCheckbox.indeterminate = true; // But some are checked
+        } else { // No visible checkboxes are checked
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        }
     }
 
-// Function to apply filters based on current selections in all dropdowns (from first code, completed)
+    // Function to apply filters based on current selections in all dropdowns (from first code, completed)
     function applyFilters() {
         // --- Collect Data Filter Selections ---
         dataFilterableColumnNames.forEach(columnName => {
             // Find the dropdown for this data filterable column
             const dropdown = document.querySelector(`.filter-dropdown[data-column="${columnName}"][data-filter-type="data"]`);
             if (dropdown) {
-                 const selectedValues = [];
-                 dropdown.querySelectorAll('.filter-options .filter-checkbox:checked').forEach(checkbox => {
-                      selectedValues.push(checkbox.value);
-                 });
-                 currentAppliedDataFilters[columnName] = selectedValues; // Update the globally applied data filters
+                const selectedValues = [];
+                dropdown.querySelectorAll('.filter-options .filter-checkbox:checked').forEach(checkbox => {
+                    selectedValues.push(checkbox.value);
+                });
+                currentAppliedDataFilters[columnName] = selectedValues; // Update the globally applied data filters
             } else {
-                 // If a filterable column does not have a dropdown (e.g., no unique values),
-                 // ensure its filter is also reset or empty in the applied state
-                 currentAppliedDataFilters[columnName] = [];
+                // If a filterable column does not have a dropdown (e.g., no unique values),
+                // ensure its filter is also reset or empty in the applied state
+                currentAppliedDataFilters[columnName] = [];
             }
         });
 
         // --- Collect Column Visibility Selections ---
-         const selectedVisibleColumns = [];
-         const visibilityDropdown = document.querySelector('.filter-dropdown[data-filter-type="visibility"]');
-         if (visibilityDropdown) {
-             visibilityDropdown.querySelectorAll('.column-options .column-checkbox:checked').forEach(checkbox => {
-                  selectedVisibleColumns.push(checkbox.value);
-             });
-         }
-         visibleColumns = selectedVisibleColumns; // Update the globally visible columns
+        const selectedVisibleColumns = [];
+        const visibilityDropdown = document.querySelector('.filter-dropdown[data-filter-type="visibility"]');
+        if (visibilityDropdown) {
+            visibilityDropdown.querySelectorAll('.column-options .column-checkbox:checked').forEach(checkbox => {
+                selectedVisibleColumns.push(checkbox.value);
+            });
+        }
+        visibleColumns = selectedVisibleColumns; // Update the globally visible columns
 
         // --- Apply Data Filters ---
         let filteredData = tableData; // Start with all loaded data
@@ -1193,14 +1067,14 @@
             const selectedValues = currentAppliedDataFilters[columnName]; // Use currently applied data filters
             if (selectedValues && selectedValues.length > 0) {
                 filteredData = filteredData.filter(row => {
-                     // Find the actual key in the row object based on the filter column name (case-insensitive)
-                     const rowKey = Object.keys(row).find(key => key.toLowerCase() === columnName.toLowerCase());
-                     if (rowKey) {
-                          const rowValue = row[rowKey] !== undefined && row[rowKey] !== null ? String(row[rowKey]) : '';
-                          return selectedValues.includes(rowValue);
-                     }
-                     return false; // If the filter column doesn't exist in the row, filter it out
-                 });
+                    // Find the actual key in the row object based on the filter column name (case-insensitive)
+                    const rowKey = Object.keys(row).find(key => key.toLowerCase() === columnName.toLowerCase());
+                    if (rowKey) {
+                        const rowValue = row[rowKey] !== undefined && row[rowKey] !== null ? String(row[rowKey]) : '';
+                        return selectedValues.includes(rowValue);
+                    }
+                    return false; // If the filter column doesn't exist in the row, filter it out
+                });
             }
         });
 
@@ -1210,30 +1084,30 @@
             const sortColumnName = currentSort.column;
             const sortDirection = currentSort.direction;
 
-             // Find the actual column name in the data based on the sortColumnName (case-insensitive)
-             const actualSortColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === sortColumnName.toLowerCase());
+            // Find the actual column name in the data based on the sortColumnName (case-insensitive)
+            const actualSortColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === sortColumnName.toLowerCase());
 
             if (actualSortColumnName) {
-                 filteredData.sort((a, b) => {
-                      const aValue = a[actualSortColumnName] !== undefined && a[actualSortColumnName] !== null ? String(a[actualSortColumnName]) : '';
-                      const bValue = b[actualSortColumnName] !== undefined && b[actualSortColumnName] !== null ? String(b[actualSortColumnName]) : '';
+                filteredData.sort((a, b) => {
+                    const aValue = a[actualSortColumnName] !== undefined && a[actualSortColumnName] !== null ? String(a[actualSortColumnName]) : '';
+                    const bValue = b[actualSortColumnName] !== undefined && b[actualSortColumnName] !== null ? String(b[actualSortColumnName]) : '';
 
-                      // Special handling for month columns for sorting
-                      if (actualSortColumnName.toLowerCase() === 'month' || actualSortColumnName.toLowerCase() === 'month') {
-                            const numA = parseInt(aValue);
-                            const numB = parseInt(bValue);
-                            if (isNaN(numA) && isNaN(numB)) return 0;
-                            if (isNaN(numA)) return 1;
-                            if (isNaN(numB)) return -1;
-                            return sortDirection === 'asc' ? numA - numB : numB - numA; // Use numB - numA for desc
-                      }
+                    // Special handling for month columns for sorting
+                    if (actualSortColumnName.toLowerCase() === 'month' || actualSortColumnName.toLowerCase() === 'month') {
+                        const numA = parseInt(aValue);
+                        const numB = parseInt(bValue);
+                        if (isNaN(numA) && isNaN(numB)) return 0;
+                        if (isNaN(numA)) return 1;
+                        if (isNaN(numB)) return -1;
+                        return sortDirection === 'asc' ? numA - numB : numB - numA; // Use numB - numA for desc
+                    }
 
 
-                      // Basic string comparison for sorting for other columns
-                      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-                      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-                      return 0; // Values are equal
-                 });
+                    // Basic string comparison for sorting for other columns
+                    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+                    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+                    return 0; // Values are equal
+                });
             }
         }
 
@@ -1254,7 +1128,7 @@
         // Check if there is data to display and columns selected
         // Note: We iterate based on columnDisplayOrder, but check if it's in visibleColumns
         const columnsToRender = columnDisplayOrder.filter(col =>
-             visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())
+            visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())
         );
 
 
@@ -1265,33 +1139,33 @@
             html += '<colgroup>';
             // Iterate through the display order, but only add cols for visible columns
             columnDisplayOrder.forEach(col => {
-                 // Check if this column is in the currently visible columns list (case-insensitive)
-                 if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
+                // Check if this column is in the currently visible columns list (case-insensitive)
+                if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
                     // Find the corresponding actual column name from Excel header (case-insensitive) to get width
                     const actualColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === col.toLowerCase());
                     if (actualColumnName) {
-                         let colWidth = columnWidths[actualColumnName]; // Get saved width first
+                        let colWidth = columnWidths[actualColumnName]; // Get saved width first
 
-                         // If no saved width, apply default width
-                         if (!colWidth) {
-                              // Apply default widths based on the actual column name
-                              if (actualColumnName === 'ANALYSIS AND OUTCOME' || actualColumnName === 'ACTION TAKEN') {
-                                 colWidth = '700px'; // Increased Default Wider Width
-                              } else if (actualColumnName.toLowerCase() === 'query received date') {
-                                 colWidth = '120px'; // Default for date
-                              } else if (actualColumnName.toLowerCase() === 'unit no' || actualColumnName.toLowerCase() === 'status' || actualColumnName.toLowerCase() === 'cotton' || actualColumnName.toLowerCase() === 'count' || actualColumnName.toLowerCase() === 'mfg year' || actualColumnName.toLowerCase() === 'year' || actualColumnName.toLowerCase() === 'month' || actualColumnName.toLowerCase() === 'month') { // Added month columns here
-                                 colWidth = '80px'; // Default for smaller columns
-                              } else {
-                                 colWidth = '150px'; // General default width
-                              }
-                              // Store the determined default width as a string (optional, but keeps columnWidths updated)
-                              // columnWidths[actualColumnName] = colWidth; // Be careful if loading layouts overwrites
-                         }
+                        // If no saved width, apply default width
+                        if (!colWidth) {
+                            // Apply default widths based on the actual column name
+                            if (actualColumnName === 'ANALYSIS AND OUTCOME' || actualColumnName === 'ACTION TAKEN') {
+                                colWidth = '700px'; // Increased Default Wider Width
+                            } else if (actualColumnName.toLowerCase() === 'query received date') {
+                                colWidth = '120px'; // Default for date
+                            } else if (actualColumnName.toLowerCase() === 'unit no' || actualColumnName.toLowerCase() === 'status' || actualColumnName.toLowerCase() === 'cotton' || actualColumnName.toLowerCase() === 'count' || actualColumnName.toLowerCase() === 'mfg year' || actualColumnName.toLowerCase() === 'year' || actualColumnName.toLowerCase() === 'month' || actualColumnName.toLowerCase() === 'month') { // Added month columns here
+                                colWidth = '80px'; // Default for smaller columns
+                            } else {
+                                colWidth = '150px'; // General default width
+                            }
+                            // Store the determined default width as a string (optional, but keeps columnWidths updated)
+                            // columnWidths[actualColumnName] = colWidth; // Be careful if loading layouts overwrites
+                        }
 
-                         // Use the column name from columnDisplayOrder for the col element's data attribute
-                         html += `<col data-column-name="${col}" style="width: ${colWidth};">`;
+                        // Use the column name from columnDisplayOrder for the col element's data attribute
+                        html += `<col data-column-name="${col}" style="width: ${colWidth};">`;
                     }
-                 }
+                }
             });
             html += '</colgroup>';
 
@@ -1299,20 +1173,20 @@
             html += '<thead><tr>';
             // Add headers for the selected columns based on the display order
             columnDisplayOrder.forEach(col => {
-                 // Only add header if the column is currently visible (case-insensitive)
-                 if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
+                // Only add header if the column is currently visible (case-insensitive)
+                if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
                     // Find the corresponding actual column name from Excel header (case-insensitive) to use for data attribute
                     const actualColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === col.toLowerCase());
                     if (actualColumnName) {
-                         let sortArrow = '';
-                         if (currentSort.column && currentSort.column.toLowerCase() === col.toLowerCase()) { // Match sort state using the column from displayOrder
-                             sortArrow = currentSort.direction === 'asc' ? ' &#9650;' : ' &#9660;'; // Up/Down arrow
-                         }
-                         // Apply header alignment from columnAlignments
-                         const headerAlignment = columnAlignments[actualColumnName] || 'left'; // Default header alignment to left
-                         html += `<th data-column-name="${col}" style="text-align: ${headerAlignment};">${col}<span class="sort-arrow">${sortArrow}</span></th>`; // Use column from displayOrder for header text and data attribute
+                        let sortArrow = '';
+                        if (currentSort.column && currentSort.column.toLowerCase() === col.toLowerCase()) { // Match sort state using the column from displayOrder
+                            sortArrow = currentSort.direction === 'asc' ? ' &#9650;' : ' &#9660;'; // Up/Down arrow
+                        }
+                        // Apply header alignment from columnAlignments
+                        const headerAlignment = actualColumnName ? columnAlignments[actualColumnName] : 'left'; // Default header alignment to left
+                        html += `<th data-column-name="${col}" style="text-align: ${headerAlignment};">${col}<span class="sort-arrow">${sortArrow}</span></th>`; // Use column from displayOrder for header text and data attribute
                     }
-                 }
+                }
             });
             html += '</tr></thead><tbody>';
 
@@ -1323,14 +1197,14 @@
                 columnDisplayOrder.forEach(col => {
                     // Only add td if the column is currently visible (case-insensitive)
                     if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
-                         // Find the actual key in the row object based on the column name from the display order (case-insensitive)
-                         const rowKey = Object.keys(row).find(key => key.toLowerCase() === col.toLowerCase());
-                         const cellValue = rowKey ? row[rowKey] : ''; // Use empty string if column data is missing
-                         // Apply cell alignment from columnAlignments
-                          const actualColName = columnNamesFromExcel.find(name => name.toLowerCase() === col.toLowerCase()); // Find actual name for alignment lookup
-                          const cellAlignment = actualColName ? columnAlignments[actualColName] : 'left'; // Default cell alignment to left
+                        // Find the actual key in the row object based on the column name from display order (case-insensitive)
+                        const rowKey = Object.keys(row).find(key => key.toLowerCase() === col.toLowerCase());
+                        const cellValue = rowKey ? row[rowKey] : ''; // Use empty string if column data is missing
+                        // Apply cell alignment from columnAlignments
+                        const actualColName = columnNamesFromExcel.find(name => name.toLowerCase() === col.toLowerCase()); // Find actual name for alignment lookup
+                        const cellAlignment = actualColName ? columnAlignments[actualColName] : 'left'; // Default cell alignment to left
 
-                         html += `<td style="text-align: ${cellAlignment};">${cellValue}</td>`;
+                        html += `<td style="text-align: ${cellAlignment};">${cellValue}</td>`;
                     }
                 });
                 html += '</tr>';
@@ -1339,66 +1213,65 @@
             html += '</tbody></table>';
             tableContainer.innerHTML = html;
 
-             // Add sorting event listeners to the new headers
-             addSortEventListeners();
+            // Add sorting event listeners to the new headers
+            addSortEventListeners();
 
 
         } else if (columnsToRender.length === 0) {
-             tableContainer.innerHTML = '<p>No columns selected to display.</p>';
-        }
-        else {
+            tableContainer.innerHTML = '<p>No columns selected to display.</p>';
+        } else {
             tableContainer.innerHTML = '<p>No data matches the current filter criteria.</p>';
         }
-         // Update the column select dropdowns for width and alignment after displaying
-         populateColumnWidthSelect();
-         populateColumnAlignmentSelect();
+        // Update the column select dropdowns for width and alignment after displaying
+        populateColumnWidthSelect();
+        populateColumnAlignmentSelect();
     }
 
     // --- Sorting Functionality ---
-     function addSortEventListeners() {
-         document.querySelectorAll('#tableContainer th').forEach(header => {
-             // Remove existing listeners to prevent duplicates
-             // Using removeEventListener with the same function reference works.
-             // We need a way to store the *specific* handler function for this header.
-             // The data-sort-handler approach using window object is one way,
-             // another is to store the function reference directly on the header element's dataset.
+    function addSortEventListeners() {
+        document.querySelectorAll('#tableContainer th').forEach(header => {
+            // Remove existing listeners to prevent duplicates
+            // Using removeEventListener with the same function reference works.
+            // We need a way to store the *specific* handler function for this header.
+            // The data-sort-handler approach using window object is one way,
+            // another is to store the function reference directly on the header element's dataset.
 
-             // Remove previous listener if it exists
-              if (header.dataset.sortHandlerRef) {
-                 header.removeEventListener('click', header.dataset.sortHandlerRef);
-                 delete header.dataset.sortHandlerRef;
-              }
+            // Remove previous listener if it exists
+            if (header.dataset.sortHandlerRef) {
+                header.removeEventListener('click', header.dataset.sortHandlerRef);
+                delete header.dataset.sortHandlerRef;
+            }
 
-              const clickHandler = () => {
-                 const columnName = header.getAttribute('data-column-name'); // Use column name from display order
-                 let newDirection = 'asc';
+            const clickHandler = () => {
+                const columnName = header.getAttribute('data-column-name'); // Use column name from display order
+                let newDirection = 'asc';
 
-                 if (currentSort.column === columnName) {
-                      if (currentSort.direction === 'asc') {
-                          newDirection = 'desc';
-                      } else if (currentSort.direction === 'desc') {
-                           newDirection = 'none'; // Cycle to no sort
-                      } else {
-                          newDirection = 'asc'; // From none to asc
-                      }
-                 }
+                if (currentSort.column === columnName) {
+                    if (currentSort.direction === 'asc') {
+                        newDirection = 'desc';
+                    } else if (currentSort.direction === 'desc') {
+                        newDirection = 'none'; // Cycle to no sort
+                    } else {
+                        newDirection = 'asc'; // From none to asc
+                    }
+                }
 
-                 if (newDirection === 'none') {
-                      currentSort = { column: null, direction: 'none' };
-                 } else {
-                      currentSort = { column: columnName, direction: newDirection };
-                 }
+                if (newDirection === 'none') {
+                    currentSort = { column: null, direction: 'none' };
+                } else {
+                    currentSort = { column: columnName, direction: newDirection };
+                }
 
-                 applyFilters(); // Re-apply filters, which now includes sorting
-              };
+                applyFilters(); // Re-apply filters, which now includes sorting
+            };
 
-              // Store the handler function reference on the element's dataset
-              header.dataset.sortHandlerRef = clickHandler;
-              header.addEventListener('click', clickHandler);
-         });
-     }
+            // Store the handler function reference on the element's dataset
+            header.dataset.sortHandlerRef = clickHandler;
+            header.addEventListener('click', clickHandler);
+        });
+    }
 
-// --- Column Reordering Functionality --- (from first code)
+    // --- Column Reordering Functionality --- (from first code)
 
     function showReorderPanel() {
         if (columnNamesFromExcel.length === 0) {
@@ -1430,14 +1303,14 @@
             upButton.textContent = '▲';
             upButton.style.marginLeft = '10px';
             upButton.style.cursor = 'pointer';
-             upButton.onclick = () => moveColumnInList(colName, 'up');
+            upButton.onclick = () => moveColumnInList(colName, 'up');
             buttonsDiv.appendChild(upButton);
 
             const downButton = document.createElement('button');
             downButton.textContent = '▼';
             downButton.style.marginLeft = '5px';
             downButton.style.cursor = 'pointer';
-             downButton.onclick = () => moveColumnInList(colName, 'down');
+            downButton.onclick = () => moveColumnInList(colName, 'down');
             buttonsDiv.appendChild(downButton);
 
             listItem.appendChild(buttonsDiv);
@@ -1453,9 +1326,9 @@
         // For simplicity now, cancel just closes without resetting
     }
 
-function goBack() {
-            window.location.href = "protected.html";
-        }
+    function goBack() {
+        window.location.href = "protected.html";
+    }
 
     function moveColumnInList(columnName, direction) {
         const oldIndex = columnDisplayOrder.indexOf(columnName);
@@ -1483,9 +1356,9 @@ function goBack() {
         const targetItem = items[newIndex];
 
         if (direction === 'up') {
-             list.insertBefore(movedItem, targetItem); // Insert moved before target
+            list.insertBefore(movedItem, targetItem); // Insert moved before target
         } else { // direction === 'down'
-             list.insertBefore(movedItem, targetItem.nextSibling); // Insert moved after target
+            list.insertBefore(movedItem, targetItem.nextSibling); // Insert moved after target
         }
         // Re-attach event listeners if needed, but onclick is simple enough here
     }
@@ -1535,17 +1408,16 @@ function goBack() {
             widthValueInput.focus();
             return;
         }
-
-         // Find the actual column name from Excel header (case-insensitive) to use as key
-         const actualColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === columnName.toLowerCase());
+        // Find the actual column name from Excel header (case-insensitive) to use as key
+        const actualColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === columnName.toLowerCase());
 
         if (actualColumnName) {
             const widthString = `${widthValue}${widthUnit}`;
             columnWidths[actualColumnName] = widthString; // Store the width string
 
-             // Re-apply filters to redraw the table with the new width
-             applyFilters();
-             alert(`Width of column "${actualColumnName}" set to ${widthString}.`);
+            // Re-apply filters to redraw the table with the new width
+            applyFilters();
+            alert(`Width of column "${actualColumnName}" set to ${widthString}.`);
         } else {
             alert(`Error: Could not find column "${columnName}" from Excel headers.`);
         }
@@ -1553,47 +1425,47 @@ function goBack() {
 
     // --- Column Alignment Adjustment Controls --- (from first code)
 
-     // Function to populate the column select dropdown for alignment adjustment
-     function populateColumnAlignmentSelect() {
-         const selectElement = document.getElementById('columnSelectForAlignment');
-         selectElement.innerHTML = '<option value="">- Select Column -</option>'; // Clear and add default
+    // Function to populate the column select dropdown for alignment adjustment
+    function populateColumnAlignmentSelect() {
+        const selectElement = document.getElementById('columnSelectForAlignment');
+        selectElement.innerHTML = '<option value="">- Select Column -</option>'; // Clear and add default
 
-         // Use the list of columns from the uploaded file
-         columnNamesFromExcel.forEach(colName => {
-             const option = document.createElement('option');
-             option.value = colName;
-             option.textContent = colName;
-             selectElement.appendChild(option);
-         });
+        // Use the list of columns from the uploaded file
+        columnNamesFromExcel.forEach(colName => {
+            const option = document.createElement('option');
+            option.value = colName;
+            option.textContent = colName;
+            selectElement.appendChild(option);
+        });
 
-         // Reset alignment select
-         document.getElementById('columnAlignmentValue').value = 'left'; // Default alignment
-     }
+        // Reset alignment select
+        document.getElementById('columnAlignmentValue').value = 'left'; // Default alignment
+    }
 
-     // Function to apply the manually selected column alignment
-     function applyColumnAlignment() {
-         const selectElement = document.getElementById('columnSelectForAlignment');
-         const columnName = selectElement.value;
-         const alignmentValue = document.getElementById('columnAlignmentValue').value;
+    // Function to apply the manually selected column alignment
+    function applyColumnAlignment() {
+        const selectElement = document.getElementById('columnSelectForAlignment');
+        const columnName = selectElement.value;
+        const alignmentValue = document.getElementById('columnAlignmentValue').value;
 
-         if (!columnName) {
-             alert("Please select a column first.");
-             return;
-         }
+        if (!columnName) {
+            alert("Please select a column first.");
+            return;
+        }
 
-          // Find the actual column name from Excel header (case-insensitive) to use as key
-          const actualColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === columnName.toLowerCase());
+        // Find the actual column name from Excel header (case-insensitive) to use as key
+        const actualColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === columnName.toLowerCase());
 
-         if (actualColumnName) {
-             columnAlignments[actualColumnName] = alignmentValue; // Store the alignment string
-             applyFilters(); // Re-render the table with the new alignment
-             alert(`Alignment of column "${actualColumnName}" set to "${alignmentValue}".`);
-         } else {
-             alert(`Error: Could not find column "${columnName}" from Excel headers.`);
-         }
-     }
+        if (actualColumnName) {
+            columnAlignments[actualColumnName] = alignmentValue; // Store the alignment string
+            applyFilters(); // Re-render the table with the new alignment
+            alert(`Alignment of column "${actualColumnName}" set to "${alignmentValue}".`);
+        } else {
+            alert(`Error: Could not find column "${columnName}" from Excel headers.`);
+        }
+    }
 
-// --- Layout Saving/Loading --- (from first code)
+    // --- Layout Saving/Loading --- (from first code)
     const LAYOUT_STORAGE_KEY = 'excelTableLayouts';
 
 
@@ -1612,13 +1484,13 @@ function goBack() {
 
         const savedLayouts = getSavedLayouts();
 
-         // Store columnWidths, columnDisplayOrder, and columnAlignments as part of the layout state
+        // Store columnWidths, columnDisplayOrder, and columnAlignments as part of the layout state
         const currentLayoutState = {
             dataFilters: currentAppliedDataFilters,
             visibleColumns: visibleColumns,
-            columnWidths: {...columnWidths}, // Save a copy of current widths
+            columnWidths: {...columnWidths }, // Save a copy of current widths
             columnDisplayOrder: [...columnDisplayOrder], // Save a copy of the current display order
-            columnAlignments: {...columnAlignments} // Save a copy of current alignments
+            columnAlignments: {...columnAlignments } // Save a copy of current alignments
         };
 
         savedLayouts[layoutName] = currentLayoutState;
@@ -1643,116 +1515,116 @@ function goBack() {
         const layoutToLoad = savedLayouts[layoutName];
 
         if (layoutToLoad) {
-             // Check if a file is loaded
-             if (tableData.length === 0) { // Use tableData which holds the raw data
-                 alert("Please upload an Excel file first before loading a layout.");
-                 selectElement.value = ""; // Reset select
-                 enableLayoutButtons();
-                 return;
-             }
+            // Check if a file is loaded
+            if (tableData.length === 0) { // Use tableData which holds the raw data
+                alert("Please upload an Excel file first before loading a layout.");
+                selectElement.value = ""; // Reset select
+                enableLayoutButtons();
+                return;
+            }
 
-             // Check if the columns in the saved layout roughly match the columns of the currently loaded file
-             // This is a basic check; perfect matching might be complex with cleaned names
-             const savedColumnNames = new Set();
-             if (layoutToLoad.dataFilters) {
-                 Object.keys(layoutToLoad.dataFilters).forEach(col => savedColumnNames.add(col.toLowerCase()));
-             }
-             if (layoutToLoad.visibleColumns) {
-                 layoutToLoad.visibleColumns.forEach(col => savedColumnNames.add(col.toLowerCase()));
-             }
-              if (layoutToLoad.columnWidths) {
-                  Object.keys(layoutToLoad.columnWidths).forEach(col => savedColumnNames.add(col.toLowerCase()));
-              }
-              if (layoutToLoad.columnDisplayOrder) {
-                  layoutToLoad.columnDisplayOrder.forEach(col => savedColumnNames.add(col.toLowerCase()));
-              }
-              if (layoutToLoad.columnAlignments) { // Check for alignments
-                   Object.keys(layoutToLoad.columnAlignments).forEach(col => savedColumnNames.add(col.toLowerCase()));
-              }
-
-
-             const currentFileColumnNamesLower = new Set(columnNamesFromExcel.map(name => name.toLowerCase()));
-
-             const allSavedColumnsExist = Array.from(savedColumnNames).every(col => currentFileColumnNamesLower.has(col));
+            // Check if the columns in the saved layout roughly match the columns of the currently loaded file
+            // This is a basic check; perfect matching might be complex with cleaned names
+            const savedColumnNames = new Set();
+            if (layoutToLoad.dataFilters) {
+                Object.keys(layoutToLoad.dataFilters).forEach(col => savedColumnNames.add(col.toLowerCase()));
+            }
+            if (layoutToLoad.visibleColumns) {
+                layoutToLoad.visibleColumns.forEach(col => savedColumnNames.add(col.toLowerCase()));
+            }
+            if (layoutToLoad.columnWidths) {
+                Object.keys(layoutToLoad.columnWidths).forEach(col => savedColumnNames.add(col.toLowerCase()));
+            }
+            if (layoutToLoad.columnDisplayOrder) {
+                layoutToLoad.columnDisplayOrder.forEach(col => savedColumnNames.add(col.toLowerCase()));
+            }
+            if (layoutToLoad.columnAlignments) { // Check for alignments
+                Object.keys(layoutToLoad.columnAlignments).forEach(col => savedColumnNames.add(col.toLowerCase()));
+            }
 
 
-             if (!allSavedColumnsExist) {
-                 alert(`Warning: The columns referenced in the saved layout "${layoutName}" do not fully match the columns in the current Excel file. Loading may result in unexpected filtering, column visibility, or widths/alignments for mismatched columns.`);
-             }
+            const currentFileColumnNamesLower = new Set(columnNamesFromExcel.map(name => name.toLowerCase()));
+
+            const allSavedColumnsExist = Array.from(savedColumnNames).every(col => currentFileColumnNamesLower.has(col));
 
 
-             // Apply the loaded filters, visible columns, column widths, alignment, and display order
-             currentAppliedDataFilters = layoutToLoad.dataFilters || {}; // Use empty object if undefined
-             visibleColumns = layoutToLoad.visibleColumns || [...columnNamesFromExcel]; // Default to all if undefined
-             columnWidths = layoutToLoad.columnWidths || {}; // Use empty object if undefined
-             columnDisplayOrder = layoutToLoad.columnDisplayOrder || [...columnNamesFromExcel]; // Default to file order if undefined
-             columnAlignments = layoutToLoad.columnAlignments || {}; // Use empty object if undefined
+            if (!allSavedColumnsExist) {
+                alert(`Warning: The columns referenced in the saved layout "${layoutName}" do not fully match the columns in the current Excel file. Loading may result in unexpected filtering, column visibility, or widths/alignments for mismatched columns.`);
+            }
 
 
-             // Ensure visibleColumns only contains columns present in the current file
-             visibleColumns = visibleColumns.filter(col => columnNamesFromExcel.some(name => name.toLowerCase() === col.toLowerCase()));
-              // If visibleColumns becomes empty after filtering, default to showing all if file has columns
-              if (visibleColumns.length === 0 && columnNamesFromExcel.length > 0) {
-                  visibleColumns = [...columnNamesFromExcel];
-              }
-
-              // Ensure columnDisplayOrder only contains columns present in the current file and add new ones
-              const currentFileColumnNamesExact = new Set(columnNamesFromExcel);
-              // Filter out saved columns that don't exist in the current file
-              columnDisplayOrder = columnDisplayOrder.filter(col => currentFileColumnNamesExact.has(col));
-              // Add any columns from the current file that were NOT in the saved layout's display order to the end
-              currentFileColumnNamesExact.forEach(col => {
-                  if (!columnDisplayOrder.includes(col)) {
-                      columnDisplayOrder.push(col);
-                  }
-              });
-              // If columnDisplayOrder becomes empty (shouldn't happen if file has columns), default to file order
-              if (columnDisplayOrder.length === 0 && columnNamesFromExcel.length > 0) {
-                  columnDisplayOrder = [...columnNamesFromExcel];
-              }
-
-              // Ensure columnAlignments only contains entries for columns present in the current file
-              const loadedAlignments = layoutToLoad.columnAlignments || {};
-              columnAlignments = {}; // Start fresh
-              columnNamesFromExcel.forEach(col => {
-                  // Find the key in the loaded alignments based on current file name (case-insensitive)
-                  const loadedKey = Object.keys(loadedAlignments).find(key => key.toLowerCase() === col.toLowerCase());
-                  if (loadedKey && ['left', 'center', 'right'].includes(loadedAlignments[loadedKey])) {
-                      columnAlignments[col] = loadedAlignments[loadedKey]; // Use exact current column name as key
-                  }
-              });
+            // Apply the loaded filters, visible columns, column widths, alignment, and display order
+            currentAppliedDataFilters = layoutToLoad.dataFilters || {}; // Use empty object if undefined
+            visibleColumns = layoutToLoad.visibleColumns || [...columnNamesFromExcel]; // Default to all if undefined
+            columnWidths = layoutToLoad.columnWidths || {}; // Use empty object if undefined
+            columnDisplayOrder = layoutToLoad.columnDisplayOrder || [...columnNamesFromExcel]; // Default to file order if undefined
+            columnAlignments = layoutToLoad.columnAlignments || {}; // Use empty object if undefined
 
 
-             // Update the visual state of the filter dropdowns to match the loaded layout
-             updateFilterDropdownsVisuals();
+            // Ensure visibleColumns only contains columns present in the current file
+            visibleColumns = visibleColumns.filter(col => columnNamesFromExcel.some(name => name.toLowerCase() === col.toLowerCase()));
+            // If visibleColumns becomes empty after filtering, default to showing all if file has columns
+            if (visibleColumns.length === 0 && columnNamesFromExcel.length > 0) {
+                visibleColumns = [...columnNamesFromExcel];
+            }
 
-             // Apply the filters and update the table
-             applyFilters();
+            // Ensure columnDisplayOrder only contains columns present in the current file and add new ones
+            const currentFileColumnNamesExact = new Set(columnNamesFromExcel);
+            // Filter out saved columns that don't exist in the current file
+            columnDisplayOrder = columnDisplayOrder.filter(col => currentFileColumnNamesExact.has(col));
+            // Add any columns from the current file that were NOT in the saved layout's display order to the end
+            currentFileColumnNamesExact.forEach(col => {
+                if (!columnDisplayOrder.includes(col)) {
+                    columnDisplayOrder.push(col);
+                }
+            });
+            // If columnDisplayOrder becomes empty (shouldn't happen if file has columns), default to file order
+            if (columnDisplayOrder.length === 0 && columnNamesFromExcel.length > 0) {
+                columnDisplayOrder = [...columnNamesFromExcel];
+            }
 
-             alert(`Layout "${layoutName}" loaded.`);
+            // Ensure columnAlignments only contains entries for columns present in the current file
+            const loadedAlignments = layoutToLoad.columnAlignments || {};
+            columnAlignments = {}; // Start fresh
+            columnNamesFromExcel.forEach(col => {
+                // Find the key in the loaded alignments based on current file name (case-insensitive)
+                const loadedKey = Object.keys(loadedAlignments).find(key => key.toLowerCase() === col.toLowerCase());
+                if (loadedKey && ['left', 'center', 'right'].includes(loadedAlignments[loadedKey])) {
+                    columnAlignments[col] = loadedAlignments[loadedKey]; // Use exact current column name as key
+                }
+            });
+
+
+            // Update the visual state of the filter dropdowns to match the loaded layout
+            updateFilterDropdownsVisuals();
+
+            // Apply the filters and update the table
+            applyFilters();
+
+            alert(`Layout "${layoutName}" loaded.`);
         } else {
             alert(`Layout "${layoutName}" not found.`);
         }
     }
 
-     function deleteLayout() {
-         const selectElement = document.getElementById('loadLayoutSelect');
-         const layoutName = selectElement.value;
+    function deleteLayout() {
+        const selectElement = document.getElementById('loadLayoutSelect');
+        const layoutName = selectElement.value;
 
-         if (!layoutName) {
-             alert("Please select a layout to delete.");
-             return;
-         }
+        if (!layoutName) {
+            alert("Please select a layout to delete.");
+            return;
+        }
 
-         if (confirm(`Are you sure you want to delete the layout "${layoutName}"?`)) {
-             const savedLayouts = getSavedLayouts();
-             delete savedLayouts[layoutName];
-             localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(savedLayouts));
-             alert(`Layout "${layoutName}" deleted.`);
-             loadSavedLayoutNames(); // Refresh dropdown
-             enableLayoutButtons(); // Update button states
-         }
-     }
+        if (confirm(`Are you sure you want to delete the layout "${layoutName}"?`)) {
+            const savedLayouts = getSavedLayouts();
+            delete savedLayouts[layoutName];
+            localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(savedLayouts));
+            alert(`Layout "${layoutName}" deleted.`);
+            loadSavedLayoutNames(); // Refresh dropdown
+            enableLayoutButtons(); // Update button states
+        }
+    }
 
     function loadSavedLayoutNames() {
         const selectElement = document.getElementById('loadLayoutSelect');
@@ -1768,31 +1640,31 @@ function goBack() {
         enableLayoutButtons(); // Update button states
     }
 
-     function enableLayoutButtons() {
-         const selectElement = document.getElementById('loadLayoutSelect');
-         const loadButton = document.getElementById('loadLayoutButton');
-         const deleteButton = document.getElementById('deleteLayoutButton');
-         const layoutNameInput = document.getElementById('layoutNameInput');
-         const saveButton = document.getElementById('saveLayoutButton');
+    function enableLayoutButtons() {
+        const selectElement = document.getElementById('loadLayoutSelect');
+        const loadButton = document.getElementById('loadLayoutButton');
+        const deleteButton = document.getElementById('deleteLayoutButton');
+        const layoutNameInput = document.getElementById('layoutNameInput');
+        const saveButton = document.getElementById('saveLayoutButton');
 
 
-         const isLayoutSelected = selectElement.value !== "";
-         loadButton.disabled = !isLayoutSelected;
-         deleteButton.disabled = !isLayoutSelected;
+        const isLayoutSelected = selectElement.value !== "";
+        loadButton.disabled = !isLayoutSelected;
+        deleteButton.disabled = !isLayoutSelected;
 
-          // Enable save button only if a name is entered AND a file is loaded
-         saveButton.disabled = layoutNameInput.value.trim() === "" || tableData.length === 0; // Use tableData for file loaded check
-          // Update save button state when input changes
-          layoutNameInput.removeEventListener('input', handleLayoutNameInput); // Prevent adding multiple listeners
-          layoutNameInput.addEventListener('input', handleLayoutNameInput);
+        // Enable save button only if a name is entered AND a file is loaded
+        saveButton.disabled = layoutNameInput.value.trim() === "" || tableData.length === 0; // Use tableData for file loaded check
+        // Update save button state when input changes
+        layoutNameInput.removeEventListener('input', handleLayoutNameInput); // Prevent adding multiple listeners
+        layoutNameInput.addEventListener('input', handleLayoutNameInput);
 
-     }
+    }
 
-     function handleLayoutNameInput() {
-         const layoutNameInput = document.getElementById('layoutNameInput');
-         const saveButton = document.getElementById('saveLayoutButton');
-          saveButton.disabled = layoutNameInput.value.trim() === "" || tableData.length === 0; // Use tableData for file loaded check
-     }
+    function handleLayoutNameInput() {
+        const layoutNameInput = document.getElementById('layoutNameInput');
+        const saveButton = document.getElementById('saveLayoutButton');
+        saveButton.disabled = layoutNameInput.value.trim() === "" || tableData.length === 0; // Use tableData for file loaded check
+    }
 
     // Function to update the visual state of filter dropdowns to match currentAppliedDataFilters and visibleColumns (from first code)
     function updateFilterDropdownsVisuals() {
@@ -1812,396 +1684,19 @@ function goBack() {
         // Update Column Visibility dropdown
         const visibilityDropdown = document.querySelector('.filter-dropdown[data-filter-type="visibility"]');
         if (visibilityDropdown) {
-             const optionsContainer = visibilityDropdown.querySelector('.filter-options');
-             const selectAllCheckbox = visibilityDropdown.querySelector('.select-all-columns-checkbox');
+            const optionsContainer = visibilityDropdown.querySelector('.filter-options');
+            const selectAllCheckbox = visibilityDropdown.querySelector('.select-all-columns-checkbox');
 
-             optionsContainer.querySelectorAll('.column-checkbox').forEach(checkbox => {
-                 checkbox.checked = visibleColumns.some(val => val.toLowerCase() === checkbox.value.toLowerCase()); // Case-insensitive check
-             });
-             updateSelectAllCheckbox(optionsContainer, selectAllCheckbox); // Update select all state
-         }
-         // Note: Column width input/select are updated in populateColumnWidthSelect
-         // Alignment select is updated in populateColumnAlignmentSelect
-    }
-
-// Function to generate charts using the loaded data (from second code, modified for interactivity)
-    function generateCharts(){
-        // Destroy previous charts
-         charts.forEach(c => c.destroy());
-         charts = [];
-
-        // If no data is loaded, clear chart container and return
-         if (!Array.isArray(tableData) || tableData.length === 0) {
-             $('#chartContainer').html("<p>Upload data to see charts.</p>");
-             return;
-         } else {
-              // Ensure the chart container is ready if hidden
-              $('#chartContainer').css('display', $('#viewSelector').val() === 'chart' ? 'flex' : 'none');
-              // Re-add the canvas elements if they were removed (in case of error or explicit clearing)
-              // A more robust approach might be to keep canvas elements always and only destroy/recreate chart instances
-              // For this integration, we'll assume the HTML structure remains.
-              const chartContainer = $('#chartContainer');
-              if (chartContainer.find('canvas').length === 0) {
-                  chartContainer.html(`
-                      <div class="chart-box">
-                          <div class="chart-toolbar">
-                              <button onclick="downloadChart('monthChart')">Download</button>
-                          </div>
-                          <canvas id="monthChart"></canvas>
-                      </div>
-                      <div class="chart-box">
-                          <div class="chart-toolbar">
-                              <button onclick="downloadChart('unitChart')">Download</button>
-                          </div>
-                          <canvas id="unitChart"></canvas>
-                      </div>
-                      <div class="chart-box">
-                          <div class="chart-toolbar">
-                              <button onclick="downloadChart('smplBlendChart')">Download</button>
-                          </div>
-                          <canvas id="smplBlendChart"></canvas>
-                      </div>
-                       <div class="chart-box">
-                           <div class="chart-toolbar">
-                               <button onclick="downloadChart('exportPie')">Download</button>
-                           </div>
-                           <canvas id="exportPie"></canvas>
-                       </div>
-                      <div class="chart-box">
-                          <div class="chart-toolbar">
-                              <button onclick="downloadChart('marketChart')">Download</button>
-                          </div>
-                          <canvas id="marketChart"></canvas>
-                      </div>
-                       <div class="chart-box">
-                           <div class="chart-toolbar">
-                               <button onclick="downloadChart('customerChart')">Download</button>
-                           </div>
-                           <canvas id="customerChart"></canvas>
-                       </div>
-                  `);
-              }
-         }
-
-        // --- Apply Chart Interaction Filters ---
-        let chartFilteredData = tableData; // Start with the permanently filtered data
-
-        // Iterate through the currentChartFilters and apply them
-        Object.keys(currentChartFilters).forEach(columnName => {
-            const selectedValues = currentChartFilters[columnName];
-            if (selectedValues && selectedValues.length > 0) {
-                // Find the actual key in the row object based on the filter column name (case-insensitive)
-                 const filterColumnKey = Object.keys(chartFilteredData[0] || {}).find(key => key.toLowerCase() === columnName.toLowerCase());
-
-                 if (filterColumnKey) {
-                      chartFilteredData = chartFilteredData.filter(row => {
-                           const rowValue = row[filterColumnKey] !== undefined && row[filterColumnKey] !== null ? String(row[filterColumnKey]) : '';
-
-                           // Special handling for date-based filters like 'Month wise'
-                           if (columnName === 'Billing Date') { // Check against the actual column name
-                                // Map the selected month name back to the month number for filtering
-                                const selectedMonthNumbers = selectedValues.map(monthName => {
-                                     const monthIndex = new Date(Date.parse(monthName + " 1, 2000")).getMonth(); // Get 0-indexed month
-                                     return (monthIndex + 1).toString().padStart(2, '0'); // Convert to 1-indexed string '01', '02', etc.
-                                });
-                                const rowMonth = rowValue.split('-')[1]; // Assuming dd-mm-yy format
-                                return selectedMonthNumbers.includes(rowMonth);
-                           }
-                           // Special handling for 'Customer Type' (Export/Domestic)
-                            else if (columnName === 'Sales Document') { // Check against the actual column name
-                                 const doc = rowValue || '';
-                                 return selectedValues.some(filterValue => {
-                                     if (filterValue === 'Export') return doc[2]==='2' && doc[3]==='0';
-                                     if (filterValue === 'Domestic') return doc[2]==='1' && doc[3]==='0';
-                                     return false; // Should not happen with current logic
-                                 });
-                           }
-                  // Default filtering for other columns
-                           else {
-                                // --- Special handling for Unit Chart (Plant) ---
-                                if (columnName === 'Plant') {
-                                    // selectedValues will contain labels like 'U1', 'U2', etc.
-                                    // rowValue will contain actual plant numbers like '1101', '1102'.
-                                    // We need to check if the row's Plant value corresponds to the clicked 'U' label.
-                                    return selectedValues.some(filterValue => {
-                                        // Extract the digit from the 'U' label (e.g., 'U1' -> '1')
-                                        const unitDigit = filterValue.replace('U', '');
-                                        // Get the last digit of the plant number from the row value (e.g., '1101' -> '1')
-                                        const plantLastDigit = String(rowValue).slice(-1);
-                                        // Filter includes the row if the last digit of the plant number matches the digit from the 'U' label
-                                        return unitDigit === plantLastDigit;
-                                    });
-                                }
-                                // --- Special handling for SMPL Blend Chart ---
-                                 else if (columnName === 'SMPL Count') { // Filter using the column mapped to the Blend chart label
-                                     // selectedValues will contain labels like '30 LE (70/30)'
-                                     // We need to match this against the combined string from the row data used to generate the chart labels.
-                                     const smplCountKey = Object.keys(row || {}).find(key => key.toLowerCase() === 'smpl count');
-                                     const blendColumnKey = Object.keys(row || {}).find(key => key.toLowerCase() === 'blend'); // Key for the 'Blend' column generated by optimizeRow
-
-                                     if (smplCountKey && blendColumnKey) {
-                                         // Recreate the exact label format used for the chart data aggregation
-                                         const rowBlendLabel = `${row[smplCountKey]} (${row[blendColumnKey]})`;
-                                         // Filter includes the row if its combined label matches one of the selected filter values
-                                         return selectedValues.includes(rowBlendLabel);
-                                     }
-                                     // If the necessary columns are not found in the row, this row cannot match the filter
-                                     return false;
-                                 }
-                                // --- Default filtering for all other columns (keep the original logic) ---
-                                else {
-                                     return selectedValues.includes(rowValue);
-                                }
-                           }
-                      });
-                 } else {
-                      console.warn(`Chart filter column '${columnName}' not found in data when applying filter. Skipping filter.`);
-                 }
-            }
-        });
-        // --- End Apply Chart Interaction Filters ---
- 
-
-
-        // Filter out rows containing '#' in 'Plant' and also 'U#' entries before charting certain data (from second code, using chartFilteredData)
-         // This filter is now applied *after* chart interaction filters, but only for specific charts
-         const chartDataForSpecificCharts = chartFilteredData.filter(row => row !== null && !(/U#/.test(row['Plant']) || row['Plant']?.includes('#')));
-
-
-        // Prepare the chart data (from second code, using chartFilteredData or chartDataForSpecificCharts)
-
-        const ctxMonth = document.getElementById('monthChart').getContext('2d');
-        const monthData = {};
-         const billingDateKey = Object.keys(chartFilteredData[0] || {}).find(key => key.toLowerCase() === 'billing date');
-         const invoicedQtyKey = Object.keys(chartFilteredData[0] || {}).find(key => key.toLowerCase() === 'invoiced quantity');
-
-         if(billingDateKey && invoicedQtyKey) {
-             chartFilteredData.forEach(r => { // Use chartFilteredData
-                 const dateValue = r[billingDateKey];
-                 if(dateValue && typeof dateValue === 'string') { // Assuming date is formatted as dd-mm-yy string
-                     const parts = dateValue.split('-');
-                     if(parts.length === 3) {
-                         const month = parts[1]; // Get the month part
-                         // Use the full year for Date object to avoid issues with 2-digit years
-                         const fullYear = parseInt(parts[2], 10) + 2000; // Assuming 2-digit years like 24 are 2024
-                         const monthName = new Date(fullYear, parseInt(month, 10) - 1).toLocaleString('default', {month: 'short'});
-                         monthData[monthName] = (monthData[monthName] || 0) + (parseFloat(r[invoicedQtyKey])/1000 || 0);
-                     } else {
-                          console.warn(`Skipping row due to unexpected date format in '${billingDateKey}': ${dateValue}`);
-                     }
-                 }
-             });
-         } else {
-             console.warn(`Skipping Month Chart: Could not find '${billingDateKey}' or '${invoicedQtyKey}' column.`);
-         }
-
-
-        charts.push(new Chart(ctxMonth, {
-            type: 'bar',
-            data: {labels: Object.keys(monthData), datasets: [{label:'Month wise', data:Object.values(monthData), backgroundColor:'steelblue'}]},
-             options: { // Add options for interactivity
-                 onClick: handleChartClick
-             }
-        }));
-
-        const ctxUnit = document.getElementById('unitChart').getContext('2d');
-        const unitData = {};
-        const plantKey = Object.keys(chartFilteredData[0] || {}).find(key => key.toLowerCase() === 'plant'); // Use chartFilteredData
-
-        if(plantKey && invoicedQtyKey) {
-            chartDataForSpecificCharts.forEach(r => { // Use chartDataForSpecificCharts here
-                 if (r[plantKey]) {
-                     const plantNumber = r[plantKey].toString();
-                     const lastDigit = plantNumber.slice(-1);
-                     const unit = 'U' + lastDigit;
-                     unitData[unit] = (unitData[unit] || 0) + (parseFloat(r[invoicedQtyKey]) / 1000 || 0);
-                 }
-             });
-
-            const sortedLabels = Object.keys(unitData).sort((a, b) => {
-                const numA = parseInt(a.slice(1), 10);
-                const numB = parseInt(b.slice(1), 10);
-                return numA - numB;
+            optionsContainer.querySelectorAll('.column-checkbox').forEach(checkbox => {
+                checkbox.checked = visibleColumns.some(val => val.toLowerCase() === checkbox.value.toLowerCase()); // Case-insensitive check
             });
-
-            const sortedUnitData = sortedLabels.map(label => unitData[label]);
-
-            charts.push(new Chart(ctxUnit, {
-                type: 'bar',
-                data: {
-                    labels: sortedLabels,
-                    datasets: [{
-                        label: 'Unit wise',
-                        data: sortedUnitData,
-                        backgroundColor: 'teal'
-                    }]
-                },
-                 options: { // Add options for interactivity
-                     onClick: handleChartClick
-                 }
-            }));
-        } else {
-            console.warn(`Skipping Unit Chart: Could not find '${plantKey}' or '${invoicedQtyKey}' column.`);
+            updateSelectAllCheckbox(optionsContainer, selectAllCheckbox); // Update select all state
         }
-
-
-        const ctxPie = document.getElementById('exportPie').getContext('2d');
-        const exportDomestic = {Export:0, Domestic:0};
-        const salesDocumentKey = Object.keys(chartFilteredData[0] || {}).find(key => key.toLowerCase() === 'sales document'); // Use chartFilteredData
-
-        if (salesDocumentKey && invoicedQtyKey) {
-            chartFilteredData.forEach(r => { // Use chartFilteredData
-                 const doc = r[salesDocumentKey] || '';
-                 if(doc[2]==='2' && doc[3]==='0') exportDomestic.Export += parseFloat(r[invoicedQtyKey])/1000 || 0;
-                 else if(doc[2]==='1' && doc[3]==='0') exportDomestic.Domestic += parseFloat(r[invoicedQtyKey])/1000 || 0;
-            });
-
-            charts.push(new Chart(ctxPie, {
-                type: 'bar', // Changed to bar chart as per your original code
-                data: {labels: ['Export', 'Domestic'], datasets: [{label:'Customer Type', data: Object.values(exportDomestic), backgroundColor:['blue','green']}]},
-                 options: { // Add options for interactivity
-                     onClick: handleChartClick
-                 }
-            }));
-         } else {
-            console.warn(`Skipping Export/Domestic Chart: Could not find '${salesDocumentKey}' or '${invoicedQtyKey}' column.`);
-         }
-
-
-        const ctxBlend = document.getElementById('smplBlendChart').getContext('2d');
-        const blendData = {};
-        const smplCountKey = Object.keys(chartFilteredData[0] || {}).find(key => key.toLowerCase() === 'smpl count'); // Use chartFilteredData
-        const blendColumnKey = Object.keys(chartFilteredData[0] || {}).find(key => key.toLowerCase() === 'blend'); // Key for the 'Blend' column generated by optimizeRow
-
-
-        if(smplCountKey && blendColumnKey && invoicedQtyKey) {
-             // Step 1: Aggregate the data for SMPL Count and Blend
-             chartFilteredData.forEach(r => { // Use chartFilteredData
-                 if (r[smplCountKey] && r[blendColumnKey]) { // Use the correct keys
-                      let label = `${r[smplCountKey]} (${r[blendColumnKey]})`;
-                      // Step 2: Check if 'SMPL Count' is 'PC' or not, keep it as is if it doesn't include 'PC'
-                       if (!r[smplCountKey].includes("PC")) {
-                            label = `${r[smplCountKey]} (${r[blendColumnKey]})`;  // Keep it as it is
-                       }
-                      blendData[label] = (blendData[label] || 0) + (parseFloat(r[invoicedQtyKey]) / 1000 || 0);
-                 }
-             });
-
-             // Step 2: Sort the data in descending order by the value
-             const sortedBlendData = Object.entries(blendData)
-                 .sort((a, b) => b[1] - a[1]) // Sort by the value (invoiced quantity)
-                 .slice(0, 10); // Take the top 10 entries
-
-             // Step 3: Prepare the data for the chart
-             const topLabels = sortedBlendData.map(item => item[0]);
-             const topValues = sortedBlendData.map(item => item[1]);
-
-             // Step 4: Create the chart
-             charts.push(new Chart(ctxBlend, {
-                 type: 'bar',
-                 data: {
-                     labels: topLabels,
-                     datasets: [{
-                         label: 'Invoiced Qty (MT)',
-                         data: topValues,
-                         backgroundColor: 'purple'
-                     }]
-                 },
-                  options: { // Add options for interactivity
-                      onClick: handleChartClick
-                  }
-             }));
-        } else {
-             console.warn(`Skipping Blend Chart: Could not find '${smplCountKey}', '${blendColumnKey}', or '${invoicedQtyKey}' column.`);
-        }
-
-
-        // Customer-wise chart - Top 10 Customers (from second code, modified)
-        const ctxCustomer = document.getElementById('customerChart').getContext('2d');
-        const customerData = {};
-        const customerNameKey = Object.keys(chartFilteredData[0] || {}).find(key => key.toLowerCase() === 'customer_name'); // Key for Customer Name
-
-
-         if (customerNameKey && plantKey && invoicedQtyKey) { // Use plantKey from chartFilteredData context
-             chartDataForSpecificCharts.forEach(r => { // Use chartDataForSpecificCharts to exclude '#' plants
-                 const customer = r[customerNameKey];
-                 customerData[customer] = (customerData[customer] || 0) + (parseFloat(r[invoicedQtyKey]) / 1000 || 0);
-             });
-
-             const sortedCustomerData = Object.entries(customerData)
-                  .sort(([, valueA], [, valueB]) => valueB - valueA)
-                  .slice(0, 10);
-
-             const top10CustomerLabels = sortedCustomerData.map(entry => entry[0]);
-             const top10CustomerData = sortedCustomerData.map(entry => entry[1]);
-
-              charts.push(new Chart(ctxCustomer, {
-                  type: 'bar',
-                  data: {
-                      labels: top10CustomerLabels,
-                      datasets: [{
-                          label: 'Top 10 Customers',
-                          data: top10CustomerData,
-                          backgroundColor: 'blue'
-                      }]
-                  },
-                   options: { // Add options for interactivity
-                       onClick: handleChartClick
-                   }
-              }));
-
-         } else {
-             console.warn(`Skipping Customer Chart: Could not find '${customerNameKey}', '${plantKey}', or '${invoicedQtyKey}' column.`);
-         }
-
-
-        const ctxMarket = document.getElementById('marketChart').getContext('2d');
-         const marketKey = Object.keys(chartFilteredData[0] || {}).find(key => key.toLowerCase() === 'market'); // Use chartFilteredData
-
-         if(marketKey && invoicedQtyKey) {
-             const marketData = groupSum(chartFilteredData, marketKey, invoicedQtyKey); // Use chartFilteredData and the actual keys found
-             charts.push(new Chart(ctxMarket, {
-                 type: 'bar',
-                 data: {
-                     labels: marketData.map(r => r[0]),
-                     datasets: [{
-                         label: 'Market wise',
-                         data: marketData.map(r => (r[1]/1000)),
-                         backgroundColor: 'orange'
-                     }]
-                 },
-                  options: { // Add options for interactivity
-                      onClick: handleChartClick
-                  }
-             }));
-         } else {
-             console.warn(`Skipping Market Chart: Could not find '${marketKey}' or '${invoicedQtyKey}' column.`);
-         }
-
-         // Add a "Clear Chart Filters" button if it doesn't exist
-         if ($('#clearChartFiltersButton').length === 0) {
-             $('#chartContainer').before('<button id="clearChartFiltersButton" style="margin-bottom: 10px; background: #dc3545; color: white; padding: 8px 12px; border: none; cursor: pointer;">Clear Chart Filters</button>');
-             $('#clearChartFiltersButton').on('click', clearChartFilters);
-         }
-         // Show/hide the clear button based on if filters are active
-         if (Object.keys(currentChartFilters).length > 0) {
-             $('#clearChartFiltersButton').show();
-         } else {
-             $('#clearChartFiltersButton').hide();
-         }
+        // Note: Column width input/select are updated in populateColumnWidthSelect
+        // Alignment select is updated in populateColumnAlignmentSelect
     }
 
-    // Function to download charts as PNG (from second code)
-    function downloadChart(chartId){
-         const canvas = document.getElementById(chartId);
-         if (canvas) {
-             canvas.toBlob(function(blob) {
-                 saveAs(blob, chartId + ".png");
-             });
-         } else {
-             console.error(`Chart canvas with ID ${chartId} not found.`);
-         }
-    }
+    // Removed chart generation, interaction, and download functions
 
 
     // --- Download Functionality --- (from first code, completed)
@@ -2210,80 +1705,80 @@ function goBack() {
         // Get the data currently displayed in the table (filtered data)
         let filteredData = tableData; // Start with all data
 
-         // Apply data filters first
-         dataFilterableColumnNames.forEach(columnName => {
-             const selectedValues = currentAppliedDataFilters[columnName]; // Use currently applied data filters
-             if (selectedValues && selectedValues.length > 0) {
-                 filteredData = filteredData.filter(row => {
-                      // Find the actual key in the row object based on the filter column name (case-insensitive)
-                      const rowKey = Object.keys(row).find(key => key.toLowerCase() === columnName.toLowerCase());
-                      if (rowKey) {
-                           const rowValue = row[rowKey] !== undefined && row[rowKey] !== null ? String(row[rowKey]) : '';
-                           return selectedValues.includes(rowValue);
-                      }
-                      return false;
-                  });
-             }
-         });
+        // Apply data filters first (Logic from applyFilters)
+        dataFilterableColumnNames.forEach(columnName => {
+            const selectedValues = currentAppliedDataFilters[columnName]; // Use currently applied data filters
+            if (selectedValues && selectedValues.length > 0) {
+                filteredData = filteredData.filter(row => {
+                    // Find the actual key in the row object based on the filter column name (case-insensitive)
+                    const rowKey = Object.keys(row).find(key => key.toLowerCase() === columnName.toLowerCase());
+                    if (rowKey) {
+                        const rowValue = row[rowKey] !== undefined && row[rowKey] !== null ? String(row[rowKey]) : '';
+                        return selectedValues.includes(rowValue);
+                    }
+                    return false;
+                });
+            }
+        });
 
-         // Apply sorting to filtered data for Excel download as well (optional, but consistent)
-          if (currentSort.column) {
-              const sortColumnName = currentSort.column;
-              const sortDirection = currentSort.direction;
-               const actualSortColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === sortColumnName.toLowerCase());
-              if (actualSortColumnName) {
-                  filteredData.sort((a, b) => {
-                       const aValue = a[actualSortColumnName] !== undefined && a[actualSortColumnName] !== null ? String(a[actualSortColumnName]) : '';
-                       const bValue = b[actualSortColumnName] !== undefined && b[actualSortColumnName] !== null ? String(b[actualSortColumnName]) : '';
-                       // Special handling for month columns for sorting
-                       if (actualSortColumnName.toLowerCase() === 'month' || actualSortColumnName.toLowerCase() === 'month') {
-                             const numA = parseInt(aValue);
-                             const numB = parseInt(bValue);
-                             if (isNaN(numA) && isNaN(numB)) return 0;
-                             if (isNaN(numA)) return 1;
-                             if (isNaN(numB)) return -1;
-                             return sortDirection === 'asc' ? numA - numB : numB - numA; // Use numB - numA for desc
-                       }
-                       if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-                       if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-                       return 0;
-                   });
-              }
-          }
-
-
-         // Now extract data only for visible columns based on the current display order
-         const dataToDownload = [];
-
-         // Add headers for visible columns, using actual column names for better representation in Excel, respecting display order
-         const headersToDownload = [];
-         columnDisplayOrder.forEach(col => {
-              if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
-                   // Find the corresponding actual column name from Excel header (case-insensitive)
-                   const actualColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === col.toLowerCase());
-                   headersToDownload.push(actualColumnName || col); // Use actual if found, fallback to processed
-              }
-         });
-         dataToDownload.push(headersToDownload);
-
-         // Add row data for visible columns, respecting display order
-         filteredData.forEach(row => {
-             const rowArray = [];
-             columnDisplayOrder.forEach(col => {
-                 if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
-                      // Find the actual key in the row object based on the column name from display order (case-insensitive)
-                      const rowKey = Object.keys(row).find(key => key.toLowerCase() === col.toLowerCase());
-                      rowArray.push(rowKey ? row[rowKey] : ''); // Use row[rowKey] directly
-                 }
-             });
-             dataToDownload.push(rowArray);
-         });
+        // Apply sorting (Logic from applyFilters)
+        if (currentSort.column) {
+            const sortColumnName = currentSort.column;
+            const sortDirection = currentSort.direction;
+            const actualSortColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === sortColumnName.toLowerCase());
+            if (actualSortColumnName) {
+                filteredData.sort((a, b) => {
+                    const aValue = a[actualSortColumnName] !== undefined && a[actualSortColumnName] !== null ? String(a[actualSortColumnName]) : '';
+                    const bValue = b[actualSortColumnName] !== undefined && b[actualSortColumnName] !== null ? String(b[actualSortColumnName]) : '';
+                    // Special handling for month columns for sorting
+                    if (actualSortColumnName.toLowerCase() === 'month' || actualSortColumnName.toLowerCase() === 'month') {
+                        const numA = parseInt(aValue);
+                        const numB = parseInt(bValue);
+                        if (isNaN(numA) && isNaN(numB)) return 0;
+                        if (isNaN(numA)) return 1;
+                        if (isNaN(numB)) return -1;
+                        return sortDirection === 'asc' ? numA - numB : numB - numA; // Use numB - numA for desc
+                    }
+                    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+                    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            }
+        }
 
 
-         if (dataToDownload.length <= 1) { // Only header row or no data
-             alert("No data to download based on current filters and column selections.");
-             return;
-         }
+        // Now extract data only for visible columns based on the current display order
+        const dataToDownload = [];
+
+        // Add headers for visible columns, using actual column names for better representation in Excel, respecting display order
+        const headersToDownload = [];
+        columnDisplayOrder.forEach(col => {
+            if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
+                // Find the corresponding actual column name from Excel header (case-insensitive)
+                const actualColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === col.toLowerCase());
+                headersToDownload.push(actualColumnName || col); // Use actual if found, fallback to processed
+            }
+        });
+        dataToDownload.push(headersToDownload);
+
+        // Add row data for visible columns, respecting display order
+        filteredData.forEach(row => {
+            const rowArray = [];
+            columnDisplayOrder.forEach(col => {
+                if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
+                    // Find the actual key in the row object based on the column name from display order (case-insensitive)
+                    const rowKey = Object.keys(row).find(key => key.toLowerCase() === col.toLowerCase());
+                    rowArray.push(rowKey ? row[rowKey] : ''); // Use row[rowKey] directly
+                }
+            });
+            dataToDownload.push(rowArray);
+        });
+
+
+        if (dataToDownload.length <= 1) { // Only header row or no data
+            alert("No data to download based on current filters and column selections.");
+            return;
+        }
 
         // Create a new workbook and worksheet
         const ws = XLSX.utils.aoa_to_sheet(dataToDownload);
@@ -2300,6 +1795,7 @@ function goBack() {
         // Write and download the file
         XLSX.writeFile(wb, "table_data.xlsx");
     }
+ 
 
     // Function to download PDF (from first code, completed and slightly modified)
     function downloadPdf() {
@@ -2308,44 +1804,44 @@ function goBack() {
 
         // Data for autoTable - get filtered and sorted data (reuse logic from applyFilters)
         let filteredData = tableData; // Start with all data
-         // Apply data filters
-         dataFilterableColumnNames.forEach(columnName => {
-             const selectedValues = currentAppliedDataFilters[columnName];
-             if (selectedValues && selectedValues.length > 0) {
-                 filteredData = filteredData.filter(row => {
-                      const rowKey = Object.keys(row).find(key => key.toLowerCase() === columnName.toLowerCase());
-                      if (rowKey) {
-                           const rowValue = row[rowKey] !== undefined && row[rowKey] !== null ? String(row[rowKey]) : '';
-                           return selectedValues.includes(rowValue);
-                      }
-                      return false;
-                  });
-             }
-         });
-         // Apply sorting to filtered data
-          if (currentSort.column) {
-              const sortColumnName = currentSort.column;
-              const sortDirection = currentSort.direction;
-               const actualSortColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === sortColumnName.toLowerCase());
-              if (actualSortColumnName) {
-                  filteredData.sort((a, b) => {
-                       const aValue = a[actualSortColumnName] !== undefined && a[actualSortColumnName] !== null ? String(a[actualSortColumnName]) : '';
-                       const bValue = b[actualSortColumnName] !== undefined && b[actualSortColumnName] !== null ? String(b[actualSortColumnName]) : '';
-                       // Special handling for month columns for sorting
-                       if (actualSortColumnName.toLowerCase() === 'month' || actualSortColumnName.toLowerCase() === 'month') {
-                             const numA = parseInt(aValue);
-                             const numB = parseInt(bValue);
-                             if (isNaN(numA) && isNaN(numB)) return 0;
-                             if (isNaN(numA)) return 1;
-                             if (isNaN(numB)) return -1;
-                             return sortDirection === 'asc' ? numA - numB : numB - numA;
-                       }
-                       if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-                       if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-                       return 0;
-                   });
-              }
-          }
+        // Apply data filters (Logic from applyFilters)
+        dataFilterableColumnNames.forEach(columnName => {
+            const selectedValues = currentAppliedDataFilters[columnName];
+            if (selectedValues && selectedValues.length > 0) {
+                filteredData = filteredData.filter(row => {
+                    const rowKey = Object.keys(row).find(key => key.toLowerCase() === columnName.toLowerCase());
+                    if (rowKey) {
+                        const rowValue = row[rowKey] !== undefined && row[rowKey] !== null ? String(row[rowKey]) : '';
+                        return selectedValues.includes(rowValue);
+                    }
+                    return false;
+                });
+            }
+        });
+        // Apply sorting (Logic from applyFilters)
+        if (currentSort.column) {
+            const sortColumnName = currentSort.column;
+            const sortDirection = currentSort.direction;
+            const actualSortColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === sortColumnName.toLowerCase());
+            if (actualSortColumnName) {
+                filteredData.sort((a, b) => {
+                    const aValue = a[actualSortColumnName] !== undefined && a[actualSortColumnName] !== null ? String(a[actualSortColumnName]) : '';
+                    const bValue = b[actualSortColumnName] !== undefined && b[actualSortColumnName] !== null ? String(b[actualSortColumnName]) : '';
+                    // Special handling for month columns for sorting
+                    if (actualSortColumnName.toLowerCase() === 'month' || actualSortColumnName.toLowerCase() === 'month') {
+                        const numA = parseInt(aValue);
+                        const numB = parseInt(bValue);
+                        if (isNaN(numA) && isNaN(numB)) return 0;
+                        if (isNaN(numA)) return 1;
+                        if (isNaN(numB)) return -1;
+                        return sortDirection === 'asc' ? numA - numB : numB - numA;
+                    }
+                    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+                    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            }
+        }
 
 
         // Prepare table headers and rows based on visible columns and display order
@@ -2356,28 +1852,28 @@ function goBack() {
         // Headers - iterate columnDisplayOrder, check visibility
         let colIndex = 0;
         columnDisplayOrder.forEach(col => {
-             if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
-                 pdfHeaders.push(col); // Use the column name from display order for the header
+            if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
+                pdfHeaders.push(col); // Use the column name from display order for the header
 
-                  // Apply header and cell alignment from columnAlignments
-                  const actualColName = columnNamesFromExcel.find(name => name.toLowerCase() === col.toLowerCase());
-                  const alignment = actualColName ? columnAlignments[actualColName] : 'left'; // Default alignment to left
-                   columnStyles[colIndex] = { halign: alignment, valign: 'top' }; // Apply to autoTable headStyles and bodyStyles
+                // Apply header and cell alignment from columnAlignments
+                const actualColName = columnNamesFromExcel.find(name => name.toLowerCase() === col.toLowerCase());
+                const alignment = actualColName ? columnAlignments[actualColName] : 'left'; // Default alignment to left
+                columnStyles[colIndex] = { halign: alignment, valign: 'top' }; // Apply to autoTable headStyles and bodyStyles
 
-                  // Try to apply column widths to autoTable
-                  if (actualColName && columnWidths[actualColName]) {
-                       const widthStr = columnWidths[actualColName];
-                       if (widthStr.endsWith('px')) {
-                            // Convert px to points (assuming 1px = 0.75pt)
-                            const widthInPoints = parseFloat(widthStr) * 0.75;
-                            columnStyles[colIndex].cellWidth = widthInPoints;
-                       }
-                       // autoTable handles % widths relatively well on its own
-                       // For other units, you might need a more complex conversion or let autoTable handle it
-                  }
+                // Try to apply column widths to autoTable
+                if (actualColName && columnWidths[actualColName]) {
+                    const widthStr = columnWidths[actualColName];
+                    if (widthStr.endsWith('px')) {
+                        // Convert px to points (assuming 1px = 0.75pt)
+                        const widthInPoints = parseFloat(widthStr) * 0.75;
+                        columnStyles[colIndex].cellWidth = widthInPoints;
+                    }
+                    // autoTable handles % widths relatively well on its own
+                    // For other units, you might need a more complex conversion or let autoTable handle it
+                }
 
-                 colIndex++; // Increment index only for visible columns
-             }
+                colIndex++; // Increment index only for visible columns
+            }
         });
 
         // Rows - iterate filteredData, then columnDisplayOrder, check visibility
@@ -2385,53 +1881,53 @@ function goBack() {
             const rowArray = [];
             columnDisplayOrder.forEach(col => {
                 if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
-                     // Find the actual key in the row object based on the column name from display order (case-insensitive)
-                     const rowKey = Object.keys(rowData).find(key => key.toLowerCase() === col.toLowerCase());
-                     rowArray.push(rowKey ? rowData[rowKey] : ''); // Use rowData[rowKey] directly
+                    // Find the actual key in the row object based on the column name from display order (case-insensitive)
+                    const rowKey = Object.keys(rowData).find(key => key.toLowerCase() === col.toLowerCase());
+                    rowArray.push(rowKey ? rowData[rowKey] : ''); // Use rowData[rowKey] directly
                 }
             });
             pdfRows.push(rowArray);
         });
 
-         if (pdfHeaders.length === 0 || pdfRows.length === 0) {
-             alert("No data or visible columns to download as PDF.");
-             return;
-         }
+        if (pdfHeaders.length === 0 || pdfRows.length === 0) {
+            alert("No data or visible columns to download as PDF.");
+            return;
+        }
 
         // Get remarks for PDF (which will act as the title)
-         const remarks = document.getElementById('pdfRemarksInput').value.trim();
+        const remarks = document.getElementById('pdfRemarksInput').value.trim();
 
-         // Calculate required height for the header area (Company Name + Remarks + padding)
-         const margin = 40;
-         const pdfWidth = pdf.internal.pageSize.getWidth();
-         const companyNameHeightEst = 16 * 1.2; // Estimate height of Company Name text (font size * line spacing factor)
-         const remarksLineHeightEst = 14 * 1.2; // Estimate height of one line of remarks text
-         let remarksBlockHeight = 0;
-         if (remarks) {
-             const splitRemarks = pdf.splitTextToSize(remarks, pdfWidth - 2 * margin);
-             remarksBlockHeight = splitRemarks.length * remarksLineHeightEst;
-         }
-         // Add padding: 15 after Company Name, 20 after Remarks before table
-         const paddingAfterCompanyName = 15;
-         const paddingAfterRemarks = 20;
+        // Calculate required height for the header area (Company Name + Remarks + padding)
+        const margin = 40;
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const companyNameHeightEst = 16 * 1.2; // Estimate height of Company Name text (font size * line spacing factor)
+        const remarksLineHeightEst = 14 * 1.2; // Estimate height of one line of remarks text
+        let remarksBlockHeight = 0;
+        if (remarks) {
+            const splitRemarks = pdf.splitTextToSize(remarks, pdfWidth - 2 * margin);
+            remarksBlockHeight = splitRemarks.length * remarksLineHeightEst;
+        }
+        // Add padding: 15 after Company Name, 20 after Remarks before table
+        const paddingAfterCompanyName = 15;
+        const paddingAfterRemarks = 20;
 
-         let headerHeightPt = margin + companyNameHeightEst + paddingAfterCompanyName + remarksBlockHeight + paddingAfterRemarks;
+        let headerHeightPt = margin + companyNameHeightEst + paddingAfterCompanyName + remarksBlockHeight + paddingAfterRemarks;
 
-         // Ensure minimum space if no remarks
-         if (!remarks) {
-             headerHeightPt = margin + companyNameHeightEst + paddingAfterCompanyName + paddingAfterRemarks;
-         }
+        // Ensure minimum space if no remarks
+        if (!remarks) {
+            headerHeightPt = margin + companyNameHeightEst + paddingAfterCompanyName + paddingAfterRemarks;
+        }
 
-         // Add some extra safety padding if needed, or adjust the padding values above
-         headerHeightPt += 10; // Add a little extra safety margin
+        // Add some extra safety padding if needed, or adjust the padding values above
+        headerHeightPt += 10; // Add a little extra safety margin
 
 
-         // *** Add this specific headStyle override for the first column ***
-          // No need for this specific override if columnStyles halign is applied correctly to headStyles
-          // as part of the columnStyles object definition. The halign in columnStyles
-          // should apply to both head and body for that column index. Let's rely on the
-          // halign set in the loop above within columnStyles.
-         // *************************************************************
+        // *** Add this specific headStyle override for the first column ***
+        // No need for this specific override if columnStyles halign is applied correctly to headStyles
+        // as part of the columnStyles object definition. The halign in columnStyles
+        // should apply to both head and body for that column index. Let's rely on the
+        // halign set in the loop above within columnStyles.
+        // *************************************************************
 
 
         pdf.autoTable({
@@ -2441,28 +1937,28 @@ function goBack() {
             startY: headerHeightPt,
             theme: 'grid',
             headStyles: {
-                 fillColor: '#e0f7fa', // Light blue header background
-                 textColor: '#333',
-                 fontStyle: 'bold',
-                 // halign is now applied per column from columnStyles
-                 valign: 'top'
+                fillColor: '#e0f7fa', // Light blue header background
+                textColor: '#333',
+                fontStyle: 'bold',
+                // halign is now applied per column from columnStyles
+                valign: 'top'
             },
-             bodyStyles: {
-                 textColor: '#333',
-                 valign: 'top'
-                 // halign is applied per column in columnStyles
-             },
-             alternateRowStyles: {
-                 fillColor: '#f5f5f5' // Light gray for alternate rows (optional, but nice)
-             },
+            bodyStyles: {
+                textColor: '#333',
+                valign: 'top'
+                // halign is applied per column in columnStyles
+            },
+            alternateRowStyles: {
+                fillColor: '#f5f5f5' // Light gray for alternate rows (optional, but nice)
+            },
             columnStyles: columnStyles, // Apply stored column styles (width and alignment)
             tableWidth: 'auto', // Make table fill page width
             margin: { top: headerHeightPt, bottom: 40, left: 40, right: 40 }, // Set margin.top to the calculated header height
             // didDrawPage will now draw header content within the top margin area
             didDrawPage: function(data) {
-                 const pageMargin = 40; // Use the same margin value as used for table margin
-                 const pdfWidth = pdf.internal.pageSize.getWidth();
-                 const pdfHeight = pdf.internal.pageSize.getHeight();
+                const pageMargin = 40; // Use the same margin value as used for table margin
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
 
                 // Company Name (Draw within the top margin)
                 pdf.setFontSize(16);
@@ -2470,24 +1966,24 @@ function goBack() {
                 const companyNameY = pageMargin + 15; // Position below top page margin + some padding
                 pdf.text('Sagar Manufacturers Pvt. Ltd.', pageMargin, companyNameY);
 
-                 // Add remarks (acting as title) if present, below the company name
-                 if (remarks) {
-                      const companyNameBottom = companyNameY + (16 * 1.2); // Estimate bottom of company name text
-                      const remarksYPos = companyNameBottom + 10; // Position below company name + padding
-                      pdf.setFontSize(14); // Use title font size for remarks
-                      pdf.setTextColor('#333'); // Use title color
-                      const splitRemarks = pdf.splitTextToSize(remarks, pdfWidth - 2 * pageMargin);
-                       // Center remarks horizontally
-                       const remarksTextWidth = pdf.getTextWidth(splitRemarks[0] || ''); // Get width of the first line for centering
-                       const centerX = (pdfWidth - remarksTextWidth) / 2;
-                       pdf.text(splitRemarks, centerX, remarksYPos); // Add remarks text
-                 }
+                // Add remarks (acting as title) if present, below the company name
+                if (remarks) {
+                    const companyNameBottom = companyNameY + (16 * 1.2); // Estimate bottom of company name text
+                    const remarksYPos = companyNameBottom + 10; // Position below company name + padding
+                    pdf.setFontSize(14); // Use title font size for remarks
+                    pdf.setTextColor('#333'); // Use title color
+                    const splitRemarks = pdf.splitTextToSize(remarks, pdfWidth - 2 * pageMargin);
+                    // Center remarks horizontally
+                    const remarksTextWidth = pdf.getTextWidth(splitRemarks[0] || ''); // Get width of the first line for centering
+                    const centerX = (pdfWidth - remarksTextWidth) / 2;
+                    pdf.text(splitRemarks, centerX, remarksYPos); // Add remarks text
+                }
 
                 // Add page number at the bottom
-                 pdf.setFontSize(10);
-                 pdf.setTextColor(150);
-                 // Position page number relative to the bottom margin
-                 pdf.text('Page ' + data.pageNumber, pdfWidth - pageMargin, pdfHeight - pageMargin, { align: 'right' });
+                pdf.setFontSize(10);
+                pdf.setTextColor(150);
+                // Position page number relative to the bottom margin
+                pdf.text('Page ' + data.pageNumber, pdfWidth - pageMargin, pdfHeight - pageMargin, { align: 'right' });
             }
             // didParseData is not needed
         });
@@ -2495,109 +1991,8 @@ function goBack() {
         pdf.save("Dispatch_dashboard.pdf");
     }
 
-// --- Chart Interactivity Functions ---
-
-    // Function to handle clicks on chart elements
-    function handleChartClick(event, elements, chart) {
-        if (elements.length === 0) {
-            // If no elements were clicked (e.g., clicked empty space), clear filters for this chart's dimension
-             const chartLabel = chart.data.datasets[0].label; // Get the chart's main label
-             const columnName = chartColumnMapping[chartLabel]; // Get the corresponding column name
-
-             if (columnName && currentChartFilters[columnName]) {
-                 delete currentChartFilters[columnName]; // Remove the filter for this dimension
-                 console.log(`Cleared chart filter for ${chartLabel}.`);
-                 generateCharts(); // Re-generate charts
-                 // Show/hide the clear button
-                 if (Object.keys(currentChartFilters).length === 0) {
-                     $('#clearChartFiltersButton').hide();
-                 }
-             }
-            return; // No element clicked
-        }
-
-        const clickedElement = elements[0];
-        const datasetIndex = clickedElement.datasetIndex;
-        const index = clickedElement.index;
-        const label = chart.data.labels[index]; // The label of the clicked bar/segment
-        const chartLabel = chart.data.datasets[datasetIndex].label; // The label of the dataset (e.g., 'Month wise')
-
-        const columnName = chartColumnMapping[chartLabel]; // Get the corresponding column name
-
-        if (columnName) {
-            let filterValue = label; // The value to filter by is usually the label
-
-            // Special handling for mapping chart labels back to data values if needed
-            if (chartLabel === 'Month wise') {
-                 // The label is a month name (e.g., 'Jan'). The data value is a month number (e.g., '01').
-                 // We need to store the month name in the filter, but the filtering logic needs to handle the conversion.
-                 // The filtering logic in generateCharts already handles this mapping.
-                 filterValue = label; // Store the month name as the filter value
-            } else if (chartLabel === 'Customer Type') {
-                 // The label is 'Export' or 'Domestic'. The data value is based on Sales Document.
-                 // The filtering logic in generateCharts handles this mapping.
-                 filterValue = label; // Store 'Export' or 'Domestic' as the filter value
-            }
-            // Add more specific mappings if your chart labels don't directly match data values
-
-
-            // Update the chart filters state
-            // Simple toggle logic: if this value is already selected for this column, remove it. Otherwise, add it.
-            // For single-select behavior (clicking one item replaces the filter for that dimension):
-            currentChartFilters = {}; // Clear all previous chart filters
-            currentChartFilters[columnName] = [filterValue]; // Set the new filter
-
-            console.log(`Chart clicked: Filter by ${columnName} = ${filterValue}`);
-            generateCharts(); // Re-generate charts with the new filter
-
-            // Show the clear button
-            $('#clearChartFiltersButton').show();
-
-        } else {
-            console.warn(`No column mapping found for chart label: ${chartLabel}`);
-        }
-    }
-
-    // Function to clear all chart interaction filters
-    function clearChartFilters() {
-        currentChartFilters = {}; // Reset the filters
-        console.log("Cleared all chart filters.");
-        generateCharts(); // Re-generate charts with no filters
-        $('#clearChartFiltersButton').hide(); // Hide the clear button
-    }
-
-    // Modify the view selector event listener to clear chart filters when switching back to table view
-     $('#viewSelector').on('change', function() {
-          const view = $(this).val();
-          if(view === 'table'){
-              $('#tableScrollContainer').show(); // Show table container (wrapped for scroll)
-              $('#chartContainer').hide(); // Hide chart container
-              // Show relevant table controls - these are managed by file load, but ensure visibility state matches view
-              if (tableData.length > 0) {
-                  $('#applyFiltersButton').show();
-                  $('#downloadButtons').css('display', 'flex'); // Use css('display', 'flex') for flex containers
-                  $('#layoutControlsContent').css('display', 'flex');
-                  $('#widthControlsContent').css('display', 'flex');
-                  $('#alignmentControlsContent').css('display', 'flex');
-                  $('#reorderControls').show(); // Use show/hide for block elements
-                  $('#pdfRemarksInputContainer').css('display', 'flex');
-                  $('#filtersContainer').css('display', 'flex'); // Also show filters container
-              }
-              clearChartFilters(); // Clear chart filters when switching to table view
-          } else { // Chart view
-              $('#tableScrollContainer').hide(); // Hide table container
-              $('#chartContainer').css('display', 'flex'); // Show chart container as flex
-              // Hide table controls
-              $('#applyFiltersButton').hide();
-              $('#downloadButtons').hide();
-              $('#layoutControlsContent').hide();
-              $('#widthControlsContent').hide();
-              $('#alignmentControlsContent').hide();
-              $('#reorderControls').hide();
-              $('#pdfRemarksInputContainer').hide();
-              $('#filtersContainer').hide(); // Also hide filters container
-          }
-     });
+    // Removed Chart Interactivity Functions (handleChartClick, clearChartFilters)
+    // Removed the view selector event listener at the end of the script block
 
 </script>
 
