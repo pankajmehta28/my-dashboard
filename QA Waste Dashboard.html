@@ -1,0 +1,3340 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>QA Waste Dashboard</title>
+<style>
+    /* Styles from user's provided code, with modifications and additions */
+     body {
+        font-family: sans-serif;
+        margin: 0; /* Remove default body margin */
+        padding: 20px; /* Add padding to body */
+        background-color: #D0F0C0; /* Light green background */
+    }
+
+    .container {
+        max-width: 1200px; /* Max width for content */
+        margin: 0 auto; /* Center the container */
+        background-color: #fff; /* White background for container */
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        border-radius: 8px;
+    }
+
+    .dashboard-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 15px;
+    }
+
+    .dashboard-header img {
+        height: 60px; /* Adjusted logo size */
+        width: auto;
+        margin-right: 15px;
+        border-radius: 4px; /* Added rounded corners to logo */
+    }
+
+    .company-name {
+        font-size: 1.8em; /* Larger company name */
+        font-weight: bold;
+        color: #000080; /* Navy blue */
+        margin: 0;
+    }
+
+    .dashboard-title {
+        font-size: 1.5em; /* Dashboard title size */
+        margin-top: 15px;
+        margin-bottom: 20px;
+        color: #555;
+        text-align: center;
+    }
+
+    /* Styles for buttons - Keeping general button styles */
+    button {
+        color: #fff; /* White text */
+        background-color: #007bff; /* Blue */
+        border: 1px solid #007bff;
+        padding: 8px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        transition: background-color 0.2s ease;
+    }
+    button:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+        border-color: #0056b3;
+    }
+
+     #downloadButtons button {
+         background-color: #28a745; /* Green */
+         border-color: #28a45;
+     }
+     #downloadButtons button.pdf {
+         background-color: #dc3545; /* Red */
+         border-color: #dc3545;
+     }
+     #downloadButtons button:hover {
+         opacity: 0.9;
+     }
+
+     #reorderControls button { /* Style for reorder button */
+         background-color: #ffc107; /* Yellowish */
+         color: #333;
+         border-color: #ffc107;
+     }
+     #reorderControls button:hover {
+         background-color: #e0a800; /* Darker yellowish */
+         border-color: #e0a800;
+     }
+
+
+    #controls {
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px; /* Space between controls */
+        flex-wrap: wrap; /* Allow controls to wrap on smaller screens */
+    }
+
+    /* Style for the combined layout, width, alignment, and reorder controls group */
+    #layoutAndWidthControls {
+        display: flex;
+        align-items: center;
+        gap: 15px; /* Space between the control groups */
+        flex-wrap: wrap; /* Allow groups to wrap within the span */
+        flex-grow: 1; /* Allow this section to grow */
+    }
+
+    /* Add this CSS inside your <style> tags */
+    #layoutControlsContent > span:first-child,
+    #widthControlsContent > span:first-child,
+    #pdfRemarksInputContainer label,
+    #alignmentControlsContent > span:first-child,
+    #averageModeControl span:first-child, /* Added style for Average Mode label */
+    #viewToggle label, /* Style for view toggle labels */
+    #comparisonMonthSelectors label /* Style for comparison month labels */
+     {
+        font-weight: bold;
+        color: #0056b3; /* Dark blue */
+    }
+
+    /* Style for individual control groups (Layout, Width, Alignment, Average Mode, View Toggle, Comparison Months) */
+    #layoutControlsContent, #widthControlsContent, #alignmentControlsContent, #averageModeControl, #viewToggle, #comparisonMonthSelectors
+     {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid #ccc;
+        padding: 8px;
+        border-radius: 4px;
+        background-color: #f9f9f9;
+    }
+    #layoutControlsContent input[type="text"],
+    #layoutControlsContent select,
+    #layoutControlsContent button,
+    #widthControlsContent select,
+    #widthControlsContent input[type="number"],
+    #widthControlsContent button,
+    #alignmentControlsContent select,
+    #alignmentControlsContent button,
+    #viewToggle select, /* Style for view toggle select */
+    #comparisonMonthSelectors select /* Style for comparison month selects */
+     {
+        padding: 5px 10px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        font-size: 14px;
+    }
+    #layoutControlsContent button, #widthControlsContent button, #alignmentControlsContent button { /* Added alignment controls button */
+        cursor: pointer;
+        background-color: #e0e0e0;
+        color: #333; /* Dark text for these buttons */
+        border-color: #ccc;
+    }
+    #layoutControlsContent button:hover, #widthControlsContent button:hover, #alignmentControlsContent button:hover { /* Added hover */
+        background-color: #d5d5d5;
+    }
+    #widthControlsContent input[type="number"] {
+        width: 60px; /* Adjust width as needed */
+    }
+
+    #fileInputContainer, #applyButtonContainer, #downloadButtons, #reorderControls { /* Included reorderControls */
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    #applyButtonContainer button {
+        background-color: #007bff; /* Blue */
+        border-color: #007bff;
+    }
+    #applyButtonContainer button:hover {
+        background-color: #0056b3; /* Darker blue */
+        border-color: #0056b3;
+    }
+
+
+    #pdfRemarksInputContainer { /* Style for remarks input */
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 10px; /* Add some space above */
+        width: 100%; /* Take full width */
+        flex-wrap: wrap; /* Allow wrapping */
+    }
+    #pdfRemarksInputContainer label {
+        font-weight: bold;
+        font-size: 14px;
+    }
+    #pdfRemarksInputContainer input[type="text"] {
+        flex-grow: 1; /* Allow input to take available space */
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        font-size: 14px;
+    }
+
+
+    /* Container for horizontal scrolling */
+    #tableScrollContainer {
+        overflow-x: auto;
+        margin-top: 20px;
+    }
+
+    table {
+        border-collapse: collapse;
+        /* width: 100%; /* Remove width: 100%; here to allow table to exceed container width */
+        font-size: 14px;
+        /* Removed table-layout: fixed; */
+        border: 1px solid black; /* Black border around the table */
+        /* min-width: 100%; /* Ensure table takes at least 100% width if content is less */
+        width: auto; /* Allow width to be determined by content */
+        margin-bottom: 20px; /* Add space between multiple tables */
+    }
+    th, td {
+        border: 1px solid black; /* Black borders between columns and rows */
+        padding: 8px;
+        text-align: center; /* Default alignment */
+        vertical-align: top; /* Align content to the top in cells */
+        word-wrap: break-word; /* Allow long words to break */
+        white-space: pre-wrap; /* Preserve whitespace and wrap text */
+        overflow: hidden; /* Hide overflowing content within the cell */
+        text-overflow: ellipsis; /* Add ellipsis for overflowing text */
+    }
+    th {
+        background-color: #a9a9a9; /* Darker grey background for headers */ /* Changed to a bit darker grey */
+        font-weight: bold;
+        position: relative; /* Needed for sort arrows and resizer */
+        cursor: pointer; /* Indicate sortable */
+        text-align: center !important; /* Ensure headers are centered */
+    }
+    th:hover {
+        background-color: #969696; /* Slightly darker grey on hover */ /* Changed hover color */
+    }
+    th .sort-arrow {
+        margin-left: 5px;
+        font-size: 10px;
+    }
+
+    /* Resizer handle style */
+    .resizer {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 8px; /* Increased resizer width for easier grabbing */
+        height: 100%;
+        cursor: col-resize;
+        /* background-color: rgba(0, 0, 255, 0.1); /* Optional: show resizer handle with transparency */
+        /* opacity: 0; /* Hide resizer by default */
+        /* transition: opacity 0.2s ease; */
+    }
+
+    /* Show resizer on hover over the header */
+    th:hover .resizer {
+        opacity: 1;
+    }
+
+
+    .filter-container {
+        margin-bottom: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px; /* Space between filter dropdowns */
+    }
+    .filter-dropdown {
+        position: relative;
+        display: inline-block;
+        vertical-align: top;
+    }
+    .dropdown-button {
+        padding: 8px 12px;
+        cursor: pointer;
+        border: 1px solid #007bff; /* Blue border */
+        background-color: #007bff; /* Blue background */
+        color: white; /* White text */
+        border-radius: 4px;
+        min-width: 120px;
+        text-align: left;
+        font-size: 14px;
+    }
+    .dropdown-button .filter-arrow {
+        float: right;
+        color: white; /* White arrow */
+    }
+    .dropdown-button:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+        border-color: #0056b3;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #fff;
+        min-width: 220px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 10;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        max-height: 300px;
+        overflow-y: auto;
+        top: 100%; /* Position below the button */
+        left: 0;
+    }
+    .dropdown-content .search-container {
+        margin-bottom: 8px;
+    }
+    .dropdown-content input[type="text"] {
+        width: calc(100% - 18px);
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        box-sizing: border-box;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+    .dropdown-content .select-all {
+        font-weight: bold;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 5px;
+        margin-bottom: 5px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    .dropdown-content .select-all input[type="checkbox"] {
+        margin-right: 5px;
+    }
+    .dropdown-content .filter-options {
+        margin-bottom: 5px; /* Reduced bottom margin */
+    }
+    .dropdown-content label {
+        display: block;
+        margin-bottom: 4px;
+        cursor: pointer;
+        font-weight: normal;
+        font-size: 14px;
+    }
+    .dropdown-actions {
+        display: none; /* Hide action buttons within dropdowns */
+    }
+
+    /* Styles for the Reorder Panel */
+    #reorderPanel {
+        position: fixed; /* or absolute */
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #fff;
+        padding: 20px;
+        border: 1px solid #ccc;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        z-index: 100;
+        max-height: 80vh;
+        overflow-y: auto;
+        display: none; /* Initially hidden */
+    }
+    #columnOrderList {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 15px 0;
+    }
+    #columnOrderList li {
+        margin-bottom: 5px;
+        padding: 8px;
+        border: 1px solid #eee;
+        background-color: #f9f9f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+        cursor: grab; /* Indicate draggable */
+    }
+     #columnOrderList li:active {
+         cursor: grabbing; /* Indicate dragging */
+     }
+    #columnOrderList li button {
+        padding: 3px 8px;
+        margin-left: 5px;
+        cursor: pointer;
+    }
+
+    /* Basic styling for the Home button using provided classes */
+    .flex { display: flex; }
+    .justify-end { justify-content: flex-end; }
+    .p-4 { padding: 1rem; } /* Assuming 1rem = 16px */
+    .bg-blue-600 { background-color: #2563eb; } /* Example blue */
+    .font-bold { font-weight: bold; }
+    .text-white { color: white; }
+    .h-fit { height: fit-content; }
+    .px-4 { padding-left: 1rem; padding-right: 1rem; }
+    .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+    .rounded { border-radius: 0.25rem; }
+    .hover\:bg-blue-700:hover { background-color: #1d4ed8; } /* Example darker blue */
+    .mt-6 { margin-top: 1.5rem; /* Assuming 1rem = 16px */
+
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" defer></script>
+
+
+
+</head>
+<body>
+
+<div class="container">
+    <div class="dashboard-header">
+        <img src="https://www.sagarmanufacturers.com/assets/web/images/smpl-new-logo.png" alt="Company Logo">
+        <h1 class="company-name">Sagar Manufacturers Pvt. Ltd.</h1>
+    </div>
+
+    <h2 class="dashboard-title">QA Waste Dashboard</h2>
+
+    <div id="controls">
+        <div id="dataLoadButtonContainer">
+             <button id="loadWasteDataButton">Load Waste Data</button>
+        </div>
+
+        <div id="applyButtonContainer" style="display: none;">
+            <button id="applyFiltersButton">Apply Filters</button>
+        </div>
+
+        <div id="downloadButtons" style="display: none;">
+            <span>Download:</span>
+            <button id="downloadExcelButton">Excel</button>
+            <button id="downloadPdfButton" class="pdf">PDF</button>
+        </div>
+
+        <div id="reorderControls" style="display: none;">
+            <button id="showReorderPanelButton">Reorder Columns</button>
+        </div>
+
+        <div class="flex justify-end p-4" style="flex-grow: 1;">
+           <button onclick="goBack()" class="bg-blue-600 font-bold text-white h-fit px-4 py-2 rounded hover:bg-blue-700">
+             ← Home
+           </button>
+        </div>
+
+
+        <span style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; flex-grow: 1;" id="layoutAndWidthControls">
+             <span style="display: flex; align-items: center; gap: 10px; border: 1px solid #ccc; padding: 8px; border-radius: 4px; background-color: #f9f9f9; display: none;" id="layoutControlsContent">
+                <span>Layout:</span>
+                <input type="text" id="layoutNameInput" placeholder="Layout Name">
+                <button id="saveLayoutButton">Save</button>
+                <select id="loadLayoutSelect">
+                    <option value="">- Load Layout -</option>
+                </select>
+                <button id="loadLayoutButton" disabled>Load</button>
+                <button id="deleteLayoutButton" disabled>Delete</button>
+            </span>
+
+            <span style="display: flex; align-items: center; gap: 10px; border: 1px solid #ccc; padding: 8px; border-radius: 4px; background-color: #f9f9f9; display: none;" id="widthControlsContent">
+                <span>Adjust Width:</span>
+                <select id="columnSelectForWidth">
+                    <option value="">- Select Column -</option>
+                </select>
+                <input type="number" id="columnWidthValue" value="150" min="10" style="width: 60px;">
+                <select id="columnWidthUnit">
+                    <option value="px">px</option>
+                    <option value="%">%</option>
+                    <option value="em">em</option>
+                    <option value="cm">cm</option>
+                    <option value="mm">mm</option>
+                </select>
+                <button id="applyColumnWidthButton">Apply</button>
+            </span>
+
+             <span style="display: flex; align-items: center; gap: 10px; border: 1px solid #ccc; padding: 8px; border-radius: 4px; background-color: #f9f9f9; display: none;" id="alignmentControlsContent">
+                 <span>Align Data:</span>
+                 <select id="columnSelectForAlignment">
+                     <option value="">- Select Column -</option>
+                 </select>
+                 <select id="columnAlignmentValue">
+                     <option value="left">Left</option>
+                     <option value="center">Center</option>
+                     <option value="right">Right</option>
+                 </select>
+                 <button id="applyColumnAlignmentButton">Apply</button>
+             </span>
+
+             <span id="averageModeControl" style="display: none;">
+                 <span>Show:</span>
+                 <input type="checkbox" id="showAverageCheckbox"> Average
+             </span>
+        </span>
+
+        <div id="viewToggle" style="display: none;">
+             <label for="dashboardViewSelect">View:</label>
+             <select id="dashboardViewSelect">
+                 <option value="table">Table View</option>
+                 <option value="comparison">Comparison View</option>
+             </select>
+         </div>
+
+        <div id="comparisonMonthSelectors" style="display: none;">
+             <label for="month1Select">Compare Month 1:</label>
+             <select id="month1Select">
+                 <option value="">- Select Month -</option>
+             </select>
+             <label for="month2Select">Compare Month 2:</label>
+             <select id="month2Select">
+                 <option value="">- Select Month -</option>
+             </select>
+         </div>
+
+<div id="tablesPerRowControl" style="display: none;">
+    <label for="tablesPerRowSelect">Tables per Row:</label>
+    <select id="tablesPerRowSelect">
+        <option value="1">1</option>
+        <option value="2" selected>2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+    </select>
+</div>
+
+        <div id="pdfRemarksInputContainer" style="display: none; margin-top: 10px; width: 100%;">
+             <label for="pdfRemarksInput">Remarks/Title for PDF:</label>
+             <input type="text" id="pdfRemarksInput" placeholder="Enter remarks or title for PDF..." style="flex-grow: 1; padding: 5px;">
+        </div>
+    </div>
+
+    <div id="filtersContainer" class="filter-container">
+        </div>
+
+    <div id="tableScrollContainer">
+        <div id="tableContainer">
+            <p>Click "Load Waste Data" to display the dashboard.</p>
+        </div>
+    </div>
+
+</div>
+<div id="reorderPanel" style="display: none;">
+    <h3>Reorder Columns</h3>
+    <ul id="columnOrderList">
+        </ul>
+    <button id="applyReorderButton">Apply Order</button>
+    <button id="cancelReorderButton">Cancel</button>
+</div>
+
+<script>
+    // Supabase Storage Public URL for the Waste Summary Excel file
+    const WASTE_DATA_URL = 'https://jdajahcjljvnkopfdrpi.supabase.co/storage/v1/object/public/waste//QA_Waste_Summary.xlsx';
+
+    // Global variables to hold data and state
+    let tableData = []; // Data fetched and processed from Excel
+    let columnNamesFromExcel = []; // Column headers extracted from the Excel file
+    let currentAppliedDataFilters = {}; // Object to store current filter selections for data
+    let visibleColumns = []; // Array of column names that are currently visible
+    let columnWidths = {}; // Object to store current column widths
+    let columnDisplayOrder = []; // Array to store the current order of columns for display
+    let columnAlignments = {}; // Object to store column text alignments (e.g., { 'Column Name': 'center' })
+    let currentSort = { column: null, direction: 'none' }; // Object to store current sort state
+    let showAverage = false; // State for toggling between raw data and average data
+    let currentView = 'table'; // State for current view ('table' or 'comparison')
+    let comparisonMonth1 = ''; // Selected month 1 for comparison
+    let comparisonMonth2 = ''; // Selected month 2 for comparison
+
+    // Define which columns should have data filters. These should match the column names in your Excel file.
+    const dataFilterableColumnNames = [
+        'ID', 'Date', 'Unit No', 'Line No', 'Cotton Mixing', 'Department',
+        'Machine No', 'Year', 'Month-Year' // Added 'Month-Year'
+    ];
+
+    // Define columns that should have values formatted to two decimal places and averaged
+    const decimalColumns = ['SFD', 'SFL', 'Flat', 'Licker-in', 'Total Waste%'];
+
+    // Define the specific rows for the comparison table
+    const comparisonRows = ['CLP', 'CLC', 'Card', 'Waste upto Card', 'Comber Noil', 'Overall Waste']; // Added Overall Waste
+
+
+    // Array of month names for display
+    const monthNames = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+
+
+    // Helper function to convert Excel date serial number to JavaScript Date object
+    // Based on SheetJS documentation, use origin 1900 (false) for most cases
+    function excelDateToJSDate(excelDate) {
+        // Subtract 1 for the 1900 leap year bug (Excel treats 1900 as a leap year, but it wasn't)
+        // Add the number of days (excelDate) converted to milliseconds (excelDate * 24 * 60 * 60 * 1000)
+        // Add the milliseconds for the epoch difference (70 years + 1 day for the bug)
+        const date = new Date(0, 0, excelDate - 1); // Use Date(year, month, day) constructor
+        // Adjust for timezone offset if necessary, though Date object handles this
+        return date;
+    }
+
+
+    // Helper function to process the fetched Excel data using SheetJS
+    async function processExcelData(arrayBuffer) {
+        console.log('Processing Excel data...');
+        const data = new Uint8Array(arrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+
+        // Convert the worksheet data to an array of arrays, keeping raw values for date conversion
+        // Use defval: '' to set undefined values to empty string
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: true, defval: '' });
+
+        // Assume the first row of jsonData is the header
+        const header = jsonData[0];
+        const dataRows = jsonData.slice(1);
+
+        // Store column names directly from the header, clean them, and ensure uniqueness
+        columnNamesFromExcel = []; // Ensure re-initialization on new file load
+        const seenNames = new Set();
+        if (header) { // Ensure header is not null or undefined
+            header.forEach(colName => {
+                const cleanedName = colName ? String(colName).trim() : `Unnamed Column_${seenNames.size}`; // Use size for unique unnamed
+                let uniqueName = cleanedName;
+                let counter = 1;
+                // Handle duplicate column names by appending a number
+                while(seenNames.has(uniqueName)) {
+                    uniqueName = `${cleanedName}_${counter}`;
+                    counter++;
+                }
+                columnNamesFromExcel.push(uniqueName);
+                seenNames.add(uniqueName);
+            });
+        } else {
+            console.warn("No header row found in the Excel file.");
+             // Generate some default column names if no header
+             const numCols = dataRows[0] ? dataRows[0].length : 0;
+             for(let i = 0; i < numCols; i++) {
+                 columnNamesFromExcel.push(`Column${i+1}`);
+             }
+        }
+
+        console.log('Excel Headers:', columnNamesFromExcel);
+
+
+        // Map data rows to objects using the cleaned header names as keys
+        tableData = dataRows.map(row => {
+            const rowObject = {};
+            columnNamesFromExcel.forEach((colName, index) => { // Use cleaned header names as keys
+                let cellValue = row[index];
+
+                // --- Date Formatting for 'Date' column and creating 'Month-Year' ---
+                // Check if the cleaned column name matches 'Date' (case-insensitive)
+                if (colName.toLowerCase() === 'date') { // Focus on this column using cleaned name
+                    // Check if it's a positive number, which is expected for Excel date serials
+                    if (typeof cellValue === 'number' && cellValue > 0) {
+                        try {
+                            // Use the custom helper function for conversion
+                            const date = excelDateToJSDate(cellValue);
+
+                            if (date instanceof Date && !isNaN(date) && date !== null) { // Check if it's a valid and non-null Date object
+                                // Format date to dd-mm-yy for the 'Date' column
+                                const day = date.getDate().toString().padStart(2, '0');
+                                const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed (1-12)
+                                const year = date.getFullYear(); // Get full year
+
+                                // Store dd-mm-yy format for the 'Date' column
+                                rowObject[colName] = `${day}-${month}-${year.toString().slice(-2)}`;
+
+                                // Create and store Month-Year in Mmm-yy format
+                                const monthName = monthNames[date.getMonth()]; // Get month name (0-11 index)
+                                rowObject['Month-Year'] = `${monthName}-${year.toString().slice(-2)}`; // Store Mmm-yy format
+
+                                // Store month number and year number separately for sorting purposes
+                                rowObject['_MonthNumber'] = date.getMonth() + 1; // Store month number (1-12)
+                                rowObject['_YearNumber'] = year; // Store full year number
+
+                                } else {
+                                // If conversion results in invalid or null date, use original value as string
+                                console.warn(`Invalid date conversion for column "${colName}" value: ${cellValue}`);
+                                rowObject[colName] = String(cellValue);
+                                rowObject['Month-Year'] = String(cellValue); // Fallback for Month-Year
+                                rowObject['_MonthNumber'] = NaN; // Indicate invalid month
+                                rowObject['_YearNumber'] = NaN; // Indicate invalid year
+                                }
+                        } catch (e) {
+                            // Handle potential errors during date conversion
+                            console.error(`Error during date conversion for value: ${cellValue}`, e);
+                            rowObject[colName] = String(cellValue); // Fallback to original value string
+                            rowObject['Month-Year'] = String(cellValue); // Fallback for Month-Year
+                            rowObject['_MonthNumber'] = NaN;
+                            rowObject['_YearNumber'] = NaN;
+                        }
+                    } else {
+                        // If it's not a positive number, it's not a standard Excel date serial, treat as string
+                         const stringValue = cellValue !== undefined && cellValue !== null ? String(cellValue) : '';
+                         rowObject[colName] = stringValue;
+                         rowObject['Month-Year'] = stringValue; // Fallback for Month-Year
+                         rowObject['_MonthNumber'] = NaN;
+                         rowObject['_YearNumber'] = NaN;
+                    }
+                } else {
+                    // Ensure other values are treated as strings for filtering and display if not already
+                    rowObject[colName] = cellValue !== undefined && cellValue !== null ? String(cellValue) : '';
+                }
+                // --- End Date Formatting and 'Month-Year' creation ---
+
+            });
+            return rowObject; // Return the object with keys as column names
+        });
+
+        console.log('Processed Data:', tableData.slice(0, 5)); // Log first 5 rows for inspection
+
+
+        // Add 'Month-Year' to the list of all column names for visibility control
+        if (!columnNamesFromExcel.includes('Month-Year')) {
+             columnNamesFromExcel.push('Month-Year');
+        }
+         // Remove the original 'Month' and 'Year' columns from the list of all column names if they exist,
+         // as we are replacing them with 'Month-Year' for filtering and display.
+         columnNamesFromExcel = columnNamesFromExcel.filter(name =>
+             name.toLowerCase() !== 'month' && name.toLowerCase() !== 'year'
+         );
+
+
+        // Initialize filters (both data filters and column visibility filter)
+        initializeFilters(tableData, columnNamesFromExcel); // Pass updated column names for filters
+
+        // Initialize applied data filters to empty, and visible columns to all excel columns (including Month-Year now)
+        currentAppliedDataFilters = {}; // Reset applied filters
+        dataFilterableColumnNames.forEach(col => {
+             // Ensure the filterable column exists in the excel file's columns (case-insensitive)
+             if (columnNamesFromExcel.some(name => name.toLowerCase() === col.toLowerCase())) {
+                 currentAppliedDataFilters[col] = [];
+             }
+         });
+        visibleColumns = [...columnNamesFromExcel]; // Reset visible columns
+        columnDisplayOrder = [...columnNamesFromExcel]; // Initialize display order to match file order (including Month-Year)
+        currentSort = { column: null, direction: 'none' }; // Reset sort state on new file
+        columnWidths = {}; // Reset column widths on new file unless loading layout
+        columnAlignments = {}; // Initialize column alignments to empty (defaults to center now via CSS)
+        showAverage = false; // Reset average mode on new data load
+        document.getElementById('showAverageCheckbox').checked = false; // Uncheck the checkbox
+        currentView = 'table'; // Reset view to table
+        document.getElementById('dashboardViewSelect').value = 'table'; // Reset view select
+
+
+        // Display the initial table
+        applyFilters(); // This function now handles data filtering, column visibility, and sorting
+
+        // Show controls
+        document.getElementById('applyButtonContainer').style.display = 'flex'; // Use flex for button container
+        document.getElementById('downloadButtons').style.display = 'flex';
+        document.getElementById('layoutControlsContent').style.display = 'flex'; // Show layout controls content
+        document.getElementById('widthControlsContent').style.display = 'flex'; // Show width controls content
+        document.getElementById('alignmentControlsContent').style.display = 'flex'; // Show alignment controls content
+        document.getElementById('reorderControls').style.display = 'flex'; // Use flex for reorder controls
+        document.getElementById('pdfRemarksInputContainer').style.display = 'flex'; // Show remarks input
+        document.getElementById('averageModeControl').style.display = 'flex'; // Show average mode control
+        document.getElementById('viewToggle').style.display = 'flex'; // Show view toggle
+
+        // Hide comparison month selectors initially
+        document.getElementById('comparisonMonthSelectors').style.display = 'none';
+
+
+        // Hide the initial load button
+        document.getElementById('dataLoadButtonContainer').style.display = 'none';
+
+
+        // Load saved layouts for the new file
+        loadSavedLayoutNames(); // Call this after populating columnNamesFromExcel
+        populateColumnWidthSelect(); // Populate the column select for width adjustment
+        populateColumnAlignmentSelect(); // Populate the column select for alignment
+        populateComparisonMonthSelectors(); // Populate the comparison month selectors
+    }
+
+
+    // Function to load data from the Waste Summary URL
+    async function loadWasteData() {
+        console.log('Attempting to load Waste Summary Data...');
+        try {
+            const response = await fetch(WASTE_DATA_URL);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const arrayBuffer = await response.arrayBuffer();
+            console.log('Waste Summary data fetched successfully.');
+
+            await processExcelData(arrayBuffer); // Process the fetched data
+
+        } catch (error) {
+            console.error('Error loading Waste Summary Data:', error);
+            alert('Failed to load Waste Summary Data. Please check the URL and your network connection.');
+            // Optionally clear the table or show an error message in the UI
+            document.getElementById('tableContainer').innerHTML = '<p>Error loading data.</p>';
+             // Hide controls if data loading fails
+             updateControlVisibility(false);
+             // Show the load button again
+             document.getElementById('dataLoadButtonContainer').style.display = 'block';
+        }
+    }
+
+    // Function to update the visibility of controls after data load
+    function updateControlVisibility(isVisible) {
+        const display = isVisible ? 'flex' : 'none'; // Use flex for containers
+        document.getElementById('applyButtonContainer').style.display = display;
+        document.getElementById('downloadButtons').style.display = display;
+        document.getElementById('reorderControls').style.display = display;
+        document.getElementById('layoutControlsContent').style.display = display;
+        document.getElementById('widthControlsContent').style.display = display;
+        document.getElementById('alignmentControlsContent').style.display = display;
+        document.getElementById('pdfRemarksInputContainer').style.display = isVisible ? 'flex' : 'none';
+        document.getElementById('averageModeControl').style.display = display; // Control visibility of average mode toggle
+        document.getElementById('viewToggle').style.display = display; // Control visibility of view toggle
+         // Comparison month selectors visibility is handled by the view toggle listener
+    }
+
+
+    // Function to get unique values for a column (used for filter dropdowns and month selectors)
+    function getUniqueValues(data, column) {
+        if (!data || data.length === 0) return [];
+         // Find the actual column name in the data based on the filter column name (case-insensitive)
+        const actualColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === column.toLowerCase());
+        if (!actualColumnName) return []; // Return empty if column not found
+
+        const values = data.map(item => item[actualColumnName] !== undefined && item[actualColumnName] !== null ? String(item[actualColumnName]) : '');
+        return [...new Set(values)].filter(value => value !== ''); // Filter out empty strings
+    }
+
+    // Function to render filter dropdowns
+    function initializeFilters(data, allColumnNames) { // Accept all column names
+        const filtersContainer = document.getElementById('filtersContainer');
+        filtersContainer.innerHTML = ''; // Clear previous filters
+
+        // --- Create Column Visibility Filter ---
+        const columnVisibilityDropdownHtml = `
+            <div class="filter-dropdown" data-filter-type="visibility">
+                <button class="dropdown-button">Show/Hide Columns <span class="filter-arrow">&#9662;</span></button>
+                <div class="dropdown-content">
+                    <div class="search-container">
+                         <input type="text" class="column-search" placeholder="Search...">
+                    </div>
+                    <label class="select-all">
+                         <input type="checkbox" class="select-all-columns-checkbox" checked> Select All
+                    </label>
+                    <div class="column-options filter-options"> ${allColumnNames.map(colName => `
+                             <label>
+                                 <input type="checkbox" class="column-checkbox" value="${colName}" checked> ${colName}
+                             </label>
+                         `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+        filtersContainer.innerHTML += columnVisibilityDropdownHtml;
+
+
+        // --- Create Data Filters ---
+         // Filterable columns should be based on the defined dataFilterableColumnNames
+        dataFilterableColumnNames.forEach(columnName => {
+             // Check if this filterable column exists in the actual Excel columns (case-insensitive match)
+             const actualColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === columnName.toLowerCase());
+
+             if (actualColumnName) {
+                // Get unique values from the loaded data for this specific column name
+                 let uniqueValues = getUniqueValues(data, actualColumnName); // Use actualColumnName here
+
+                 // --- Custom Handling for Month-Year Column Filter ---
+                 if (actualColumnName.toLowerCase() === 'month-year') {
+                     // For Month-Year, uniqueValues are already in 'Mmm-yy' format
+                     // We need to sort them chronologically.
+                     uniqueValues.sort((a, b) => {
+                         const [monthA, yearA] = a.split('-');
+                         const [monthB, yearB] = b.split('-');
+
+                         const monthNumA = monthNames.indexOf(monthA) + 1;
+                         const monthNumB = monthNames.indexOf(monthB) + 1;
+
+                         const fullYearA = parseInt(`20${yearA}`, 10); // Assuming 'yy' is 20yy
+                         const fullYearB = parseInt(`20${yearB}`, 10); // Assuming 'yy' is 20yy
+
+                         if (isNaN(fullYearA) || isNaN(monthNumA)) return isNaN(fullYearB) || isNaN(monthNumB) ? 0 : 1;
+                         if (isNaN(fullYearB) || isNaN(monthNumB)) return -1;
+
+
+                         if (fullYearA !== fullYearB) {
+                             return fullYearA - fullYearB; // Sort by year first
+                         }
+                         return monthNumA - monthNumB; // Then sort by month (using month number for correct order)
+                     });
+                     // Map uniqueValues to { value: "Mmm-yy", display: "Mmm-yy" } structure for consistency
+                     uniqueValues = uniqueValues.map(val => ({ value: val, display: val }));
+
+                 } else if (actualColumnName.toLowerCase() === 'year') { // Custom Sorting for Year Columns
+                     uniqueValues.sort((a, b) => {
+                          const numA = parseInt(a);
+                          const numB = parseInt(b);
+                          // Handle cases where conversion to number fails or is NaN
+                          if (isNaN(numA) && isNaN(numB)) return 0;
+                          if (isNaN(numA)) return 1; // Put non-numeric at the end
+                          if (isNaN(numB)) return -1; // Put non-numeric at the end
+                          return numA - numB; // Numeric sort
+                     });
+                      // Map uniqueValues to { value: "Year", display: "Year" } structure
+                     uniqueValues = uniqueValues.map(val => ({ value: val, display: val }));
+
+                 } else {
+                     // Default to alphabetical sort for other columns
+                     uniqueValues.sort();
+                      // Map uniqueValues to { value: "Value", display: "Value" } structure
+                     uniqueValues = uniqueValues.map(val => ({ value: val, display: val }));
+                 }
+                 // --- End Custom Handling ---
+
+
+                 if (uniqueValues.length > 0) {
+                     const filterDropdownHtml = `
+                          <div class="filter-dropdown" data-column="${actualColumnName}" data-filter-type="data">
+                              <button class="dropdown-button">${actualColumnName} <span class="filter-arrow">&#9662;</span></button>
+                              <div class="dropdown-content">
+                                  <div class="search-container">
+                                      <input type="text" class="filter-search" placeholder="Search...">
+                                     </div>
+                                      <label class="select-all">
+                                          <input type="checkbox" class="select-all-checkbox"> Select All
+                                      </label>
+                                      <div class="filter-options">
+                                          ${uniqueValues.map(item => {
+                                              // Use item.value for the checkbox value and item.display for the label text
+                                              const value = typeof item === 'object' && item !== null && item.hasOwnProperty('value') ? item.value : item;
+                                              const display = typeof item === 'object' && item !== null && item.hasOwnProperty('display') ? item.display : item;
+                                              return `
+                                              <label>
+                                                  <input type="checkbox" class="filter-checkbox" value="${value}"> ${display}
+                                              </label>
+                                          `;
+                                          }).join('')}
+                                      </div>
+                                   </div>
+                               </div>
+                           `;
+                     filtersContainer.innerHTML += filterDropdownHtml;
+                 }
+             }
+         });
+
+        // --- Create Unit & Cotton Mixing Filter for Comparison View ---
+        const unitMixingFilterableColumns = ['Unit No', 'Cotton Mixing'];
+        // Create unique Unit | Mixing combinations for the filter
+        const uniqueUnitMixingCombinations = [...new Set(data.map(row => {
+            const unit = row['Unit No'] || 'N/A';
+            const mixing = row['Cotton Mixing'] || 'N/A';
+            return `${unit} | ${mixing}`;
+        }))].sort(); // Sort combinations alphabetically
+
+         if (uniqueUnitMixingCombinations.length > 0) {
+              const unitMixingFilterHtml = `
+                   <div class="filter-dropdown" data-column="UnitAndMixing" data-filter-type="data">
+                       <button class="dropdown-button">Unit & Mixing <span class="filter-arrow">&#9662;</span></button>
+                       <div class="dropdown-content">
+                           <div class="search-container">
+                               <input type="text" class="filter-search" placeholder="Search...">
+                           </div>
+                           <label class="select-all">
+                               <input type="checkbox" class="select-all-checkbox"> Select All
+                           </label>
+                           <div class="filter-options">
+                               ${uniqueUnitMixingCombinations.map(combination => `
+                                   <label>
+                                       <input type="checkbox" class="filter-checkbox" value="${combination}"> ${combination}
+                                   </label>
+                               `).join('')}
+                           </div>
+                       </div>
+                   </div>
+               `;
+              filtersContainer.innerHTML += unitMixingFilterHtml;
+         }
+
+
+        // Add event listeners to the newly created filter elements
+        addFilterEventListeners();
+    }
+
+    // Function to populate the comparison month selectors
+    function populateComparisonMonthSelectors() {
+        const month1Select = document.getElementById('month1Select');
+        const month2Select = document.getElementById('month2Select');
+
+        // Get unique Month-Year values from the data
+        let monthYearValues = getUniqueValues(tableData, 'Month-Year');
+
+        // Sort Month-Year values chronologically
+        monthYearValues.sort((a, b) => {
+            const [monthA, yearA] = a.split('-');
+            const [monthB, yearB] = b.split('-');
+
+            const monthNumA = monthNames.indexOf(monthA) + 1;
+            const monthNumB = monthNames.indexOf(monthB) + 1;
+
+            const fullYearA = parseInt(`20${yearA}`, 10); // Assuming 'yy' is 20yy
+            const fullYearB = parseInt(`20${yearB}`, 10); // Assuming 'yy' is 20yy
+
+            if (isNaN(fullYearA) || isNaN(monthNumA)) return isNaN(fullYearB) || isNaN(monthNumB) ? 0 : 1;
+            if (isNaN(fullYearB) || isNaN(monthNumB)) return -1;
+
+
+            if (fullYearA !== fullYearB) {
+                return fullYearA - fullYearB; // Sort by year first
+            }
+            return monthNumA - monthNumB; // Then sort by month (using month number for correct order)
+        });
+
+
+        // Clear existing options
+        month1Select.innerHTML = '<option value="">- Select Month -</option>';
+        month2Select.innerHTML = '<option value="">- Select Month -</option>';
+
+        // Add sorted month options
+        monthYearValues.forEach(monthYear => {
+            const option1 = document.createElement('option');
+            option1.value = monthYear;
+            option1.textContent = monthYear;
+            month1Select.appendChild(option1);
+
+            const option2 = document.createElement('option');
+            option2.value = monthYear;
+            option2.textContent = monthYear;
+            month2Select.appendChild(option2);
+        });
+
+        // Add event listeners to update comparison months and re-apply filters
+        month1Select.removeEventListener('change', handleComparisonMonthChange); // Remove existing
+        month2Select.removeEventListener('change', handleComparisonMonthChange); // Remove existing
+        month1Select.addEventListener('change', handleComparisonMonthChange);
+        month2Select.addEventListener('change', handleComparisonMonthChange);
+    }
+
+    // Handler for comparison month selector changes
+    function handleComparisonMonthChange() {
+        comparisonMonth1 = document.getElementById('month1Select').value;
+        comparisonMonth2 = document.getElementById('month2Select').value;
+        console.log("Comparison Months Selected:", comparisonMonth1, comparisonMonth2); // Debugging log
+        // Re-apply filters to update the table based on new month selection
+        applyFilters();
+    }
+
+
+    // Function for the Home button
+    function goBack() {
+        // Replace with your actual home page URL or navigation logic
+        alert('Navigating to Home. (Placeholder)'); // Use alert for simplicity
+        // window.location.href = "protected.html"; // Example navigation
+    }
+
+    // Function to add event listeners to filter dropdowns
+    function addFilterEventListeners() {
+        document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
+            const button = dropdown.querySelector('.dropdown-button');
+            const content = dropdown.querySelector('.dropdown-content');
+            const searchInput = dropdown.querySelector('.filter-search') || dropdown.querySelector('.column-search'); // Get search input for either type
+            const selectAllCheckbox = dropdown.querySelector('.select-all-checkbox') || dropdown.querySelector('.select-all-columns-checkbox'); // Get select all for either type
+            const optionsContainer = dropdown.querySelector('.filter-options'); // Checkboxes container
+
+            const filterType = dropdown.getAttribute('data-filter-type');
+            const columnName = dropdown.getAttribute('data-column'); // For data filters
+
+
+            // Toggle dropdown visibility
+            button.addEventListener('click', (event) => {
+                event.stopPropagation(); // Prevent window click from closing immediately
+                // Close other open dropdowns
+                document.querySelectorAll('.dropdown-content').forEach(openContent => {
+                    if (openContent !== content) {
+                        openContent.style.display = 'none';
+                    }
+                });
+                // Toggle current dropdown
+                content.style.display = content.style.display === 'block' ? 'none' : 'block';
+
+                 // When opening, ensure checkboxes reflect current state (applied data filters or visible columns)
+                 if (content.style.display === 'block') {
+                     let currentStateValues = [];
+                     if (filterType === 'data') {
+                          // For data filters, check if the column name exists in the applied filters object
+                          if (currentAppliedDataFilters.hasOwnProperty(columnName)) {
+                              currentStateValues = currentAppliedDataFilters[columnName] || [];
+                          } else if (columnName === 'UnitAndMixing') {
+                               // Handle the special Unit & Mixing filter
+                               // The values in the filter are "Unit | Mixing" strings
+                               // We need to check which of these combinations are currently selected in the filter state
+                               const unitMixingFilterDropdown = document.querySelector('.filter-dropdown[data-column="UnitAndMixing"]');
+                               if (unitMixingFilterDropdown) {
+                                    unitMixingFilterDropdown.querySelectorAll('.filter-options .filter-checkbox:checked').forEach(checkbox => {
+                                         currentStateValues.push(checkbox.value);
+                                    });
+                               }
+                          }
+                     } else if (filterType === 'visibility') {
+                          // For visibility, the source of truth is the visibleColumns array
+                         currentStateValues = visibleColumns;
+                     }
+
+                     optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                         // For data filters, check if the value is in the applied filters
+                         // For visibility, check if the column name is in the visibleColumns array
+                         checkbox.checked = currentStateValues.includes(checkbox.value);
+                     });
+                      // Update select all checkbox state on opening
+                     updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+                 }
+            });
+
+            // Prevent clicks inside the dropdown content from closing it
+             content.addEventListener('click', (event) => {
+                 event.stopPropagation();
+             });
+
+            // Search functionality
+            if (searchInput) { // Ensure search input exists
+                 searchInput.addEventListener('input', () => {
+                     const searchTerm = searchInput.value.toLowerCase();
+                     optionsContainer.querySelectorAll('label').forEach(label => {
+                         const text = label.textContent.toLowerCase();
+                         label.style.display = text.includes(searchTerm) ? 'block' : 'none';
+                     });
+                      // After filtering search results, update the "Select All" checkbox state
+                      updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+                 });
+            }
+
+
+             // Select/Unselect All functionality
+             if (selectAllCheckbox) { // Ensure select all checkbox exists
+                 selectAllCheckbox.addEventListener('change', (event) => {
+                      optionsContainer.querySelectorAll('label').forEach(label => {
+                          // Only affect checkboxes of currently visible labels after search
+                          if(label.style.display !== 'none') {
+                             label.querySelector('input[type="checkbox"]').checked = event.target.checked;
+                          }
+                      });
+                      // Update the state of the Select All checkbox itself (handles indeterminate)
+                      updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+                      // Note: Filters are applied ONLY on clicking the main Apply button now.
+                 });
+             }
+
+
+             // Individual checkbox change listener
+             optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => { // Iterate over each checkbox
+                 checkbox.addEventListener('change', () => {
+                      updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+                      // Note: Filters are applied ONLY on clicking the main Apply button now.
+                 });
+             });
+        });
+
+        // Close dropdowns when clicking outside the dropdown container
+         window.addEventListener('click', (event) => {
+             document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
+                 const content = dropdown.querySelector('.dropdown-content');
+                 // Use !dropdown.contains(event.target) which is simpler and safer
+                 if (!dropdown.contains(event.target)) {
+                     content.style.display = 'none';
+                      // When closing by clicking outside, reset checkboxes in open dropdowns
+                      // to the currently applied filter state before closing.
+                     const filterType = dropdown.getAttribute('data-filter-type');
+                     const optionsContainer = dropdown.querySelector('.filter-options');
+                     const selectAllCheckbox = dropdown.querySelector('.select-all-checkbox') || dropdown.querySelector('.select-all-columns-checkbox');
+
+                     let currentStateValues = [];
+                     if (filterType === 'data') {
+                          const columnName = dropdown.getAttribute('data-column');
+                           if (currentAppliedDataFilters.hasOwnProperty(columnName)) {
+                               currentStateValues = currentAppliedDataFilters[columnName] || [];
+                           } else if (columnName === 'UnitAndMixing') {
+                                // For the Unit & Mixing filter, the state is implicitly stored by the checked checkboxes
+                                // We need to collect the values from the checkboxes in the closed dropdown to restore state
+                                optionsContainer.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+                                     currentStateValues.push(checkbox.value);
+                                });
+                           }
+                     } else if (filterType === 'visibility') {
+                          currentStateValues = visibleColumns;
+                     }
+
+                     optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                          checkbox.checked = currentStateValues.includes(checkbox.value);
+                     });
+                     updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+                 }
+             });
+         });
+    }
+
+    // Helper to update the state of the "Select All" checkbox (Handles indeterminate state)
+    function updateSelectAllCheckbox(optionsContainer, selectAllCheckbox) {
+        if (!selectAllCheckbox) return; // Handle cases where select all might not exist
+
+        const visibleCheckboxes = Array.from(optionsContainer.querySelectorAll('label'))
+                                         .filter(label => label.style.display !== 'none')
+                                         .map(label => label.querySelector('input[type="checkbox"]'));
+
+        const checkedVisibleCheckboxes = visibleCheckboxes.filter(cb => cb.checked);
+
+         if (visibleCheckboxes.length === 0) {
+              selectAllCheckbox.checked = false;
+              selectAllCheckbox.indeterminate = false;
+         } else if (checkedVisibleCheckboxes.length === visibleCheckboxes.length) {
+             selectAllCheckbox.checked = true;
+             selectAllCheckbox.indeterminate = false;
+         } else if (checkedVisibleCheckboxes.length > 0) {
+             selectAllCheckbox.checked = false; // It's not 'all' if some are unchecked
+             selectAllCheckbox.indeterminate = true; // But some are checked
+         }
+         else { // No visible checkboxes are checked
+             selectAllCheckbox.checked = false;
+             selectAllCheckbox.indeterminate = false;
+         }
+    }
+
+    // Function to calculate and display averages based on visible columns in the filtered data
+    function calculateAndDisplayAverages(data) {
+         // Determine grouping columns (visible columns that are NOT decimal columns)
+         const groupingColumns = visibleColumns.filter(col =>
+             !decimalColumns.some(decCol => col.toLowerCase() === decCol.toLowerCase())
+         );
+
+         const groupedData = {};
+
+         data.forEach(row => {
+             // Create a unique key for each group based on the values in grouping columns
+             // Ensure we use the actual column names from the row object for grouping
+             const groupKey = groupingColumns.map(col => {
+                 const actualColName = Object.keys(row).find(key => key.toLowerCase() === col.toLowerCase());
+                 // Use the value from the row for the actual column name, default to empty string if not found
+                 return actualColName ? row[actualColName] || '' : '';
+             }).join('|');
+
+
+             if (!groupedData[groupKey]) {
+                 groupedData[groupKey] = {
+                     count: 0,
+                     // Initialize sums for decimal columns
+                     sums: {},
+                     // Store the grouping column values for this group
+                     groupValues: {}
+                 };
+                 groupingColumns.forEach(col => {
+                      const actualColName = Object.keys(row).find(key => key.toLowerCase() === col.toLowerCase());
+                      // Store the value using the requested column name from visibleColumns
+                      groupedData[groupKey].groupValues[col] = actualColName ? row[actualColName] || '' : '';
+                 });
+                 decimalColumns.forEach(decCol => {
+                      // Find the actual column name for the decimal column in the row
+                      const actualDecColName = Object.keys(row).find(key => key.toLowerCase() === decCol.toLowerCase());
+                      if (actualDecColName) {
+                         groupedData[groupKey].sums[decCol] = 0; // Initialize sum for this decimal column
+                      }
+                 });
+             }
+
+             groupedData[groupKey].count++;
+             decimalColumns.forEach(decCol => {
+                  const actualDecColName = Object.keys(row).find(key => key.toLowerCase() === decCol.toLowerCase());
+                  if (actualDecColName) {
+                      const rowValue = parseFloat(row[actualDecColName]);
+                      if (!isNaN(rowValue)) {
+                         groupedData[groupKey].sums[decCol] += rowValue;
+                      }
+                  }
+             });
+         });
+
+         // Calculate averages and format the result into an array of objects
+         const averagedData = Object.keys(groupedData).map(groupKey => {
+             const group = groupedData[groupKey];
+             const averageRow = { ...group.groupValues }; // Start with grouping column values
+
+             decimalColumns.forEach(decCol => {
+                 const average = group.count > 0 ? group.sums[decCol] / group.count : 0;
+                 averageRow[decCol] = average.toFixed(2); // Store formatted average
+             });
+
+             return averageRow;
+         });
+
+         // Sort the averaged data if a sort is applied to a grouping column
+         if (currentSort.column && groupingColumns.some(col => col.toLowerCase() === currentSort.column.toLowerCase())) {
+              const sortColumnName = currentSort.column;
+              const sortDirection = currentSort.direction;
+
+              averagedData.sort((a, b) => {
+                  const aValue = a[sortColumnName] !== undefined && a[sortColumnName] !== null ? String(a[sortColumnName]) : '';
+                  const bValue = b[sortColumnName] !== undefined && b[sortColumnName] !== null ? String(b[sortColumnName]) : '';
+
+                   // Special handling for Month-Year column for chronological sorting
+                   if (sortColumnName.toLowerCase() === 'month-year') {
+                        // For sorting averaged data by Month-Year, we need to rely on the string format 'Mmm-yy'
+                        // as the original _YearNumber and _MonthNumber might not be directly available in averaged rows.
+                        // The 'Mmm-yy' format should sort correctly alphabetically if years are handled first.
+                        // Let's use the string comparison directly for simplicity here, as chronological sorting
+                        // was primarily handled during the initial data processing and for raw data sorting.
+                        // If more precise chronological sorting is needed for averaged data, the year/month numbers
+                        // would need to be included in the averagedRow structure.
+                        const [monthA, yearA] = aValue.split('-');
+                        const [monthB, yearB] = bValue.split('-');
+
+                        const monthNumA = monthNames.indexOf(monthA) + 1;
+                        const monthNumB = monthNames.indexOf(monthB) + 1;
+
+                        const fullYearA = parseInt(`20${yearA}`, 10); // Assuming 'yy' is 20yy
+                        const fullYearB = parseInt(`20${yearB}`, 10); // Assuming 'yy' is 20yy
+
+                        if (isNaN(fullYearA) || isNaN(monthNumA)) return isNaN(fullYearB) || isNaN(monthNumB) ? 0 : 1;
+                        if (isNaN(fullYearB) || isNaN(monthNumB)) return -1;
+
+
+                        if (fullYearA !== fullYearB) {
+                            return sortDirection === 'asc' ? fullYearA - fullYearB : fullYearB - fullYearA;
+                        }
+                        return sortDirection === 'asc' ? monthNumA - monthB : monthNumB - monthA;
+
+
+                   } else if (sortColumnName.toLowerCase() === 'year') { // Custom Sorting for Year Columns
+                       const numA = parseInt(aValue);
+                       const numB = parseInt(bValue);
+                        if (isNaN(numA) && isNaN(numB)) return 0;
+                        if (isNaN(numB)) return 1; // Put non-numeric at the end
+                        if (isNaN(numA)) return -1; // Put non-numeric at the end
+                        return sortDirection === 'asc' ? numA - numB : numB - numA;
+                   }
+
+
+                  // Basic string comparison for sorting for other columns
+                  if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+                  if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+                  return 0; // Values are equal
+              });
+         }
+
+
+         return averagedData;
+    }
+
+
+    // Function to apply filters based on current selections in all dropdowns
+    function applyFilters() {
+        console.log("Applying filters..."); // Debugging log
+        // --- Collect Data Filter Selections ---
+        currentAppliedDataFilters = {}; // Reset applied filters
+        document.querySelectorAll('.filter-dropdown[data-filter-type="data"]').forEach(dropdown => {
+            const columnName = dropdown.getAttribute('data-column');
+            const selectedValues = [];
+             dropdown.querySelectorAll('.filter-options .filter-checkbox:checked').forEach(checkbox => {
+                 selectedValues.push(checkbox.value); // Checkbox value is the actual data value (e.g., month number or Mmm-yy)
+             });
+             currentAppliedDataFilters[columnName] = selectedValues; // Update the globally applied data filters
+        });
+        console.log("Current Applied Data Filters:", currentAppliedDataFilters); // Debugging log
+
+         // --- Collect Column Visibility Selections ---
+         const selectedVisibleColumns = [];
+         const visibilityDropdown = document.querySelector('.filter-dropdown[data-filter-type="visibility"]');
+         if (visibilityDropdown) {
+             visibilityDropdown.querySelectorAll('.column-options .column-checkbox:checked').forEach(checkbox => {
+                  selectedVisibleColumns.push(checkbox.value);
+             });
+         }
+         visibleColumns = selectedVisibleColumns; // Update the globally visible columns
+        console.log("Visible Columns:", visibleColumns); // Debugging log
+
+
+        // --- Get Average Mode State ---
+        showAverage = document.getElementById('showAverageCheckbox').checked;
+        console.log("Show Average:", showAverage); // Debugging log
+
+        // --- Get Current View State ---
+        currentView = document.getElementById('dashboardViewSelect').value;
+        console.log("Current View:", currentView); // Debugging log
+
+        // --- Get Comparison Months (if in comparison view) ---
+        if (currentView === 'comparison') {
+            comparisonMonth1 = document.getElementById('month1Select').value;
+            comparisonMonth2 = document.getElementById('month2Select').value;
+            console.log("Comparison Months Selected:", comparisonMonth1, comparisonMonth2); // Debugging log
+             // If months are not selected, show a message and don't render the table
+             if (!comparisonMonth1 || !comparisonMonth2) {
+                 document.getElementById('tablesPerRowControl').style.display = 'flex'; // Show tables per row control
+                 document.getElementById('tableContainer').innerHTML = '<p>Please select two months for comparison.</p>';
+                 // Show comparison month selectors
+                 document.getElementById('comparisonMonthSelectors').style.display = 'flex';
+                 // Hide other view-specific controls
+                 
+                 document.getElementById('averageModeControl').style.display = 'none';
+                 document.getElementById('reorderControls').style.display = 'none';
+                 document.getElementById('widthControlsContent').style.display = 'none';
+                 document.getElementById('alignmentControlsContent').style.display = 'none';
+                 return; // Stop here if months are not selected
+             }
+        }
+
+
+        // --- Apply Data Filters ---
+        let filteredData = tableData; // Start with the original processed data
+        console.log("Initial data for filtering:", filteredData.length, "rows"); // Debugging log
+
+        // Apply filters from the dataFilterableColumnNames list
+        dataFilterableColumnNames.forEach(columnName => {
+             const selectedValues = currentAppliedDataFilters[columnName]; // Use currently applied data filters
+             if (selectedValues && selectedValues.length > 0) {
+                 filteredData = filteredData.filter(row => {
+                      // Find the actual key in the row object based on the filter column name (case-insensitive)
+                      const rowKey = Object.keys(row).find(key => key.toLowerCase() === columnName.toLowerCase());
+                      if (rowKey) {
+                          const rowValue = row[rowKey] !== undefined && row[rowKey] !== null ? String(row[rowKey]) : '';
+                           // For Month-Year filter, compare the stored 'Mmm-yy' value
+                           if (columnName.toLowerCase() === 'month-year') {
+                               // Check if the row has the 'Month-Year' property and if its value is in the selected values
+                               return row.hasOwnProperty('Month-Year') && selectedValues.includes(row['Month-Year']);
+                           }
+                          return selectedValues.includes(rowValue); // Compare with the actual row value
+                      }
+                      return false; // If the filter column doesn't exist in the row, filter it out
+                 });
+             }
+         });
+        console.log("Filtered data after applying data filters:", filteredData.length, "rows"); // Debugging log
+
+
+        // --- Apply Unit & Cotton Mixing Filter (Specific for Comparison View) ---
+         if (currentView === 'comparison') {
+              const unitMixingFilterDropdown = document.querySelector('.filter-dropdown[data-column="UnitAndMixing"]');
+              if (unitMixingFilterDropdown) {
+                   const selectedUnitMixingCombinations = [];
+                   unitMixingFilterDropdown.querySelectorAll('.filter-options .filter-checkbox:checked').forEach(checkbox => {
+                        selectedUnitMixingCombinations.push(checkbox.value);
+                   });
+
+                   if (selectedUnitMixingCombinations.length > 0) {
+                       filteredData = filteredData.filter(row => {
+                            const unit = row['Unit No'] || 'N/A';
+                            const mixing = row['Cotton Mixing'] || 'N/A';
+                            const rowCombination = `${unit} | ${mixing}`;
+                            return selectedUnitMixingCombinations.includes(rowCombination);
+                       });
+                        console.log("Filtered data after applying Unit & Mixing filter:", filteredData.length, "rows"); // Debugging log
+                   } else {
+                       // If the filter exists but nothing is selected, show no data
+                       filteredData = [];
+                       console.log("Unit & Mixing filter exists but no selections, showing no data."); // Debugging log
+                   }
+              }
+         }
+
+
+        // --- Apply Sorting to Filtered Raw Data (only relevant for Table View) ---
+         if (currentView === 'table' && currentSort.column) {
+             const sortColumnName = currentSort.column;
+             const sortDirection = currentSort.direction;
+
+              // Find the actual column name in the data based on the sortColumnName (case-insensitive)
+              const actualSortColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === sortColumnName.toLowerCase());
+
+             if (actualSortColumnName) {
+                  filteredData.sort((a, b) => {
+                      const aValue = a[actualSortColumnName] !== undefined && a[actualSortColumnName] !== null ? String(a[actualSortColumnName]) : '';
+                      const bValue = b[actualSortColumnName] !== undefined && b[actualSortColumnName] !== null ? String(b[actualSortColumnName]) : '';
+
+                       // Special handling for Month-Year column for chronological sorting
+                       if (actualSortColumnName.toLowerCase() === 'month-year') {
+                            const yearA = a['_YearNumber'];
+                            const monthA = a['_MonthNumber'];
+                            const yearB = b['_YearNumber'];
+                            const monthB = b['_MonthNumber'];
+
+                            // Handle cases where month/year numbers are not available (e.g., invalid date)
+                            if (isNaN(yearA) || isNaN(monthA)) return isNaN(yearB) || isNaN(monthB) ? 0 : 1; // Put invalid dates at the end
+                            if (isNaN(yearB) || isNaN(monthB)) return -1; // Put invalid dates at the end
+
+                            if (yearA !== yearB) {
+                                return sortDirection === 'asc' ? yearA - yearB : yearB - yearA;
+                            }
+                            return sortDirection === 'asc' ? monthA - monthB : monthB - monthA;
+
+                       } else if (actualSortColumnName.toLowerCase() === 'year') { // Custom Sorting for Year Columns (if still needed)
+                           const numA = parseInt(aValue);
+                           const numB = parseInt(bValue);
+                            if (isNaN(numA) && isNaN(numB)) return 0;
+                            if (isNaN(numB)) return 1;
+                            if (isNaN(numA)) return -1;
+                            return sortDirection === 'asc' ? numA - numB : numB - numA;
+                       }
+
+
+                      // Basic string comparison for sorting for other columns
+                      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+                      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+                      return 0; // Values are equal
+                  });
+             }
+         }
+        console.log("Filtered data after sorting (if table view):", filteredData.length, "rows"); // Debugging log
+
+
+        // --- Process data based on Average Mode (only relevant for Table View) ---
+        let dataToDisplay = filteredData;
+        if (currentView === 'table' && showAverage) {
+            dataToDisplay = calculateAndDisplayAverages(filteredData); // Calculate averages on the filtered data
+            console.log("Averaged data (table view):", dataToDisplay.length, "rows"); // Debugging log
+        }
+
+
+        // --- Display the table based on the current view ---
+        if (currentView === 'table') {
+             displayTable(dataToDisplay, visibleColumns, showAverage);
+              // Show/Hide table view specific controls
+             document.getElementById('averageModeControl').style.display = 'flex';
+             document.getElementById('reorderControls').style.display = 'flex';
+             document.getElementById('widthControlsContent').style.display = 'flex';
+             document.getElementById('alignmentControlsContent').style.display = 'flex';
+             document.getElementById('comparisonMonthSelectors').style.display = 'none'; // Hide comparison selectors
+         } else if (currentView === 'comparison') {
+             // For comparison view, the filtering for months and Unit/Mixing is already done in filteredData
+             displayComparisonTable(filteredData, comparisonMonth1, comparisonMonth2);
+              // Show/Hide comparison view specific controls
+             document.getElementById('averageModeControl').style.display = 'none'; // Hide average mode toggle
+             document.getElementById('reorderControls').style.display = 'none'; // Reordering not applicable in this pivot view
+             document.getElementById('widthControlsContent').style.display = 'none'; // Width adjustment not applicable
+             document.getElementById('alignmentControlsContent').style.display = 'none'; // Alignment not applicable
+             document.getElementById('comparisonMonthSelectors').style.display = 'flex'; // Show comparison selectors
+         }
+
+
+        // Update the column select dropdowns for width and alignment after displaying (only for table view)
+        if (currentView === 'table') {
+            populateColumnWidthSelect();
+            populateColumnAlignmentSelect();
+        }
+    }
+
+
+    // Function to display the data in the table (Table View)
+    function displayTable(data, columnsToDisplay, isAverageMode = false) {
+        console.log("Displaying Table View with data:", data.length, "rows"); // Debugging log
+        const tableContainer = document.getElementById('tableContainer');
+        tableContainer.innerHTML = ''; // Clear previous table
+
+        // Check if there is data to display and columns selected
+        // Note: We iterate based on columnDisplayOrder, but check if it's in visibleColumns
+        const columnsToRender = columnDisplayOrder.filter(col =>
+             visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())
+        );
+        console.log("Columns to render (Table View):", columnsToRender); // Debugging log
+
+
+        if (data.length > 0 && columnsToRender.length > 0) {
+            let html = '<table>';
+
+            // Removed <colgroup> and <col> tags for table-layout: auto
+
+            html += '<thead><tr>';
+            // Add headers for the selected columns based on the display order
+            columnDisplayOrder.forEach(col => {
+                 // Only add header if the column is currently visible (case-insensitive)
+                 if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
+                     // Find the corresponding actual column name from Excel header (case-insensitive) to use for data attribute
+                     const actualColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === col.toLowerCase());
+                     if (actualColumnName) {
+                         const alignment = columnAlignments[actualColumnName] || 'center'; // Get saved alignment or default to center
+                         // Add "(Avg)" to decimal column headers if in average mode
+                         const headerText = isAverageMode && decimalColumns.some(decCol => actualColumnName.toLowerCase() === decCol.toLowerCase())
+                                            ? `${actualColumnName} (Avg)` : actualColumnName;
+
+                         // Apply width directly to th in auto layout
+                         let colWidthStyle = '';
+                         if (columnWidths[actualColumnName]) {
+                              colWidthStyle = `width: ${columnWidths[actualColumnName]};`;
+                         } else {
+                             // Apply default widths as inline styles to th
+                             if (actualColumnName.toLowerCase().includes('notes') || actualColumnName.toLowerCase().includes('remarks') || actualColumnName.toLowerCase().includes('analysis') || actualColumnName.toLowerCase().includes('action')) {
+                                colWidthStyle = 'width: 300px;'; // Default Wider Width for text heavy columns
+                             } else if (actualColumnName.toLowerCase() === 'date') {
+                                colWidthStyle = 'width: 120px;'; // Default for date
+                             } else if (actualColumnName.toLowerCase() === 'id' || actualColumnName.toLowerCase() === 'unit no' || actualColumnName.toLowerCase() === 'line no' || actualColumnName.toLowerCase() === 'sfd' || actualColumnName.toLowerCase() === 'sfl' || actualColumnName.toLowerCase() === 'flat' || actualColumnName.toLowerCase() === 'licker-in' || actualColumnName.toLowerCase() === 'total waste%' || actualColumnName.toLowerCase() === 'month-year' || actualColumnName.toLowerCase() === 'year') {
+                                colWidthStyle = 'width: 80px;'; // Default for smaller columns
+                             } else if (actualColumnName.toLowerCase().includes('waste%') || actualColumnName.toLowerCase().includes('weight')) {
+                                colWidthStyle = 'width: 100px;'; // Default for percentage/weight
+                             } else {
+                                colWidthStyle = 'width: 150px;'; // General default width
+                             }
+                         }
+
+
+                         html += `<th data-column="${actualColumnName}" style="text-align: ${alignment}; ${colWidthStyle}">
+                                     ${headerText}
+                                     <span class="sort-arrow"></span>
+                                     <div class="resizer"></div>
+                                 </th>`;
+                     }
+                 }
+            });
+            html += '</tr></thead>';
+
+            html += '<tbody>';
+            // Add data rows
+            data.forEach(rowData => {
+                html += '<tr>';
+                columnDisplayOrder.forEach(col => {
+                     // Only add data cell if the column is currently visible (case-insensitive)
+                     if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
+                         // Find the corresponding actual column name from Excel header (case-insensitive)
+                         const actualColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === col.toLowerCase());
+                         if (actualColumnName) {
+                             let cellValue = rowData[actualColumnName] !== undefined && rowData[actualColumnName] !== null ? rowData[actualColumnName] : '';
+                             const alignment = columnAlignments[actualColumnName] || 'center'; // Get saved alignment or default to center
+
+                             // --- Format decimal columns (only if not in average mode, as averages are already formatted) ---
+                             if (!isAverageMode && decimalColumns.some(decCol => actualColumnName.toLowerCase() === decCol.toLowerCase())) {
+                                 const numericValue = parseFloat(cellValue);
+                                 if (!isNaN(numericValue)) {
+                                     cellValue = numericValue.toFixed(2);
+                                 }
+                             }
+                             // --- End Format decimal columns ---
+
+                             // Month-Year is already formatted in processExcelData, no need to reformat here
+
+                             html += `<td style="text-align: ${alignment};">${cellValue}</td>`;
+                         }
+                     }
+                });
+                html += '</tr>';
+            });
+            html += '</tbody>';
+
+            html += '</table>';
+            tableContainer.innerHTML = html;
+
+            // Add event listeners for sorting and resizing after the table is in the DOM
+            addSortEventListeners();
+            addResizeEventListeners();
+
+        } else {
+            tableContainer.innerHTML = '<p>No data available or all columns hidden.</p>';
+        }
+    }
+
+     // Function to display the data in the table (Comparison View)
+function displayComparisonTable(data, month1, month2) {
+    console.log("Displaying Comparison View with data:", data.length, "rows for months", month1, "and", month2); // Debugging log
+    const tableContainer = document.getElementById('tableContainer');
+    tableContainer.innerHTML = ''; // Clear previous table
+
+    if (!month1 || !month2) {
+        tableContainer.innerHTML = '<p>Please select two months for comparison.</p>';
+        console.log("Months not selected for comparison table."); // Debugging log
+        return;
+    }
+
+    console.log("Comparison Table - Initial data:", data); // Debugging log
+
+    // Group data by Unit and Cotton Mixing
+    const groupedByUnitMixing = data.reduce((acc, row) => {
+        const unit = row['Unit No'] || 'N/A';
+        const mixing = row['Cotton Mixing'] || 'N/A';
+        const key = `${unit}|${mixing}`;
+        if (!acc[key]) {
+            acc[key] = [];
+        }
+        acc[key].push(row);
+        return acc;
+    }, {});
+    console.log("Comparison Table - Grouped data by Unit|Mixing:", groupedByUnitMixing); // Debugging log
+
+    const uniqueUnitMixings = Object.keys(groupedByUnitMixing).sort(); // Sort Unit/Mixing groups
+    console.log("Comparison Table - Unique Unit|Mixings:", uniqueUnitMixings); // Debugging log
+
+    if (uniqueUnitMixings.length === 0) {
+        tableContainer.innerHTML = '<p>No data available for the selected months and filters.</p>';
+        console.log("Comparison Table - No unique Unit|Mixings found."); // Debugging log
+        return;
+    }
+
+ // Get the number of tables per row from the dropdown
+    const tablesPerRow = parseInt(document.getElementById('tablesPerRowSelect').value, 10) || 2;
+
+// Group Unit/Mixing combinations into rows based on the selected value
+    const groupedUnitMixingRows = []; // Renamed to avoid conflict
+    for (let i = 0; i < uniqueUnitMixings.length; i += tablesPerRow) {
+        groupedUnitMixingRows.push(uniqueUnitMixings.slice(i, i + tablesPerRow));
+    }
+
+
+    // Calculate averages and differences for each comparisonRow for all Unit/Mixing combinations
+    const comparisonData = {}; // Structure: { rowName: { unit|mixing: { month1Avg: N, month2Avg: N, diff: N }, ... }, ... }
+
+    comparisonRows.forEach(rowName => {
+        comparisonData[rowName] = {}; // Initialize for each comparison row
+        uniqueUnitMixings.forEach(key => {
+            const rowsForUnitMixing = groupedByUnitMixing[key];
+
+            // Group by Department within this Unit/Mixing
+            const groupedByDepartment = rowsForUnitMixing.reduce((acc, row) => {
+                const department = row['Department'] || 'N/A';
+                if (!acc[department]) {
+                    acc[department] = [];
+                }
+                acc[department].push(row);
+                return acc;
+            }, {});
+
+            let avgMonth1 = 0;
+            let avgMonth2 = 0;
+
+            if (rowName === 'Waste upto Card') {
+                // Calculate Waste upto Card by summing/averaging CLP, CLC, Card for this Unit/Mixing
+                const departmentsToSum = ['CLP', 'CLC', 'Card'];
+                let totalSumMonth1 = 0;
+                let totalSumMonth2 = 0;
+
+                departmentsToSum.forEach(dept => {
+                    const actualDeptName = Object.keys(groupedByDepartment).find(name => name.toLowerCase() === dept.toLowerCase());
+
+                    if (actualDeptName && groupedByDepartment[actualDeptName]) {
+                        const dataForDepartment = groupedByDepartment[actualDeptName];
+                        let sumDeptMonth1 = 0;
+                        let sumDeptMonth2 = 0;
+                        let countDeptMonth1 = 0;
+                        let countDeptMonth2 = 0;
+
+                        dataForDepartment.forEach(row => {
+                            const wasteColName = Object.keys(row).find(key => key.toLowerCase() === 'total waste%');
+                            if (wasteColName) {
+                                const wasteValue = parseFloat(row[wasteColName]);
+                                if (!isNaN(wasteValue)) {
+                                    if (row['Month-Year'] === month1) {
+                                        sumDeptMonth1 += wasteValue;
+                                        countDeptMonth1++;
+                                    } else if (row['Month-Year'] === month2) {
+                                        sumDeptMonth2 += wasteValue;
+                                        countDeptMonth2++;
+                                    }
+                                }
+                            }
+                        });
+
+                        totalSumMonth1 += countDeptMonth1 > 0 ? sumDeptMonth1 / countDeptMonth1 : 0;
+                        totalSumMonth2 += countDeptMonth2 > 0 ? sumDeptMonth2 / countDeptMonth2 : 0;
+                    }
+                });
+
+                avgMonth1 = totalSumMonth1;
+                avgMonth2 = totalSumMonth2;
+            } else if (rowName === 'Overall Waste') {
+    // Calculate Overall Waste by summing Waste upto Card and Comber Noil averages
+    const wasteUptoCard = comparisonData['Waste upto Card'][key] || { month1Avg: 0, month2Avg: 0 };
+    const comberNoil = comparisonData['Comber Noil'][key] || { month1Avg: 0, month2Avg: 0 };
+
+    // Ensure the averages are valid numbers before summing
+    const wasteUptoCardMonth1 = parseFloat(wasteUptoCard.month1Avg) || 0;
+    const wasteUptoCardMonth2 = parseFloat(wasteUptoCard.month2Avg) || 0;
+    const comberNoilMonth1 = parseFloat(comberNoil.month1Avg) || 0;
+    const comberNoilMonth2 = parseFloat(comberNoil.month2Avg) || 0;
+
+    avgMonth1 = wasteUptoCardMonth1 + comberNoilMonth1;
+    avgMonth2 = wasteUptoCardMonth2 + comberNoilMonth2;
+
+    console.log(`Overall Waste for Unit|Mixing "${key}": Month1=${avgMonth1.toFixed(2)}, Month2=${avgMonth2.toFixed(2)}`);
+} else {
+                // For other rows (Departments like CLP, CLC, Card, Comber Noil), calculate average Total Waste% directly
+                const actualDeptName = Object.keys(groupedByDepartment).find(name => name.toLowerCase() === rowName.toLowerCase());
+
+                if (actualDeptName && groupedByDepartment[actualDeptName]) {
+                    const dataForDepartment = groupedByDepartment[actualDeptName];
+                    let sumMonth1 = 0;
+                    let sumMonth2 = 0;
+                    let countMonth1 = 0;
+                    let countMonth2 = 0;
+
+                    dataForDepartment.forEach(row => {
+                        const wasteColName = Object.keys(row).find(key => key.toLowerCase() === 'total waste%');
+                        if (wasteColName) {
+                            const wasteValue = parseFloat(row[wasteColName]);
+                            if (!isNaN(wasteValue)) {
+                                if (row['Month-Year'] === month1) {
+                                    sumMonth1 += wasteValue;
+                                    countMonth1++;
+                                } else if (row['Month-Year'] === month2) {
+                                    sumMonth2 += wasteValue;
+                                    countMonth2++;
+                                }
+                            }
+                        }
+                    });
+
+                    avgMonth1 = countMonth1 > 0 ? sumMonth1 / countMonth1 : 0;
+                    avgMonth2 = countMonth2 > 0 ? sumMonth2 / countMonth2 : 0;
+                }
+            }
+
+            // Ensure avgMonth1 and avgMonth2 are valid numbers before calling .toFixed()
+            avgMonth1 = isNaN(avgMonth1) ? 0 : avgMonth1;
+            avgMonth2 = isNaN(avgMonth2) ? 0 : avgMonth2;
+
+            const diff = avgMonth2 - avgMonth1;
+
+            comparisonData[rowName][key] = {
+                month1Avg: avgMonth1.toFixed(2),
+                month2Avg: avgMonth2.toFixed(2),
+                diff: diff.toFixed(2),
+            };
+        });
+    });
+
+    console.log("Comparison Table - Calculated Comparison Data:", comparisonData); // Debugging log
+
+    // Generate the table for each row of Unit/Mixing combinations
+    groupedUnitMixingRows.forEach((unitMixingRow, rowIndex) => {
+    let html = '<table>';
+
+   // --- Build Header ---
+        html += '<thead>';
+        // Row 1: Unit headers spanning 3 columns
+        html += '<tr><th rowspan="3" style="text-align: left;">Department</th>'; // Department header
+        unitMixingRow.forEach(key => {
+            const [unit] = key.split('|');
+            html += `<th colspan="3" style="text-align: center;">Unit: ${unit}</th>`; // Unit header spans 3 columns
+        });
+        html += '</tr>';
+
+        // Row 2: Mixing headers
+        html += '<tr>';
+        unitMixingRow.forEach(key => {
+            const [, mixing] = key.split('|');
+            html += `<th colspan="3" style="text-align: center;">Mixing: ${mixing}</th>`; // Mixing header spans 3 columns
+        });
+        html += '</tr>';
+
+        // Row 3: Month headers
+        html += '<tr>';
+        unitMixingRow.forEach(() => {
+            html += `<th style="text-align: center;">${month1}</th>`;
+            html += `<th style="text-align: center;">${month2}</th>`;
+            html += `<th style="text-align: center;">Diff</th>`;
+        });
+        html += '</tr>';
+        html += '</thead>';
+
+        // --- Build Body ---
+        html += '<tbody>';
+        comparisonRows.forEach(rowName => {
+            html += '<tr>';
+            const isBoldRow = rowName === 'Waste upto Card' || rowName === 'Overall Waste';
+            const rowStyle = isBoldRow ? 'font-weight: bold;' : '';
+
+            // First cell in the body row is the row name (CLP, CLC, etc.)
+            html += `<td style="text-align: left; ${rowStyle}">${rowName}</td>`;
+
+            unitMixingRow.forEach(key => {
+                const data = comparisonData[rowName] && comparisonData[rowName][key] ? comparisonData[rowName][key] : { month1Avg: '-', month2Avg: '-', diff: '-' };
+                html += `<td style="text-align: center; ${rowStyle}">${data.month1Avg}</td>`;
+                html += `<td style="text-align: center; ${rowStyle}">${data.month2Avg}</td>`;
+                html += `<td style="text-align: center; ${rowStyle}">${data.diff}</td>`;
+            });
+
+            html += '</tr>';
+        });
+        html += '</tbody>';
+
+        html += '</table>';
+
+        // Add the table to the container
+        const tableWrapper = document.createElement('div');
+        tableWrapper.style.marginBottom = '20px'; // Add spacing between rows
+        tableWrapper.innerHTML = html;
+        tableContainer.appendChild(tableWrapper);
+    });
+
+    console.log("Comparison Table - Rendered successfully."); // Debugging log
+}
+
+// Helper function to calculate the average for a specific month and department
+function calculateAverage(data, month, department) {
+    const filteredData = data.filter(row => row['Month-Year'] === month && row['Department'] === department);
+    const total = filteredData.reduce((sum, row) => {
+        const wasteValue = parseFloat(row['Total Waste%']);
+        return !isNaN(wasteValue) ? sum + wasteValue : sum;
+    }, 0);
+    return filteredData.length > 0 ? total / filteredData.length : 0;
+}
+
+
+    // --- Column Resizing Logic (Only for Table View) ---
+    let th; // The <th> element being resized
+    let startX; // Mouse start X position
+    let startWidth; // Column start width
+
+    function addResizeEventListeners() {
+        // Ensure we only add listeners if the resizer elements exist
+        document.querySelectorAll('#tableContainer th .resizer').forEach(resizer => {
+            // Remove existing listeners to prevent duplicates
+            resizer.removeEventListener('mousedown', initResize);
+            // Add new listener
+            resizer.addEventListener('mousedown', initResize);
+        });
+    }
+
+    function initResize(e) {
+        th = e.target.parentElement; // Get the parent <th> element
+        startX = e.clientX;
+        startWidth = th.offsetWidth;
+
+        // Add event listeners to the document for dragging
+        document.addEventListener('mousemove', resize);
+        document.addEventListener('mouseup', stopResize);
+
+        // Prevent text selection during drag
+        document.body.style.userSelect = 'none';
+        document.body.style.cursor = 'col-resize';
+    }
+
+    function resize(e) {
+        if (!th) return; // Ensure we are dragging a header
+
+        const deltaX = e.clientX - startX;
+        const newWidth = startWidth + deltaX;
+
+        // Ensure minimum width
+        const minWidth = 50; // Define a minimum width for columns
+        const finalWidth = Math.max(minWidth, newWidth);
+
+        // Apply the new width directly to the header (th) in auto layout
+        const columnName = th.getAttribute('data-column');
+        if (th && columnName) {
+             th.style.width = `${finalWidth}px`;
+             // Update columnWidths state
+             columnWidths[columnName] = `${finalWidth}px`;
+
+             // In auto layout, applying width to th is often sufficient,
+             // but applying to corresponding td's might help consistency,
+             // though it can be complex to find all tds for a column efficiently.
+             // Let's rely on the browser's auto layout for now.
+        }
+    }
+
+    function stopResize() {
+        // Remove event listeners from the document
+        document.removeEventListener('mousemove', resize);
+        document.removeEventListener('mouseup', stopResize);
+        th = undefined; // Reset the header being resized
+
+        // Restore text selection and cursor
+        document.body.style.userSelect = '';
+        document.body.style.cursor = '';
+    }
+
+     // --- Manual Width Controls (Only for Table View) ---
+     // Function to populate the column select for manual width adjustment
+     function populateColumnWidthSelect() {
+         const columnSelectWidth = document.getElementById('columnSelectForWidth');
+         columnSelectWidth.innerHTML = '<option value="">- Select Column -</option>'; // Clear existing options
+
+         // Use the current display order to populate the select
+         columnDisplayOrder.forEach(column => {
+             // Only add visible columns to the select
+             if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === column.toLowerCase())) {
+                  const optionWidth = document.createElement('option');
+                  optionWidth.value = column;
+                  optionWidth.textContent = column;
+                  columnSelectWidth.appendChild(optionWidth);
+             }
+         });
+     }
+
+     // Function to apply manual column width
+     function applyColumnWidth() {
+         const selectedColumn = document.getElementById('columnSelectForWidth').value;
+         const widthValue = document.getElementById('columnWidthValue').value;
+         const widthUnit = document.getElementById('columnWidthUnit').value;
+
+         if (selectedColumn && widthValue !== '') {
+             // Find the actual column name from Excel header (case-insensitive)
+             const actualColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === selectedColumn.toLowerCase());
+             if (actualColumnName) {
+                 const width = `${parseInt(widthValue, 10)}${widthUnit}`;
+                 columnWidths[actualColumnName] = width; // Store width using the actual column name
+
+                 // Find the corresponding header and apply the width directly
+                 const table = document.querySelector('#tableContainer table');
+                 if (table) {
+                     const headerCell = table.querySelector(`thead th[data-column="${actualColumnName}"]`);
+                     if (headerCell) {
+                         headerCell.style.width = width;
+                     }
+                 }
+             }
+         } else {
+             alert('Please select a column and enter a width value.');
+         }
+     }
+
+    // --- Column Alignment Controls (Only for Table View) ---
+     // Function to populate the column select for alignment adjustment
+     function populateColumnAlignmentSelect() {
+         const columnSelectAlignment = document.getElementById('columnSelectForAlignment');
+         columnSelectAlignment.innerHTML = '<option value="">- Select Column -</option>'; // Clear existing options
+
+          // Use the current display order to populate the select
+         columnDisplayOrder.forEach(column => {
+             // Only add visible columns to the select
+             if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === column.toLowerCase())) {
+                  const optionAlignment = document.createElement('option');
+                  optionAlignment.value = column;
+                  optionAlignment.textContent = column;
+                  columnSelectAlignment.appendChild(optionAlignment);
+             }
+         });
+     }
+
+    // Function to apply column alignment
+    function applyColumnAlignment() {
+        const selectedColumn = document.getElementById('columnSelectForAlignment').value;
+        const alignmentValue = document.getElementById('columnAlignmentValue').value;
+
+        if (selectedColumn && alignmentValue) {
+             // Find the actual column name from Excel header (case-insensitive)
+             const actualColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === selectedColumn.toLowerCase());
+             if (actualColumnName) {
+                 columnAlignments[actualColumnName] = alignmentValue; // Store alignment using the actual column name
+
+                 // Apply the alignment to the header and data cells for that column
+                 const table = document.querySelector('#tableContainer table');
+                 if (table) {
+                     // Find the index of the selected column in the *currently rendered* columns
+                     const renderedHeaderCells = Array.from(table.querySelectorAll('thead th'));
+                     const columnIndex = renderedHeaderCells.findIndex(th => th.getAttribute('data-column').toLowerCase() === selectedColumn.toLowerCase());
+
+                     if (columnIndex !== -1) {
+                         // Apply to header
+                         const headerCell = renderedHeaderCells[columnIndex];
+                         if (headerCell) {
+                             headerCell.style.textAlign = alignmentValue;
+                         }
+                         // Apply to data cells
+                         table.querySelectorAll(`tbody tr`).forEach(row => {
+                             const dataCell = row.children[columnIndex];
+                             if (dataCell) {
+                                 dataCell.style.textAlign = alignmentValue;
+                             }
+                         });
+                     }
+                 }
+             }
+        } else {
+            alert('Please select a column and an alignment.');
+        }
+    }
+
+    // --- Column Reordering Logic (Only for Table View) ---
+    let draggingColumn = null; // The column name being dragged
+    let dragStartIndex = -1; // The original index of the dragged column
+
+    // Function to populate the reorder panel list
+    function populateReorderPanel() {
+        const columnOrderList = document.getElementById('columnOrderList');
+        columnOrderList.innerHTML = ''; // Clear existing list items
+
+        // Use the current columnDisplayOrder to populate the list
+        columnDisplayOrder.forEach(column => {
+            const li = document.createElement('li');
+            li.textContent = column;
+            li.setAttribute('data-column', column);
+            li.draggable = true; // Make the list item draggable
+            li.addEventListener('dragstart', handleDragStart);
+            li.addEventListener('dragover', handleDragOver);
+            li.addEventListener('dragleave', handleDragLeave);
+            li.addEventListener('drop', handleDrop);
+            li.addEventListener('dragend', handleDragEnd);
+            columnOrderList.appendChild(li);
+        });
+    }
+
+    // Show the reorder panel
+    function showReorderPanel() {
+        populateReorderPanel(); // Ensure the list is up-to-date
+        document.getElementById('reorderPanel').style.display = 'block';
+    }
+
+    // Hide the reorder panel
+    function hideReorderPanel() {
+        document.getElementById('reorderPanel').style.display = 'none';
+    }
+
+    // Handle drag start
+    function handleDragStart(e) {
+        draggingColumn = e.target.getAttribute('data-column');
+        dragStartIndex = columnDisplayOrder.indexOf(draggingColumn); // Use columnDisplayOrder
+        e.dataTransfer.effectAllowed = 'move';
+        // Add a class for styling the dragged item (optional)
+        e.target.classList.add('dragging');
+    }
+
+    // Handle drag over (allow dropping)
+    function handleDragOver(e) {
+        e.preventDefault(); // Necessary to allow dropping
+        e.dataTransfer.dropEffect = 'move';
+        // Add a class to the potential drop target for visual feedback (optional)
+        // e.target.classList.add('dragover'); // This might be applied to the li or its content
+         if (e.target.tagName === 'LI') {
+             e.target.classList.add('dragover');
+         } else if (e.target.parentElement.tagName === 'LI') {
+             e.target.parentElement.classList.add('dragover');
+         }
+    }
+
+     // Handle drag leave
+     function handleDragLeave(e) {
+         // Remove the dragover class
+         if (e.target.tagName === 'LI') {
+             e.target.classList.remove('dragover');
+         } else if (e.target.parentElement.tagName === 'LI') {
+             e.target.parentElement.classList.remove('dragover');
+         }
+     }
+
+    // Handle drop
+    function handleDrop(e) {
+        e.preventDefault();
+        // Remove the dragover class
+         if (e.target.tagName === 'LI') {
+             e.target.classList.remove('dragover');
+         } else if (e.target.parentElement.tagName === 'LI') {
+             e.target.parentElement.classList.remove('dragover');
+         }
+
+
+        const targetElement = e.target.tagName === 'LI' ? e.target : e.target.parentElement;
+        if (!targetElement || targetElement.tagName !== 'LI') return; // Ensure we dropped on an LI
+
+        const targetColumn = targetElement.getAttribute('data-column');
+        const dropTargetIndex = columnDisplayOrder.indexOf(targetColumn);
+
+        if (draggingColumn !== null && dragStartIndex !== -1 && dropTargetIndex !== -1) {
+            // Reorder the columnDisplayOrder array
+            const [dragged] = columnDisplayOrder.splice(dragStartIndex, 1);
+            columnDisplayOrder.splice(dropTargetIndex, 0, dragged);
+
+            // Update the reorder panel list
+            populateReorderPanel();
+        }
+    }
+
+    // Handle drag end
+    function handleDragEnd(e) {
+        // Remove the dragging class
+        e.target.classList.remove('dragging');
+        draggingColumn = null;
+        dragStartIndex = -1;
+    }
+
+    // Apply the new column order
+    function applyReorder() {
+        // columnDisplayOrder array is already updated by drag/drop handlers
+        hideReorderPanel();
+        applyFilters(); // Re-render the table with the new order (applyFilters calls displayTable)
+    }
+
+    // Cancel reordering
+    function cancelReorder() {
+        // To truly cancel, you'd need to revert columnDisplayOrder to a saved state.
+        // For simplicity, we just hide the panel. The user would need to re-open
+        // and reorder if they want the original order back.
+        hideReorderPanel();
+    }
+
+
+    // --- Table Sorting Logic (Only for Table View) ---
+    function addSortEventListeners() {
+        document.querySelectorAll('#tableContainer th').forEach(header => {
+            // Remove existing listeners to prevent duplicates
+            header.removeEventListener('click', handleSort);
+            // Add new listener
+            header.addEventListener('click', handleSort);
+        });
+    }
+
+    function handleSort(e) {
+        // Prevent sorting if resizing is happening (though resizing is now handled by resizer div)
+        // if (isResizing) return; // No longer needed with separate resizer
+
+        const column = e.target.closest('th').getAttribute('data-column');
+        if (!column) return; // Ensure a column was clicked
+
+        let direction = 'asc';
+
+        // If the same column is clicked again, cycle through directions: asc -> desc -> none
+        if (currentSort.column === column) {
+            if (currentSort.direction === 'asc') {
+                direction = 'desc';
+            } else if (currentSort.direction === 'desc') {
+                direction = 'none'; // Remove sorting
+            } else {
+                direction = 'asc'; // Start sorting ascending
+            }
+        }
+
+        currentSort = { column, direction };
+
+        // Update sort arrows in headers
+        document.querySelectorAll('#tableContainer th .sort-arrow').forEach(arrow => {
+            arrow.textContent = ''; // Clear all arrows
+        });
+        const currentHeader = e.target.closest('th').querySelector('.sort-arrow');
+        if (currentHeader) {
+            if (direction === 'asc') {
+                currentHeader.textContent = ' ▲';
+            } else if (direction === 'desc') {
+                currentHeader.textContent = ' ▼';
+            }
+        }
+
+        // Re-apply filters which will also apply the new sort order
+        applyFilters();
+    }
+
+
+    // --- Layout Saving/Loading (Placeholder functionality) ---
+    function saveLayout() {
+        const layoutName = document.getElementById('layoutNameInput').value.trim();
+        if (!layoutName) {
+            alert('Please enter a name for the layout.');
+            return;
+        }
+
+        const layout = {
+            view: currentView, // Save the current view
+            comparisonMonth1: comparisonMonth1, // Save comparison months
+            comparisonMonth2: comparisonMonth2,
+            columnOrder: [...columnDisplayOrder], // Save the current display order (primarily for table view)
+            columnWidths: { ...columnWidths }, // Save the current widths (primarily for table view)
+            columnVisibility: [...visibleColumns], // Save the current visibility (primarily for table view)
+            columnAlignments: { ...columnAlignments }, // Save the current alignments (primarily for table view)
+             // Save filter selections, including the Unit & Mixing filter
+             filters: { ...currentAppliedDataFilters }
+        };
+
+         // For the Unit & Mixing filter, collect the selected values directly from the checkboxes
+         const unitMixingFilterDropdown = document.querySelector('.filter-dropdown[data-column="UnitAndMixing"]');
+         if (unitMixingFilterDropdown) {
+              const selectedUnitMixingCombinations = [];
+              unitMixingFilterDropdown.querySelectorAll('.filter-options .filter-checkbox:checked').forEach(checkbox => {
+                   selectedUnitMixingCombinations.push(checkbox.value);
+              });
+              layout.filters['UnitAndMixing'] = selectedUnitMixingCombinations; // Save the selected combinations
+         }
+
+
+        // Store the layout in localStorage (simple example)
+        const savedLayouts = JSON.parse(localStorage.getItem('dashboardLayouts') || '{}');
+        savedLayouts[layoutName] = layout;
+        localStorage.setItem('dashboardLayouts', JSON.stringify(savedLayouts));
+
+        alert(`Layout "${layoutName}" saved successfully!`); // Added success message
+        loadSavedLayoutNames(); // Update the load layout select dropdown
+    }
+
+    function loadLayout() {
+        const layoutName = document.getElementById('loadLayoutSelect').value;
+        if (!layoutName) {
+            alert('Please select a layout to load.');
+            return;
+        }
+
+        const savedLayouts = JSON.parse(localStorage.getItem('dashboardLayouts') || '{}');
+        const layout = savedLayouts[layoutName];
+
+        if (layout) {
+            console.log("Loading layout:", layout); // Log loaded layout
+
+            // Apply the saved layout state variables
+            currentView = layout.view || 'table'; // Load view state
+            comparisonMonth1 = layout.comparisonMonth1 || ''; // Load comparison months
+            comparisonMonth2 = layout.comparisonMonth2 || '';
+            columnDisplayOrder = layout.columnOrder || [];
+            columnWidths = layout.columnWidths || {};
+            visibleColumns = layout.columnVisibility || [];
+            columnAlignments = layout.columnAlignments || {};
+            currentAppliedDataFilters = layout.filters || {}; // Load saved filters
+
+
+            // Update view selector and month selectors
+            document.getElementById('dashboardViewSelect').value = currentView;
+            document.getElementById('month1Select').value = comparisonMonth1;
+            document.getElementById('month2Select').value = comparisonMonth2;
+
+
+            // Re-initialize filters based on the *original* data but update checkboxes
+            // based on the loaded `visibleColumns` and `currentAppliedDataFilters`. This is crucial.
+            initializeFilters(tableData, columnNamesFromExcel);
+
+            // After initializing filters, update the checkboxes in all filter dropdowns
+            document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
+                 const filterType = dropdown.getAttribute('data-filter-type');
+                 const columnName = dropdown.getAttribute('data-column');
+                 const optionsContainer = dropdown.querySelector('.filter-options');
+                 const selectAllCheckbox = dropdown.querySelector('.select-all-checkbox') || dropdown.querySelector('.select-all-columns-checkbox');
+
+                 let currentStateValues = [];
+                 if (filterType === 'data') {
+                      if (currentAppliedDataFilters.hasOwnProperty(columnName)) {
+                          currentStateValues = currentAppliedDataFilters[columnName] || [];
+                      }
+                 } else if (filterType === 'visibility') {
+                      currentStateValues = visibleColumns;
+                 }
+
+                 optionsContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                      checkbox.checked = currentStateValues.includes(checkbox.value);
+                 });
+                 updateSelectAllCheckbox(optionsContainer, selectAllCheckbox);
+            });
+
+
+            // Re-apply filters which will use the updated state variables to filter and render
+            applyFilters();
+
+            alert(`Layout "${layoutName}" loaded!`);
+        } else {
+            alert(`Layout "${layoutName}" not found.`);
+        }
+    }
+
+    function deleteLayout() {
+        const layoutName = document.getElementById('loadLayoutSelect').value;
+        if (!layoutName || layoutName === "") {
+            alert('Please select a layout to delete.');
+            return;
+        }
+
+        const savedLayouts = JSON.parse(localStorage.getItem('dashboardLayouts') || '{}');
+        if (savedLayouts[layoutName]) {
+            if (confirm(`Are you sure you want to delete layout "${layoutName}"?`)) {
+                delete savedLayouts[layoutName];
+                localStorage.setItem('dashboardLayouts', JSON.stringify(savedLayouts));
+                alert(`Layout "${layoutName}" deleted.`);
+                loadSavedLayoutNames(); // Update the load layout select dropdown
+                 // Disable load/delete buttons if no layouts left or the selected one was deleted
+                 document.getElementById('loadLayoutButton').disabled = true;
+                 document.getElementById('deleteLayoutButton').disabled = true;
+                 document.getElementById('loadLayoutSelect').value = ""; // Reset select
+            }
+        } else {
+            alert(`Layout "${layoutName}" not found.`);
+        }
+    }
+
+
+    function loadSavedLayoutNames() {
+        const loadLayoutSelect = document.getElementById('loadLayoutSelect');
+        loadLayoutSelect.innerHTML = '<option value="">- Load Layout -</option>'; // Clear existing options
+
+        const savedLayouts = JSON.parse(localStorage.getItem('dashboardLayouts') || '{}');
+        const layoutNames = Object.keys(savedLayouts);
+
+        layoutNames.forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            loadLayoutSelect.appendChild(option);
+        });
+
+         // Enable/disable load/delete buttons based on selection
+         loadLayoutSelect.addEventListener('change', () => {
+             const selectedLayout = loadLayoutSelect.value;
+             document.getElementById('loadLayoutButton').disabled = selectedLayout === "";
+             document.getElementById('deleteLayoutButton').disabled = selectedLayout === "";
+         });
+
+         // Initially disable buttons if no layouts are saved
+         if (layoutNames.length === 0) {
+             document.getElementById('loadLayoutButton').disabled = true;
+             document.getElementById('deleteLayoutButton').disabled = true;
+         }
+    }
+
+    // --- Download Functions ---
+
+    function downloadExcel() {
+        console.log("Downloading Excel..."); // Debugging log
+        // Get the data to download (either filtered raw data, averaged data, or comparison data)
+        let dataToProcess = tableData; // Start with all data
+
+        // Apply data filters first
+        dataFilterableColumnNames.forEach(columnName => {
+            const selectedValues = currentAppliedDataFilters[columnName]; // Use currently applied data filters
+            if (selectedValues && selectedValues.length > 0) {
+                dataToProcess = dataToProcess.filter(row => {
+                     // Find the actual key in the row object based on the filter column name (case-insensitive)
+                     const rowKey = Object.keys(row).find(key => key.toLowerCase() === columnName.toLowerCase());
+                     if (rowKey) {
+                          const rowValue = row[rowKey] !== undefined && row[rowKey] !== null ? String(row[rowKey]) : '';
+                           // For Month-Year filter, compare the stored 'Mmm-yy' value
+                           if (columnName.toLowerCase() === 'month-year') {
+                               return selectedValues.includes(row.hasOwnProperty('Month-Year') ? row['Month-Year'] : '');
+                           }
+                          return selectedValues.includes(rowValue); // Compare with the actual row value
+                      }
+                      return false;
+                });
+            }
+        });
+        console.log("Data for Excel download after data filters:", dataToProcess.length, "rows"); // Debugging log
+
+
+         // Apply Unit & Cotton Mixing Filter (Specific for Comparison View)
+         if (currentView === 'comparison') {
+              const unitMixingFilterDropdown = document.querySelector('.filter-dropdown[data-column="UnitAndMixing"]');
+              if (unitMixingFilterDropdown) {
+                   const selectedUnitMixingCombinations = [];
+                   // Get selected values from the filter UI, NOT from currentAppliedDataFilters
+                   unitMixingFilterDropdown.querySelectorAll('.filter-options .filter-checkbox:checked').forEach(checkbox => {
+                        selectedUnitMixingCombinations.push(checkbox.value);
+                   });
+
+                   if (selectedUnitMixingCombinations.length > 0) {
+                       dataToProcess = dataToProcess.filter(row => {
+                            const unit = row['Unit No'] || 'N/A';
+                            const mixing = row['Cotton Mixing'] || 'N/A';
+                            const rowCombination = `${unit} | ${mixing}`;
+                            return selectedUnitMixingCombinations.includes(rowCombination);
+                       });
+                        console.log("Data for Excel download after Unit & Mixing filter:", dataToProcess.length, "rows"); // Debugging log
+                   } else {
+                       // If the filter exists but nothing is selected, show no data
+                       dataToProcess = [];
+                       console.log("Excel Download - Unit & Mixing filter exists but no selections, showing no data."); // Debugging log
+                   }
+              }
+         }
+
+
+        // Handle data processing based on the current view
+        let finalDataForExcel = [];
+
+        if (currentView === 'table') {
+             // Apply sorting to filtered data (before averaging if applicable)
+             if (currentSort.column) {
+                 const sortColumnName = currentSort.column;
+                 const sortDirection = currentSort.direction;
+                 const actualSortColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === sortColumnName.toLowerCase());
+                 if (actualSortColumnName) {
+                     dataToProcess.sort((a, b) => {
+                         const aValue = a[actualSortColumnName] !== undefined && a[actualSortColumnName] !== null ? String(a[actualSortColumnName]) : '';
+                         const bValue = b[actualSortColumnName] !== undefined && b[actualSortColumnName] !== null ? String(b[actualColumnName]) : '';
+
+                          // Special handling for Month-Year column for chronological sorting
+                          if (actualSortColumnName.toLowerCase() === 'month-year') {
+                               const yearA = a['_YearNumber'];
+                               const monthA = a['_MonthNumber'];
+                               const yearB = b['_YearNumber'];
+                               const monthB = b['_MonthNumber'];
+
+                               // Handle cases where month/year numbers are not available (e.g., invalid date)
+                               if (isNaN(yearA) || isNaN(monthA)) return isNaN(yearB) || isNaN(monthB) ? 0 : 1; // Put invalid dates at the end
+                               if (isNaN(yearB) || isNaN(monthB)) return -1; // Put invalid dates at the end
+
+                               if (yearA !== yearB) {
+                                   return sortDirection === 'asc' ? yearA - yearB : yearB - yearA;
+                               }
+                               return sortDirection === 'asc' ? monthA - monthB : monthB - monthA;
+
+                          } else if (actualSortColumnName.toLowerCase() === 'year') { // Custom Sorting for Year Columns (if still needed)
+                              const numA = parseInt(aValue);
+                              const numB = parseInt(bValue);
+                               if (isNaN(numA) && isNaN(numB)) return 0;
+                               if (isNaN(numB)) return 1;
+                               if (isNaN(numA)) return -1;
+                               return sortDirection === 'asc' ? numA - numB : numB - numA;
+                          }
+                         if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+                         if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+                         return 0;
+                     });
+                 }
+             }
+
+            // If average mode is on, calculate averages on the filtered and sorted data
+            if (showAverage) {
+                dataToProcess = calculateAndDisplayAverages(dataToProcess); // Use the function to get averaged data
+            }
+
+
+            // Now extract data only for visible columns based on the current display order
+            // Add headers for visible columns, using actual column names for better representation in Excel, respecting display order
+            const headersToDownload = [];
+            columnDisplayOrder.forEach(col => {
+                 if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
+                      // Find the corresponding actual column name from Excel header (case-insensitive)
+                      const actualColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === col.toLowerCase());
+                      // Add "(Avg)" to decimal column headers if in average mode
+                      const headerText = showAverage && decimalColumns.some(decCol => actualColumnName.toLowerCase() === decCol.toLowerCase())
+                                         ? `${actualColumnName} (Avg)` : actualColumnName;
+                      headersToDownload.push(headerText || col); // Use actual if found, fallback to processed
+                 }
+            });
+            finalDataForExcel.push(headersToDownload);
+
+            // Add row data for visible columns, respecting display order and applying formatting
+            dataToProcess.forEach(row => {
+                const rowArray = [];
+                columnDisplayOrder.forEach(col => {
+                    if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
+                         // Find the actual key in the row object based on the column name from display order (case-insensitive)
+                         const rowKey = Object.keys(row).find(key => key.toLowerCase() === col.toLowerCase());
+                         let cellValue = rowKey ? rowData[rowKey] : ''; // Get the raw value
+
+                         // --- Apply decimal formatting for specific columns in Excel data ---
+                         // Only apply if NOT in average mode, as averages are already formatted
+                         if (!showAverage && decimalColumns.some(decCol => col.toLowerCase() === decCol.toLowerCase())) { // Use 'col' here as it's the key in the row object
+                             const numericValue = parseFloat(cellValue);
+                             if (!isNaN(numericValue)) {
+                                 cellValue = numericValue.toFixed(2);
+                             }
+                         }
+                         // --- End decimal formatting ---
+
+                         // Month-Year is already formatted in processExcelData, no need to reformat here for display
+
+                         rowArray.push(cellValue);
+                    }
+                });
+                finalDataForExcel.push(rowArray);
+            });
+
+        } else if (currentView === 'comparison') {
+             if (!comparisonMonth1 || !comparisonMonth2) {
+                  alert("Please select two months for comparison for Excel download.");
+                  console.log("Excel Download - Months not selected for comparison."); // Debugging log
+                  return;
+             }
+
+             // For comparison view, the filtering for months and Unit/Mixing is already done in dataToProcess
+
+             // Process data for comparison view structure
+             const groupedByUnitMixing = dataToProcess.reduce((acc, row) => {
+                  const unit = row['Unit No'] || 'N/A';
+                  const mixing = row['Cotton Mixing'] || 'N/A';
+                  const key = `${unit}|${mixing}`;
+                  if (!acc[key]) {
+                      acc[key] = [];
+                  }
+                  acc[key].push(row);
+                  return acc;
+             }, {});
+             console.log("Excel Download - Grouped data by Unit|Mixing:", groupedByUnitMixing); // Debugging log
+
+
+             const uniqueUnitMixings = Object.keys(groupedByUnitMixing).sort();
+
+             if (uniqueUnitMixings.length === 0) {
+                  alert("No data available for the selected months and filters for download.");
+                  console.log("Excel Download - No unique Unit|Mixings found."); // Debugging log
+                  return;
+             }
+
+             // Calculate averages and differences for each comparisonRow
+             const comparisonData = {}; // Structure: { rowName: { unit|mixing: { month1Avg: N, month2Avg: N, diff: N }, ... }, ... }
+
+             comparisonRows.forEach(rowName => {
+                  comparisonData[rowName] = {}; // Initialize for each comparison row
+                  uniqueUnitMixings.forEach(key => {
+                       const rowsForUnitMixing = groupedByUnitMixing[key];
+
+                       // Group by Department within this Unit/Mixing
+                       const groupedByDepartment = rowsForUnitMixing.reduce((acc, row) => {
+                           const department = row['Department'] || 'N/A';
+                           if (!acc[department]) {
+                               acc[department] = [];
+                           }
+                           acc[department].push(row);
+                           return acc;
+                       }, {});
+                       console.log(`Excel Download - Grouped by Department for Unit|Mixing "${key}":`, groupedByDepartment); // Debugging log
+
+
+                       let avgMonth1 = 0;
+                       let avgMonth2 = 0;
+
+                       if (rowName === 'Waste upto Card') {
+                           // Calculate Waste upto Card by summing/averaging CLP, CLC, Card for this Unit/Mixing
+                           const departmentsToSum = ['CLP', 'CLC', 'Card'];
+                           let totalSumMonth1 = 0;
+                           let totalSumMonth2 = 0;
+                           let countMonth1 = 0; // Track count for averaging within departments
+                           let countMonth2 = 0;
+
+                           departmentsToSum.forEach(dept => {
+                                // Find the actual department name in the data (case-insensitive)
+                                const actualDeptName = Object.keys(groupedByDepartment).find(name => name.toLowerCase() === dept.toLowerCase());
+
+                                if (actualDeptName && groupedByDepartment[actualDeptName]) {
+                                     const dataForDepartment = groupedByDepartment[actualDeptName];
+                                     let sumDeptMonth1 = 0;
+                                     let sumDeptMonth2 = 0;
+                                     let countDeptMonth1 = 0;
+                                     let countDeptMonth2 = 0;
+
+                                     dataForDepartment.forEach(row => {
+                                          const wasteColName = Object.keys(row).find(key => key.toLowerCase() === 'total waste%');
+                                          if (wasteColName) {
+                                               const wasteValue = parseFloat(row[wasteColName]);
+                                               if (!isNaN(wasteValue)) {
+                                                    if (row['Month-Year'] === comparisonMonth1) {
+                                                         sumDeptMonth1 += wasteValue;
+                                                         countDeptMonth1++;
+                                                    } else if (row['Month-Year'] === comparisonMonth2) {
+                                                         sumDeptMonth2 += wasteValue;
+                                                         countDeptMonth2++;
+                                                    }
+                                               }
+                                          }
+                                     });
+                                     totalSumMonth1 += countDeptMonth1 > 0 ? sumDeptMonth1 / countDeptMonth1 : 0;
+                                     totalSumMonth2 += countDeptMonth2 > 0 ? sumDeptMonth2 / countDeptMonth2 : 0;
+                                }
+                           });
+                           avgMonth1 = totalSumMonth1;
+                           avgMonth2 = totalSumMonth2;
+                           console.log(`Excel Download - Waste upto Card (Sum of Dept Averages) for Unit|Mixing "${key}": Month1=${avgMonth1.toFixed(2)}, Month2=${avgMonth2.toFixed(2)}`); // Debugging log
+
+
+                       } else if (rowName === 'Overall Waste') {
+                            // Calculate Overall Waste by summing Waste upto Card and Comber Noil averages
+                            const wasteUptoCardAvg1 = parseFloat((comparisonData['Waste upto Card'] && comparisonData['Waste upto Card'][key] ? comparisonData['Waste upto Card'][key].month1Avg : '0'));
+                            const wasteUptoCardAvg2 = parseFloat((comparisonData['Waste upto Card'] && comparisonData[ 'Waste upto Card'][key] ? comparisonData[ 'Waste upto Card'][key].month2Avg : '0'));
+                            const comberNoilAvg1 = parseFloat((comparisonData['Comber Noil'] && comparisonData['Comber Noil'][key] ? comparisonData['Comber Noil'][key].month1Avg : '0'));
+                            const comberNoilAvg2 = parseFloat((comparisonData['Comber Noil'] && comparisonData['Comber Noil'][key] ? comparisonData['Comber Noil'][key].month2Avg : '0'));
+
+                            avgMonth1 = wasteUptoCardAvg1 + comberNoilAvg1;
+                            avgMonth2 = wasteUptoCardAvg2 + comberNoilAvg2;
+                            console.log(`Excel Download - Overall Waste (Sum of Waste upto Card and Comber Noil Averages) for Unit|Mixing "${key}": Month1=${avgMonth1.toFixed(2)}, Month2=${avgMonth2.toFixed(2)}`); // Debugging log
+
+                       } else {
+                           // For other rows (Departments), calculate average Total Waste% directly
+                            const actualDeptName = Object.keys(groupedByDepartment).find(name => name.toLowerCase() === rowName.toLowerCase());
+
+                           if (actualDeptName && groupedByDepartment[actualDeptName]) {
+                                const dataForDepartment = groupedByDepartment[actualDeptName];
+                                let sumMonth1 = 0;
+                                let sumMonth2 = 0;
+                                let countMonth1 = 0;
+                                let countMonth2 = 0;
+
+                                dataForDepartment.forEach(row => {
+                                    const wasteColName = Object.keys(row).find(key => key.toLowerCase() === 'total waste%');
+                                    if (wasteColName) {
+                                        const wasteValue = parseFloat(row[wasteColName]);
+                                        if (!isNaN(wasteValue)) {
+                                            if (row['Month-Year'] === comparisonMonth1) {
+                                                sumMonth1 += wasteValue;
+                                                countMonth1++;
+                                            } else if (row['Month-Year'] === comparisonMonth2) {
+                                                sumMonth2 += wasteValue;
+                                                countMonth2++;
+                                            }
+                                        }
+                                    }
+                                });
+                                avgMonth1 = countMonth1 > 0 ? sumMonth1 / countMonth1 : 0;
+                                avgMonth2 = countMonth2 > 0 ? sumMonth2 / countMonth2 : 0;
+                                console.log(`Excel Download - Department "${rowName}" Averages for Unit|Mixing "${key}": Month1=${avgMonth1.toFixed(2)}, Month2=${avgMonth2.toFixed(2)}`); // Debugging log
+
+                           }
+                       }
+
+                       const diff = avgMonth2 - avgMonth1;
+                       console.log(`Excel Download - Difference for "${rowName}" in Unit|Mixing "${key}": ${diff.toFixed(2)}`); // Debugging log
+
+
+                       comparisonData[rowName][key] = {
+                           month1Avg: avgMonth1.toFixed(2),
+                           month2Avg: avgMonth2.toFixed(2),
+                           diff: diff.toFixed(2)
+                       };
+                   });
+              });
+             console.log("Excel Download - Calculated Comparison Data:", comparisonData); // Debugging log
+
+
+             // Excel headers for comparison view (3 levels) (MODIFIED HEADER STRUCTURE)
+             const headerLevel1 = ['Department']; // Changed header text
+             const headerLevel2 = ['Mixing']; // Changed header text
+             const headerLevel3 = ['']; // Empty cell for the row header column
+
+             uniqueUnitMixings.forEach(key => {
+                  const [unit, mixing] = key.split('|');
+                  headerLevel1.push(`Unit: ${unit}`, '', ''); // Unit header spans 3 columns
+                  headerLevel2.push(`Mixing: ${mixing}`, '', ''); // Mixing header spans 3 columns
+                  headerLevel3.push(comparisonMonth1, comparisonMonth2, 'Diff'); // Month and Diff headers
+             });
+
+             finalDataForExcel.push(headerLevel1, headerLevel2, headerLevel3);
+
+
+             // Add row data for comparison view
+             comparisonRows.forEach(rowName => {
+                  const rowArray = [rowName]; // Start with the row header (CLP, CLC, etc.)
+                  uniqueUnitMixings.forEach(key => {
+                      const data = comparisonData[rowName] && comparisonData[rowName][key] ? comparisonData[rowName][key] : { month1Avg: '-', month2Avg: '-', diff: '-' };
+                      rowArray.push(data.month1Avg, data.month2Avg, data.diff);
+                  });
+                  finalDataForExcel.push(rowArray);
+             });
+             console.log("Excel Download - Final Data Rows:", finalDataForExcel); // Debugging log
+
+        }
+
+
+         if (finalDataForExcel.length <= (currentView === 'comparison' ? 3 : 1)) { // Only header rows or no data
+             alert("No data to download based on current filters and column selections.");
+             console.log("No final data for Excel download."); // Debugging log
+             return;
+         }
+        console.log("Final data for Excel download:", finalDataForExcel); // Debugging log
+
+
+        // Create a new workbook and worksheet
+        const ws = XLSX.utils.aoa_to_sheet(finalDataForExcel);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "FilteredTable"); // Sheet name
+        wb.Props = {
+            Title: "Filtered Table Data",
+            Subject: "Table Data Download",
+            Author: "Web Page Script",
+            CreatedDate: new Date()
+        };
+
+
+        // Write and download the file
+        XLSX.writeFile(wb, "table_data.xlsx");
+    }
+
+
+
+
+    // Implement the downloadPdf function using jsPDF and autoTable
+function downloadPdf() {
+            console.log("Downloading PDF..."); // Debugging log
+
+            const { jsPDF } = window.jspdf;
+
+
+            const pdf = new jsPDF('l', 'pt', 'a4'); // Landscape A4
+
+
+
+            // Data for autoTable - get filtered and sorted data (reuse logic from applyFilters)
+            // Assume tableData, currentAppliedDataFilters, columnNamesFromExcel,
+            // columnDisplayOrder, visibleColumns, decimalColumns, currentSort,
+            // showAverage, columnAlignments, columnWidths, calculateAndDisplayAverages,
+            // comparisonMonth1, comparisonMonth2, comparisonRows are defined elsewhere
+            // in your global scope or accessible within this function's scope.
+            let dataToProcess = tableData; // Start with all data
+
+              // Apply data filters first
+              dataFilterableColumnNames.forEach(columnName => {
+                  const selectedValues = currentAppliedDataFilters[columnName];
+                  if (selectedValues && selectedValues.length > 0) {
+                      dataToProcess = dataToProcess.filter(row => {
+                          const rowKey = Object.keys(row).find(key => key.toLowerCase() === columnName.toLowerCase());
+                          if (rowKey) {
+                               // For Month-Year filter, compare the stored 'Mmm-yy' value
+                               if (columnName.toLowerCase() === 'month-year') {
+                                   return selectedValues.includes(row.hasOwnProperty('Month-Year') ? row['Month-Year'] : '');
+                               }
+                             const rowValue = row[rowKey] !== undefined && row[rowKey] !== null ? String(row[rowKey]) : '';
+                             return selectedValues.includes(rowValue);
+                          }
+                          return false;
+                      });
+                  }
+              });
+            console.log("PDF Download - Data for PDF download after data filters:", dataToProcess.length, "rows"); // Debugging log
+
+
+              // Apply Unit & Cotton Mixing Filter (Specific for Comparison View)
+              if (currentView === 'comparison') {
+                   const unitMixingFilterDropdown = document.querySelector('.filter-dropdown[data-column="UnitAndMixing"]');
+                   if (unitMixingFilterDropdown) {
+                        const selectedUnitMixingCombinations = [];
+                         // Get selected values from the filter UI, NOT from currentAppliedDataFilters
+                        unitMixingFilterDropdown.querySelectorAll('.filter-options .filter-checkbox:checked').forEach(checkbox => {
+                             selectedUnitMixingCombinations.push(checkbox.value);
+                        });
+
+                        if (selectedUnitMixingCombinations.length > 0) {
+                            dataToProcess = dataToProcess.filter(row => {
+                                 const unit = row['Unit No'] || 'N/A';
+                                 const mixing = row['Cotton Mixing'] || 'N/A';
+                                 const rowCombination = `${unit} | ${mixing}`;
+                                 return selectedUnitMixingCombinations.includes(rowCombination);
+                            });
+                             console.log("PDF Download - Data for PDF download after Unit & Mixing filter:", dataToProcess.length, "rows"); // Debugging log
+                        } else {
+                             // If the filter exists but nothing is selected, show no data
+                             dataToProcess = [];
+                             console.log("PDF Download - Unit & Mixing filter exists but no selections, showing no data."); // Debugging log
+                        }
+                   }
+              }
+
+
+            // Handle data processing based on the current view for PDF
+            let pdfHeaders = [];
+            let pdfRows = [];
+            let columnStyles = {}; // To store alignment and potential width hints for autoTable
+            let bodyStyles = {}; // To store row-specific styles (like bold)
+
+            // Calculate the height of the header and remarks section to determine startY for the table
+            // This is the fixed area at the top of *each* page handled by the didDrawPage hook.
+            const pageMargin = 40; // Use the same margin value as used for table margin
+            const companyNameHeight = 16 * 1.2; // Estimate height based on font size (1.2 is rough line height)
+            const remarks = document.getElementById('pdfRemarksInput').value.trim();
+            // Estimate remarks height based on wrapped text
+            const remarksTextLines = pdf.splitTextToSize(remarks, pdf.internal.pageSize.getWidth() - 2 * pageMargin).length;
+            const remarksHeight = remarks ? (14 * 1.2 * remarksTextLines) : 0;
+            const headerAreaHeight = pageMargin + companyNameHeight + (remarks ? 10 : 0) + remarksHeight + 20; // Add padding below remarks and before first table content
+
+            // startY will be used to position the *first* element below the header area on any given page.
+            let startY = headerAreaHeight;
+
+
+            if (currentView === 'table') {
+                // Apply sorting to filtered data
+                if (currentSort.column) {
+                     const sortColumnName = currentSort.column;
+                     const sortDirection = currentSort.direction;
+                     const actualSortColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === sortColumnName.toLowerCase());
+                     if (actualSortColumnName) {
+                          dataToProcess.sort((a, b) => {
+                               const aValue = a[actualSortColumnName] !== undefined && a[actualSortColumnName] !== null ? String(a[actualSortColumnName]) : '';
+                               const bValue = b[actualSortColumnName] !== undefined && b[actualColumnName] !== null ? String(b[actualColumnName]) : '';
+
+                                // Special handling for Month-Year column for chronological sorting
+                                if (actualSortColumnName.toLowerCase() === 'month-year') {
+                                     const yearA = a['_YearNumber'];
+                                     const monthA = a['_MonthNumber'];
+                                     const yearB = b['_YearNumber'];
+                                     const monthB = b['_MonthNumber'];
+
+                                     // Handle cases where month/year numbers are not available (e.g., invalid date)
+                                     if (isNaN(yearA) || isNaN(monthA)) return isNaN(yearB) || isNaN(monthB) ? 0 : 1; // Put invalid dates at the end
+                                     if (isNaN(yearB) || isNaN(monthB)) return -1; // Put invalid dates at the end
+
+                                     if (yearA !== yearB) {
+                                          return sortDirection === 'asc' ? yearA - yearB : yearB - yearA;
+                                     }
+                                     return sortDirection === 'asc' ? monthA - monthB : monthB - monthA;
+
+                                 } else if (actualSortColumnName.toLowerCase() === 'year') { // Custom Sorting for Year Columns (if still needed)
+                                      const numA = parseInt(aValue);
+                                      const numB = parseInt(bValue);
+                                       if (isNaN(numA) && isNaN(numB)) return 0;
+                                       if (isNaN(numB)) return 1;
+                                       if (isNaN(numA)) return -1;
+                                      return sortDirection === 'asc' ? numA - numB : numB - numA;
+                                 }
+                               if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+                               if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+                               return 0;
+                          });
+                     }
+                }
+
+                // If average mode is on, calculate averages on the filtered and sorted data
+                 if (showAverage) {
+                     dataToProcess = calculateAndDisplayAverages(dataToProcess); // Use the function to get averaged data
+                 }
+
+                // Prepare table headers and rows based on visible columns and display order
+                // Headers - iterate columnDisplayOrder, check visibility
+                let colIndex = 0;
+                columnDisplayOrder.forEach(col => {
+                     if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
+                          // Find the corresponding actual column name from Excel header (case-insensitive)
+                          const actualColumnName = columnNamesFromExcel.find(name => name.toLowerCase() === col.toLowerCase());
+                          // Add "(Avg)" to decimal column headers if in average mode
+                          const headerText = showAverage && decimalColumns.some(decCol => actualColumnName.toLowerCase() === decCol.toLowerCase())
+                                                        ? `${actualColumnName} (Avg)` : actualColumnName;
+                          pdfHeaders.push(headerText || col); // Use the actual column name for the header
+
+                          // Apply header alignment from columnAlignments
+                          const alignment = actualColumnName ? columnAlignments[actualColumnName] : 'center'; // Get saved alignment or default to center
+                          // Apply this alignment to BOTH header and body cells for this column index
+                          columnStyles[colIndex] = { halign: alignment, valign: 'top' };
+
+                           // Try to apply column widths to autoTable
+                           if (actualColumnName && columnWidths[actualColumnName]) {
+                                const widthStr = columnWidths[actualColumnName];
+                                if (widthStr.endsWith('px')) {
+                                     // Convert px to points (assuming 1px = 0.75pt)
+                                     const widthInPoints = parseFloat(widthStr) * 0.75;
+                                      columnStyles[colIndex].cellWidth = widthInPoints;
+                                }
+                                // autoTable handles % widths relatively well on its own
+                                // For other units, you might need a more complex conversion or let autoTable handle it
+                           }
+                         colIndex++; // Increment index only for visible columns
+                     }
+                });
+
+                // Rows - iterate filteredData, then columnDisplayOrder, check visibility, apply formatting
+                 dataToProcess.forEach(rowData => {
+                     const rowArray = [];
+                     columnDisplayOrder.forEach(col => {
+                          if (visibleColumns.some(visibleCol => visibleCol.toLowerCase() === col.toLowerCase())) {
+                               // Find the corresponding actual column name from Excel header (case-insensitive)
+                               const rowKey = Object.keys(rowData).find(key => key.toLowerCase() === col.toLowerCase());
+                               let cellValue = rowKey ? rowData[rowKey] : ''; // Get the raw value
+
+                               // --- Apply decimal formatting for specific columns in PDF data ---
+                               // Only apply if NOT in average mode, as averages are already formatted
+                               if (!showAverage && decimalColumns.some(decCol => col.toLowerCase() === decCol.toLowerCase())) { // Use 'col' here as it's the key in the row object
+                                    const numericValue = parseFloat(cellValue);
+                                    if (!isNaN(numericValue)) {
+                                        cellValue = numericValue.toFixed(2);
+                                    }
+                               }
+                               // --- End decimal formatting ---
+
+                               // Month-Year is already formatted in processExcelData, no need to reformat here
+
+                               rowArray.push(cellValue);
+                          }
+                     });
+                      pdfRows.push(rowArray);
+                 });
+
+                // Add the single table for table view
+                 if (pdfHeaders.length > 0 && pdfRows.length > 0) {
+                        pdf.autoTable({
+                             head: [pdfHeaders], // autoTable expects headers as an array of arrays
+                             body: pdfRows,
+                             startY: startY, // Start position below the header area
+                             theme: 'grid', // This provides black borders
+                             headStyles: {
+                                  fillColor: '#a9a9a9', // Light grey header background
+                                  textColor: '#333',
+                                  fontStyle: 'bold',
+                                  halign: 'center', // Default header text alignment for all headers
+                                  valign: 'middle' // Vertical alignment for headers
+                             },
+                             bodyStyles: {
+                                  textColor: '#333',
+                                  valign: 'top'
+                                  // halign is applied per column in columnStyles
+                                  // fontStyle is applied per cell in rowArray construction
+                             },
+                             alternateRowStyles: {
+                                 fillColor: '#f5f5f5' // Light gray for alternate rows (optional, but nice)
+                             },
+                             columnStyles: columnStyles, // Apply column styles (alignment, width hints)
+                             tableWidth: 'auto', // Make table fill page width
+                              margin: { top: startY, bottom: 40, left: 40, right: 40 }, // Adjust top margin to start below header area
+                              didDrawPage: function(data) {
+                                  const pageMargin = 40; // Use the same margin value as used for table margin
+                                  const pdfWidth = pdf.internal.pageSize.getWidth();
+                                  const pdfHeight = pdf.internal.pageSize.getHeight();
+
+                                  // Company Name (Draw within the top margin)
+                                  pdf.setFontSize(16);
+                                  pdf.setTextColor('#000080'); // Dark blue
+                                  const companyNameY = pageMargin + 15; // Position below top page margin + some padding
+                                  pdf.text('Sagar Manufacturers Pvt. Ltd.', pageMargin, companyNameY);
+
+                                   // Add remarks (acting as title) if present, below the company name
+                                   const remarks = document.getElementById('pdfRemarksInput').value.trim();
+                                   if (remarks) {
+                                       const companyNameBottom = companyNameY + (16 * 1.2); // Estimate bottom of company name text
+                                       const remarksYPos = companyNameBottom + 10; // Position below company name + padding
+                                       pdf.setFontSize(14); // Use title font size for remarks
+                                       pdf.setTextColor('#333'); // Use title color
+                                       const splitRemarks = pdf.splitTextToSize(remarks, pdfWidth - 2 * pageMargin);
+                                        // Center remarks horizontally
+                                        const remarksTextWidth = pdf.getTextWidth(splitRemarks[0] || ''); // Get width of the first line for centering
+                                        const centerX = (pdfWidth - remarksTextWidth) / 2;
+                                        pdf.text(splitRemarks, centerX, remarksYPos); // Add remarks text
+                                   }
+
+                                  // Add page number at the bottom
+                                  pdf.setFontSize(10);
+                                  pdf.setTextColor(150); // Grey color
+                                  // Position page number relative to the bottom margin
+                                  pdf.text('Page ' + data.pageNumber, pdfWidth - pageMargin, pdfHeight - pageMargin, { align: 'right' });
+                              }
+                        });
+                 }
+
+
+            } else if (currentView === 'comparison') {
+                console.log("PDF Download - Preparing Comparison View data."); // Debugging log
+                if (!comparisonMonth1 || !comparisonMonth2) {
+                     alert("Please select two months for comparison for PDF download.");
+                     console.log("PDF Download - Months not selected for comparison."); // Debugging log
+                     return;
+                }
+
+                // For comparison view, the filtering for months and Unit/Mixing is already done in dataToProcess
+
+                // Process data for comparison view structure for PDF
+                const groupedByUnitMixing = dataToProcess.reduce((acc, row) => {
+                     const unit = row['Unit No'] || 'N/A';
+                     const mixing = row['Cotton Mixing'] || 'N/A';
+                     const key = `${unit}|${mixing}`;
+                     if (!acc[key]) {
+                         acc[key] = [];
+                     }
+                     acc[key].push(row);
+                     return acc;
+                }, {});
+                console.log("PDF Download - Grouped data by Unit|Mixing:", groupedByUnitMixing); // Debugging log
+
+
+                const uniqueUnitMixings = Object.keys(groupedByUnitMixing).sort();
+
+                if (uniqueUnitMixings.length === 0) {
+                     alert("No data available for the selected months and filters for download.");
+                     console.log("PDF Download - No unique Unit|Mixings found."); // Debugging log
+                     return;
+                }
+
+
+
+                // Calculate averages and differences for each comparisonRow
+                 const comparisonData = {}; // Structure: { rowName: { unit|mixing: { month1Avg: N, month2Avg: N, diff: N }, ... }, ... }
+
+                 comparisonRows.forEach(rowName => {
+                     comparisonData[rowName] = {}; // Initialize for each comparison row
+                     uniqueUnitMixings.forEach(key => {
+                          const rowsForUnitMixing = groupedByUnitMixing[key];
+
+                          // Group by Department within this Unit/Mixing
+                          const groupedByDepartment = rowsForUnitMixing.reduce((acc, row) => {
+                              const department = row['Department'] || 'N/A';
+                              if (!acc[department]) {
+                                  acc[department] = [];
+                              }
+                              acc[department].push(row);
+                              return acc;
+                          }, {});
+                          // console.log(`PDF Download - Grouped by Department for Unit|Mixing "${key}":`, groupedByDepartment); // Debugging log
+
+
+                          let avgMonth1 = 0;
+                          let avgMonth2 = 0;
+
+                          if (rowName === 'Waste upto Card') {
+                              // Calculate Waste upto Card by summing/averaging CLP, CLC, Card for this Unit/Mixing
+                              const departmentsToSum = ['CLP', 'CLC', 'Card'];
+                              let totalSumMonth1 = 0;
+                              let totalSumMonth2 = 0;
+                              let countDepartmentsMonth1 = 0; // Track how many departments had data for M1
+                              let countDepartmentsMonth2 = 0; // Track how many departments had data for M2
+
+
+                              departmentsToSum.forEach(dept => {
+                                   // Find the actual department name in the data (case-insensitive)
+                                   const actualDeptName = Object.keys(groupedByDepartment).find(name => name.toLowerCase() === dept.toLowerCase());
+
+                                   if (actualDeptName && groupedByDepartment[actualDeptName]) {
+                                        const dataForDepartment = groupedByDepartment[actualDeptName];
+                                        let sumDeptMonth1 = 0;
+                                        let sumDeptMonth2 = 0;
+                                        let countDeptMonth1 = 0; // Track count for averaging within departments
+                                        let countDeptMonth2 = 0;
+
+                                        dataForDepartment.forEach(row => {
+                                              const wasteColName = Object.keys(row).find(key => key.toLowerCase() === 'total waste%');
+                                              if (wasteColName) {
+                                                  const wasteValue = parseFloat(row[wasteColName]);
+                                                  if (!isNaN(wasteValue)) {
+                                                       if (row['Month-Year'] === comparisonMonth1) {
+                                                           sumDeptMonth1 += wasteValue;
+                                                           countDeptMonth1++;
+                                                       } else if (row['Month-Year'] === comparisonMonth2) {
+                                                           sumDeptMonth2 += wasteValue;
+                                                           countDeptMonth2++;
+                                                       }
+                                                  }
+                                              }
+                                        });
+
+                                        // Add average for this department if data exists
+                                        if (countDeptMonth1 > 0) {
+                                           totalSumMonth1 += sumDeptMonth1 / countDeptMonth1;
+                                           countDepartmentsMonth1++; // Count this department towards the overall average for Waste upto Card
+                                        }
+                                        if (countDeptMonth2 > 0) {
+                                           totalSumMonth2 += sumDeptMonth2 / countDepartmentsMonth2;
+                                           countDepartmentsMonth2++; // Count this department towards the overall average for Waste upto Card
+                                        }
+                                   }
+                              });
+                              // Average the sums of the department averages
+                              avgMonth1 = countDepartmentsMonth1 > 0 ? totalSumMonth1 / countDepartmentsMonth1 : 0;
+                              avgMonth2 = countDepartmentsMonth2 > 0 ? totalSumMonth2 / countDepartmentsMonth2 : 0;
+
+                              // console.log(`PDF Download - Waste upto Card (Sum of Dept Averages) for Unit|Mixing "${key}": Month1=${avgMonth1.toFixed(2)}, Month2=${avgMonth2.toFixed(2)}`); // Debugging log
+
+
+                          } else if (rowName === 'Overall Waste') {
+                               // Calculate Overall Waste by summing Waste upto Card and Comber Noil averages
+                               // Ensure Waste upto Card and Comber Noil are calculated before this row
+                               const wasteUptoCardData = comparisonData['Waste upto Card'] && comparisonData['Waste upto Card'][key] ? comparisonData['Waste upto Card'][key] : { month1Avg: '0', month2Avg: '0' };
+                               const comberNoilData = comparisonData['Comber Noil'] && comparisonData['Comber Noil'][key] ? comparisonData['Comber Noil'][key] : { month1Avg: '0', month2Avg: '0' };
+
+                               const wasteUptoCardAvg1 = parseFloat(wasteUptoCardData.month1Avg);
+                               const wasteUptoCardAvg2 = parseFloat(wasteUptoCardData.month2Avg);
+                               const comberNoilAvg1 = parseFloat(comberNoilData.month1Avg);
+                               const comberNoilAvg2 = parseFloat(comberNoilData.month2Avg);
+
+
+                               avgMonth1 = wasteUptoCardAvg1 + comberNoilAvg1;
+                               avgMonth2 = wasteUptoCardAvg2 + comberNoilAvg2;
+                               // console.log(`PDF Download - Overall Waste (Sum of Waste upto Card and Comber Noil Averages) for Unit|Mixing "${key}": Month1=${avgMonth1.toFixed(2)}, Month2=${avgMonth2.toFixed(2)}`); // Debugging log
+
+                           } else {
+                               // For other rows (Departments), calculate average Total Waste% directly
+                               const actualDeptName = Object.keys(groupedByDepartment).find(name => name.toLowerCase() === rowName.toLowerCase());
+
+                               if (actualDeptName && groupedByDepartment[actualDeptName]) {
+                                    const dataForDepartment = groupedByDepartment[actualDeptName];
+                                    // console.log(`PDF Download - Processing dataForDepartment for row "${rowName}" and key "${key}":`, dataForDepartment); // Added log
+                                    let sumMonth1 = 0;
+                                    let sumMonth2 = 0;
+                                    let countMonth1 = 0;
+                                    let countMonth2 = 0;
+
+                                    dataForDepartment.forEach(row => {
+                                        // console.log(`PDF Download - Processing row for "${rowName}" and key "${key}":`, row); // Added log
+                                         const wasteColName = Object.keys(row).find(key => key.toLowerCase() === 'total waste%');
+                                         if (wasteColName) {
+                                             const wasteValue = parseFloat(row[wasteColName]);
+                                             if (!isNaN(wasteValue)) {
+                                                  if (row['Month-Year'] === comparisonMonth1) {
+                                                      sumMonth1 += wasteValue;
+                                                      countMonth1++;
+                                                  } else if (row['Month-Year'] === comparisonMonth2) {
+                                                      sumMonth2 += wasteValue;
+                                                      countMonth2++;
+                                                  }
+                                             } else {
+                                                  // console.warn(`PDF Download - 'Total Waste%' value is not a number for row:`, row); // Added warning
+                                             }
+                                         } else {
+                                               // console.warn(`PDF Download - 'Total Waste%' column not found for row:`, row); // Debugging log
+                                         }
+                                    });
+                                    avgMonth1 = countMonth1 > 0 ? sumMonth1 / countMonth1 : 0;
+                                    avgMonth2 = countMonth2 > 0 ? sumMonth2 / countMonth2 : 0;
+                                    // console.log(`PDF Download - Department "${rowName}" Averages for Unit|Mixing "${key}": Month1=${avgMonth1.toFixed(2)}, Month2=${avgMonth2.toFixed(2)}`); // Debugging log
+
+                               }
+                           }
+
+                           const diff = avgMonth2 - avgMonth1;
+                           // console.log(`PDF Download - Difference for "${rowName}" in Unit|Mixing "${key}": ${diff.toFixed(2)}`); // Debugging log
+
+
+                           comparisonData[rowName][key] = {
+                                month1Avg: avgMonth1.toFixed(2),
+                                month2Avg: avgMonth2.toFixed(2),
+                                diff: diff.toFixed(2)
+                           };
+                     });
+                 });
+                 console.log("PDF Download - Calculated Comparison Data:", comparisonData); // Debugging log
+
+                 // --- MODIFICATION FOR COMPARISON VIEW PAGINATION START ---
+
+ // Get the number of tables per row from the dropdown
+    const tablesPerRow = parseInt(document.getElementById('tablesPerRowSelect').value, 10) || 2;
+
+    // Group Unit/Mixing combinations into rows based on the selected value
+    const groupedUnitMixingRows = [];
+    for (let i = 0; i < uniqueUnitMixings.length; i += tablesPerRow) {
+        groupedUnitMixingRows.push(uniqueUnitMixings.slice(i, i + tablesPerRow));
+    }
+
+    // Split rows into chunks of 2 rows per page
+    const rowsPerPage = 2; // Maximum 2 rows of tables per page
+    const rowChunks = [];
+    for (let i = 0; i < groupedUnitMixingRows.length; i += rowsPerPage) {
+        rowChunks.push(groupedUnitMixingRows.slice(i, i + rowsPerPage));
+    }
+
+    let pageNumber = 1;
+
+    rowChunks.forEach((chunk, chunkIndex) => {
+        if (chunkIndex > 0) {
+            pdf.addPage();
+            startY = headerAreaHeight; // Reset startY for the new page
+            pageNumber++;
+        }
+
+        // Draw the company name and remarks on each page
+        const drawHeader = () => {
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+
+            // Company Name
+            pdf.setFontSize(16);
+            pdf.setTextColor('#000080');
+            const companyNameY = pageMargin + 15;
+            pdf.text('Sagar Manufacturers Pvt. Ltd.', pageMargin, companyNameY);
+
+            // Remarks
+            if (remarks) {
+                const remarksY = companyNameY + 20;
+                pdf.setFontSize(14);
+                pdf.setTextColor('#333');
+                const splitRemarks = pdf.splitTextToSize(remarks, pdfWidth - 2 * pageMargin);
+                pdf.text(splitRemarks, pageMargin, remarksY);
+            }
+
+            // Page Number
+            pdf.setFontSize(10);
+            pdf.setTextColor(150);
+            pdf.text(`Page ${pageNumber}`, pdfWidth - pageMargin, pdf.internal.pageSize.getHeight() - pageMargin, { align: 'right' });
+        };
+
+        drawHeader(); // Draw the header on each page
+
+        chunk.forEach((unitMixingRow, rowIndex) => {
+            const body = comparisonRows.map(rowName => {
+                const row = [rowName];
+                unitMixingRow.forEach(key => {
+                    const data = comparisonData[rowName] && comparisonData[rowName][key] ? comparisonData[rowName][key] : { month1Avg: '-', month2Avg: '-', diff: '-' };
+                    row.push(data.month1Avg, data.month2Avg, data.diff);
+                });
+                return row;
+            });
+
+            const head = [
+                ['Department', ...unitMixingRow.flatMap(key => [`Unit: ${key.split('|')[0]}`, '', ''])],
+                ['', ...unitMixingRow.flatMap(() => [comparisonMonth1, comparisonMonth2, 'Diff'])],
+            ];
+
+            pdf.autoTable({
+                head,
+                body,
+                startY,
+                theme: 'grid',
+                headStyles: {
+                    fillColor: '#a9a9a9',
+                    textColor: '#333',
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle',
+                },
+                bodyStyles: {
+                    textColor: '#333',
+                    valign: 'top',
+                },
+                alternateRowStyles: {
+                    fillColor: '#f5f5f5',
+                },
+                columnStyles: {
+                    0: { halign: 'left' },
+                },
+            });
+
+            startY = pdf.autoTable.previous.finalY + 20; // Update startY for the next table
+        });
+    });
+                 // --- MODIFICATION FOR COMPARISON VIEW PAGINATION END ---
+
+            }
+
+
+            // Check if any pages were added to the document.
+            // pdf.internal.getNumberOfPages() is a more reliable check after autoTable calls.
+             if (pdf.internal.getNumberOfPages() <= 1 && pdf.autoTable.previous.finalY === undefined) {
+                 // If only one default page exists AND no tables were drawn by autoTable,
+                 // it indicates no data was processed for either view.
+                 alert("No data available for the selected filters for PDF download.");
+                 console.log("PDF Download - No data processed, no pages generated."); // Debugging log
+                 return;
+             }
+             // Note: The above check might still need refinement depending on edge cases.
+             // If uniqueUnitMixings is empty for comparison view, the loop won't run,
+             // and the alert before the loop handles that. If dataToProcess is empty
+             // for table view, pdfHeaders and pdfRows will be empty, and the alert
+             // for table view handles that. This final check is a fallback.
+
+
+            console.log("PDF Download - Generating PDF..."); // Debugging log
+
+            pdf.save("waste_summary_dashboard.pdf");
+        }
+
+  // --- Event Listeners ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // Add event listener to the Load Waste Data button
+        document.getElementById('loadWasteDataButton').addEventListener('click', loadWasteData);
+
+        // Add event listeners to controls that appear after data load
+        document.getElementById('applyFiltersButton').addEventListener('click', applyFilters);
+        document.getElementById('applyColumnWidthButton').addEventListener('click', applyColumnWidth);
+        document.getElementById('applyColumnAlignmentButton').addEventListener('click', applyColumnAlignment);
+        document.getElementById('showReorderPanelButton').addEventListener('click', showReorderPanel);
+        document.getElementById('applyReorderButton').addEventListener('click', applyReorder);
+        document.getElementById('cancelReorderButton').addEventListener('click', hideReorderPanel);
+
+        // Layout buttons
+        document.getElementById('saveLayoutButton').addEventListener('click', saveLayout);
+        document.getElementById('loadLayoutButton').addEventListener('click', loadLayout);
+        document.getElementById('deleteLayoutButton').addEventListener('click', deleteLayout);
+
+        // Average mode checkbox listener
+        document.getElementById('showAverageCheckbox').addEventListener('change', applyFilters);
+
+        // View toggle listener
+        document.getElementById('dashboardViewSelect').addEventListener('change', applyFilters);
+
+
+        // Initialize saved layout names dropdown on page load
+        loadSavedLayoutNames();
+
+        // Add event listeners for download buttons
+        document.getElementById('downloadExcelButton').addEventListener('click', downloadExcel);
+        document.getElementById('downloadPdfButton').addEventListener('click', downloadPdf);
+
+        // Initial state: show only the load button
+        updateControlVisibility(false); // Hide controls initially
+        document.getElementById('dataLoadButtonContainer').style.display = 'block';
+         document.getElementById('tableContainer').innerHTML = '<p>Click "Load Waste Data" to display the dashboard.</p>';
+
+
+    });
+
+
+</script>
+
+</body>
+</html>
